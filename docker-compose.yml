@@ -6,7 +6,7 @@ services:
     restart: always
     environment:
       DB_HOST: monorail.proxy.rlwy.net
-      DB_PORT: 5432
+      DB_PORT: 59125
       DB_USER: ${DB_USER:-postgres}
       DB_PASSWORD: ${DB_PASSWORD:-iCpQvgIFIWszefTiXZrRIGpOPLUMXXGa}
       DB_NAME: ${DB_NAME:-railway}
@@ -31,7 +31,7 @@ services:
         condition: service_healthy
     environment:
       DB_HOST: monorail.proxy.rlwy.net
-      DB_PORT: 5432
+      DB_PORT: 59125
       DB_USER: ${DB_USER:-postgres}
       DB_PASSWORD: ${DB_PASSWORD:-iCpQvgIFIWszefTiXZrRIGpOPLUMXXGa}
       DB_NAME: ${DB_NAME:-railway}
