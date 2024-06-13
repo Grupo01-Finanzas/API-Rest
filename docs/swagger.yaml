@@ -1,0 +1,2804 @@
+basePath: /api/v1
+definitions:
+  entities.CreditRequestStatus:
+    enum:
+    - PENDING
+    - APPROVED
+    - REJECTED
+    type: string
+    x-enum-varnames:
+    - Pending
+    - Approved
+    - Rejected
+  entities.ProductCategory:
+    enum:
+    - Grocery
+    - FruitAndVeg
+    - Meat
+    - Poultry
+    - Seafood
+    - Bakery
+    - Liquor
+    - GeneralStore
+    type: string
+    x-enum-varnames:
+    - ProductCategoryGrocery
+    - ProductCategoryFruitAndVeg
+    - ProductCategoryMeat
+    - ProductCategoryPoultry
+    - ProductCategorySeafood
+    - ProductCategoryBakery
+    - ProductCategoryLiquor
+    - ProductCategoryGeneralStore
+  enums.CreditType:
+    enum:
+    - SHORT_TERM
+    - LONG_TERM
+    type: string
+    x-enum-varnames:
+    - ShortTerm
+    - LongTerm
+  enums.FeeType:
+    enum:
+    - PERCENTAGE
+    - FIXED_AMOUNT
+    type: string
+    x-enum-varnames:
+    - Percentage
+    - FixedAmount
+  enums.InstallmentStatus:
+    enum:
+    - PENDING
+    - PAID
+    - OVERDUE
+    type: string
+    x-enum-varnames:
+    - Pending
+    - Paid
+    - Overdue
+  enums.InterestType:
+    enum:
+    - NOMINAL
+    - EFFECTIVE
+    type: string
+    x-enum-varnames:
+    - Nominal
+    - Effective
+  enums.RecipientType:
+    enum:
+    - CLIENT
+    - ESTABLISHMENT
+    - ADMIN
+    type: string
+    x-enum-varnames:
+    - RolClient
+    - RolEstablishment
+    - RolAdmin
+  enums.TransactionType:
+    enum:
+    - PURCHASE
+    - PAYMENT
+    - INTEREST_ACCRUAL
+    - LATE_FEE_APPLIED
+    - CREDIT_LIMIT_INCREASE
+    - CREDIT_LIMIT_DECREASE
+    - EARLY_PAYMENT
+    - ACCOUNT_BLOCKED
+    - ACCOUNT_UNBLOCKED
+    type: string
+    x-enum-varnames:
+    - Purchase
+    - Payment
+    - InterestAccrual
+    - LateFeeApplied
+    - CreditLimitIncrease
+    - CreditLimitDecrease
+    - EarlyPayment
+    - AccountBlocked
+    - AccountUnblocked
+  request.CreateAdminRequest:
+    properties:
+      establishment_id:
+        type: integer
+      is_active:
+        type: boolean
+      user_id:
+        type: integer
+    required:
+    - establishment_id
+    - user_id
+    type: object
+  request.CreateClientRequest:
+    properties:
+      credit_limit:
+        minimum: 0
+        type: number
+      email:
+        type: string
+      is_active:
+        type: boolean
+      phone:
+        type: string
+      user_id:
+        type: integer
+    required:
+    - credit_limit
+    - email
+    - phone
+    - user_id
+    type: object
+  request.CreateCreditAccountRequest:
+    properties:
+      client_id:
+        type: integer
+      credit_limit:
+        type: number
+      credit_type:
+        $ref: '#/definitions/enums.CreditType'
+      establishment_id:
+        type: integer
+      grace_period:
+        description: Optional
+        minimum: 0
+        type: integer
+      interest_rate:
+        type: number
+      interest_type:
+        $ref: '#/definitions/enums.InterestType'
+      late_fee_rule_id:
+        description: Optional
+        type: integer
+      monthly_due_date:
+        maximum: 31
+        minimum: 1
+        type: integer
+    required:
+    - client_id
+    - credit_limit
+    - credit_type
+    - establishment_id
+    - interest_rate
+    - interest_type
+    - monthly_due_date
+    type: object
+  request.CreateCreditRequest:
+    properties:
+      client_id:
+        type: integer
+      credit_type:
+        $ref: '#/definitions/enums.CreditType'
+      establishment_id:
+        type: integer
+      grace_period:
+        description: Optional
+        minimum: 0
+        type: integer
+      interest_rate:
+        type: number
+      interest_type:
+        $ref: '#/definitions/enums.InterestType'
+      monthly_due_date:
+        maximum: 31
+        minimum: 1
+        type: integer
+      requested_credit_limit:
+        type: number
+    required:
+    - client_id
+    - credit_type
+    - establishment_id
+    - interest_rate
+    - interest_type
+    - monthly_due_date
+    - requested_credit_limit
+    type: object
+  request.CreateEstablishmentRequest:
+    properties:
+      address:
+        type: string
+      admin_id:
+        type: integer
+      is_active:
+        type: boolean
+      name:
+        type: string
+      phone:
+        type: string
+      ruc:
+        type: string
+    required:
+    - address
+    - admin_id
+    - name
+    - phone
+    - ruc
+    type: object
+  request.CreateInstallmentRequest:
+    properties:
+      amount:
+        type: number
+      credit_account_id:
+        type: integer
+      due_date:
+        type: string
+      status:
+        $ref: '#/definitions/enums.InstallmentStatus'
+    required:
+    - amount
+    - credit_account_id
+    - due_date
+    - status
+    type: object
+  request.CreateLateFeeRequest:
+    properties:
+      amount:
+        type: number
+      credit_account_id:
+        type: integer
+    required:
+    - amount
+    - credit_account_id
+    type: object
+  request.CreateLateFeeRuleRequest:
+    properties:
+      days_overdue_max:
+        type: integer
+      days_overdue_min:
+        minimum: 1
+        type: integer
+      establishment_id:
+        description: Optional, if rule is for specific establishment
+        type: integer
+      fee_type:
+        $ref: '#/definitions/enums.FeeType'
+      fee_value:
+        type: number
+      name:
+        type: string
+    required:
+    - days_overdue_max
+    - days_overdue_min
+    - fee_type
+    - fee_value
+    - name
+    type: object
+  request.CreateProductRequest:
+    properties:
+      category:
+        $ref: '#/definitions/entities.ProductCategory'
+      description:
+        type: string
+      establishment_id:
+        type: integer
+      is_active:
+        type: boolean
+      name:
+        type: string
+      price:
+        type: number
+      stock:
+        minimum: 0
+        type: integer
+    required:
+    - category
+    - description
+    - establishment_id
+    - name
+    - price
+    - stock
+    type: object
+  request.CreateTransactionRequest:
+    properties:
+      amount:
+        type: number
+      credit_account_id:
+        type: integer
+      description:
+        description: Optional
+        type: string
+      recipient_id:
+        type: integer
+      recipient_type:
+        $ref: '#/definitions/enums.RecipientType'
+      transaction_type:
+        $ref: '#/definitions/enums.TransactionType'
+    required:
+    - amount
+    - credit_account_id
+    - recipient_id
+    - recipient_type
+    - transaction_type
+    type: object
+  request.CreateUserRequest:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+      password:
+        minLength: 6
+        type: string
+      role:
+        description: Puedes usar enum si lo prefieres
+        enum:
+        - user
+        - client
+        - admin
+        type: string
+    required:
+    - email
+    - name
+    - password
+    - role
+    type: object
+  request.LoginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  request.ResetPasswordRequest:
+    properties:
+      current_password:
+        type: string
+      new_password:
+        minLength: 6
+        type: string
+    required:
+    - current_password
+    - new_password
+    type: object
+  request.UpdateAdminRequest:
+    properties:
+      is_active:
+        type: boolean
+    type: object
+  request.UpdateClientRequest:
+    properties:
+      credit_limit:
+        minimum: 0
+        type: number
+      email:
+        type: string
+      is_active:
+        type: boolean
+      phone:
+        type: string
+    required:
+    - credit_limit
+    - email
+    - phone
+    type: object
+  request.UpdateCreditAccountRequest:
+    properties:
+      credit_limit:
+        type: number
+      credit_type:
+        $ref: '#/definitions/enums.CreditType'
+      current_balance:
+        description: Added CurrentBalance field
+        type: number
+      grace_period:
+        minimum: 0
+        type: integer
+      interest_rate:
+        type: number
+      interest_type:
+        $ref: '#/definitions/enums.InterestType'
+      is_blocked:
+        type: boolean
+      late_fee_rule_id:
+        description: Optional
+        type: integer
+      monthly_due_date:
+        maximum: 31
+        minimum: 1
+        type: integer
+    type: object
+  request.UpdateEstablishmentRequest:
+    properties:
+      address:
+        type: string
+      is_active:
+        type: boolean
+      name:
+        type: string
+      phone:
+        type: string
+      ruc:
+        type: string
+    required:
+    - address
+    - name
+    - phone
+    - ruc
+    type: object
+  request.UpdateInstallmentRequest:
+    properties:
+      amount:
+        type: number
+      due_date:
+        type: string
+      status:
+        $ref: '#/definitions/enums.InstallmentStatus'
+    type: object
+  request.UpdateLateFeeRequest:
+    properties:
+      amount:
+        type: number
+    type: object
+  request.UpdateLateFeeRuleRequest:
+    properties:
+      days_overdue_max:
+        type: integer
+      days_overdue_min:
+        minimum: 1
+        type: integer
+      fee_type:
+        $ref: '#/definitions/enums.FeeType'
+      fee_value:
+        type: number
+      name:
+        type: string
+    type: object
+  request.UpdateProductRequest:
+    properties:
+      category:
+        $ref: '#/definitions/entities.ProductCategory'
+      description:
+        type: string
+      is_active:
+        type: boolean
+      name:
+        type: string
+      price:
+        type: number
+      stock:
+        minimum: 0
+        type: integer
+    required:
+    - category
+    - description
+    - name
+    - price
+    - stock
+    type: object
+  request.UpdateTransactionRequest:
+    properties:
+      amount:
+        type: number
+      description:
+        type: string
+      transaction_type:
+        $ref: '#/definitions/enums.TransactionType'
+    type: object
+  response.AdminDebtSummary:
+    properties:
+      client_id:
+        type: integer
+      client_name:
+        type: string
+      credit_type:
+        type: string
+      current_balance:
+        type: number
+      due_date:
+        description: For short-term or next installment
+        type: string
+      interest_rate:
+        type: number
+      number_of_installments:
+        description: Only for long-term
+        type: integer
+    type: object
+  response.AdminResponse:
+    properties:
+      created_at:
+        type: string
+      establishment:
+        $ref: '#/definitions/response.EstablishmentResponse'
+      establishment_id:
+        type: integer
+      id:
+        type: integer
+      is_active:
+        type: boolean
+      updated_at:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  response.AuthResponse:
+    properties:
+      access_token:
+        type: string
+      refresh_token:
+        type: string
+    type: object
+  response.ClientResponse:
+    properties:
+      created_at:
+        type: string
+      credit_limit:
+        type: number
+      email:
+        type: string
+      id:
+        type: integer
+      is_active:
+        type: boolean
+      phone:
+        type: string
+      updated_at:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  response.CreditAccountResponse:
+    properties:
+      client:
+        $ref: '#/definitions/response.ClientResponse'
+      client_id:
+        type: integer
+      created_at:
+        type: string
+      credit_limit:
+        type: number
+      credit_type:
+        $ref: '#/definitions/enums.CreditType'
+      current_balance:
+        type: number
+      establishment_id:
+        type: integer
+      grace_period:
+        type: integer
+      id:
+        type: integer
+      interest_rate:
+        type: number
+      interest_type:
+        $ref: '#/definitions/enums.InterestType'
+      is_blocked:
+        type: boolean
+      last_interest_accrual_date:
+        type: string
+      late_fee_rule:
+        $ref: '#/definitions/response.LateFeeRuleResponse'
+      late_fee_rule_id:
+        type: integer
+      monthly_due_date:
+        type: integer
+      updated_at:
+        type: string
+    type: object
+  response.CreditRequestResponse:
+    properties:
+      approved_at:
+        type: string
+      client_id:
+        type: integer
+      created_at:
+        type: string
+      credit_type:
+        $ref: '#/definitions/enums.CreditType'
+      establishment_id:
+        type: integer
+      grace_period:
+        type: integer
+      id:
+        type: integer
+      interest_type:
+        $ref: '#/definitions/enums.InterestType'
+      monthly_due_date:
+        type: integer
+      rejected_at:
+        type: string
+      requested_credit_limit:
+        type: number
+      status:
+        $ref: '#/definitions/entities.CreditRequestStatus'
+      updated_at:
+        type: string
+    type: object
+  response.ErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
+  response.EstablishmentResponse:
+    properties:
+      address:
+        type: string
+      admin:
+        $ref: '#/definitions/response.AdminResponse'
+      created_at:
+        type: string
+      id:
+        type: integer
+      is_active:
+        type: boolean
+      name:
+        type: string
+      phone:
+        type: string
+      products:
+        items:
+          $ref: '#/definitions/response.ProductResponse'
+        type: array
+      ruc:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  response.InstallmentResponse:
+    properties:
+      amount:
+        type: number
+      credit_account_id:
+        type: integer
+      due_date:
+        type: string
+      id:
+        type: integer
+      status:
+        $ref: '#/definitions/enums.InstallmentStatus'
+    type: object
+  response.LateFeeResponse:
+    properties:
+      amount:
+        type: number
+      applied_date:
+        type: string
+      credit_account_id:
+        type: integer
+      id:
+        type: integer
+    type: object
+  response.LateFeeRuleResponse:
+    properties:
+      days_overdue_max:
+        type: integer
+      days_overdue_min:
+        type: integer
+      establishment_id:
+        type: integer
+      fee_type:
+        $ref: '#/definitions/enums.FeeType'
+      fee_value:
+        type: number
+      id:
+        type: integer
+      name:
+        type: string
+    type: object
+  response.ProductResponse:
+    properties:
+      category:
+        $ref: '#/definitions/entities.ProductCategory'
+      created_at:
+        type: string
+      description:
+        type: string
+      establishment:
+        $ref: '#/definitions/response.EstablishmentResponse'
+      id:
+        type: integer
+      is_active:
+        type: boolean
+      name:
+        type: string
+      price:
+        type: number
+      stock:
+        type: integer
+      updated_at:
+        type: string
+    type: object
+  response.TransactionResponse:
+    properties:
+      amount:
+        type: number
+      created_at:
+        type: string
+      credit_account_id:
+        type: integer
+      description:
+        type: string
+      id:
+        type: integer
+      transaction_type:
+        $ref: '#/definitions/enums.TransactionType'
+      updated_at:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: API for managing finances in small businesses.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Final Assignment Finance API Rest
+  version: "1.0"
+paths:
+  /api/v1/admins:
+    get:
+      consumes:
+      - application/json
+      description: Gets a list of all admins.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/response.AdminResponse'
+            type: array
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get all admins
+      tags:
+      - Admins
+    post:
+      consumes:
+      - application/json
+      description: Creates a new admin with the provided data
+      parameters:
+      - description: Admin data
+        in: body
+        name: admin
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreateAdminRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/response.AdminResponse'
+        "400":
+          description: Invalid request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create a new admin
+      tags:
+      - Admins
+  /api/v1/admins/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes an admin by their ID.
+      parameters:
+      - description: Admin ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Admin deleted successfully
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Invalid admin ID
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Admin not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Delete admin
+      tags:
+      - Admins
+    get:
+      consumes:
+      - application/json
+      description: Gets an admin by their ID.
+      parameters:
+      - description: Admin ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.AdminResponse'
+        "400":
+          description: Invalid admin ID
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Admin not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get admin by ID
+      tags:
+      - Admins
+    put:
+      consumes:
+      - application/json
+      description: Updates an admin\'s data.
+      parameters:
+      - description: Admin ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Updated admin data
+        in: body
+        name: admin
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdateAdminRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Admin updated successfully
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Invalid admin ID or request body
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Admin not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Update admin
+      tags:
+      - Admins
+  /api/v1/clients:
+    get:
+      consumes:
+      - application/json
+      description: Gets a list of all clients.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/response.ClientResponse'
+            type: array
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get all clients
+      tags:
+      - Clients
+    post:
+      consumes:
+      - application/json
+      description: Creates a new client with the provided data.
+      parameters:
+      - description: Client data
+        in: body
+        name: client
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreateClientRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/response.ClientResponse'
+        "400":
+          description: Invalid request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create a new client
+      tags:
+      - Clients
+  /api/v1/clients/{clientID}/credit-accounts:
+    get:
+      description: Retrieves all credit accounts associated with a client.
+      parameters:
+      - description: Client ID
+        in: path
+        name: clientID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/response.CreditAccountResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Get credit accounts by client ID
+      tags:
+      - CreditAccounts
+  /api/v1/clients/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes a client by its ID.
+      parameters:
+      - description: Client ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Client deleted successfully
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Invalid client ID
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Client not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Delete client
+      tags:
+      - Clients
+    get:
+      consumes:
+      - application/json
+      description: Gets a client by its ID.
+      parameters:
+      - description: Client ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.ClientResponse'
+        "400":
+          description: Invalid client ID
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Client not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get client by ID
+      tags:
+      - Clients
+    put:
+      consumes:
+      - application/json
+      description: Updates a client's data.
+      parameters:
+      - description: Client ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Updated client data
+        in: body
+        name: client
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdateClientRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Client updated successfully
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Invalid client ID or request body
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Client not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Update client
+      tags:
+      - Clients
+  /api/v1/credit-accounts:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new credit account for a client.
+      parameters:
+      - description: Credit account details
+        in: body
+        name: creditAccount
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreateCreditAccountRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/response.CreditAccountResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Create a new credit account
+      tags:
+      - CreditAccounts
+  /api/v1/credit-accounts/{creditAccountID}/clients/{clientID}:
+    put:
+      description: Assigns an existing credit account to a client.
+      parameters:
+      - description: Credit Account ID
+        in: path
+        name: creditAccountID
+        required: true
+        type: integer
+      - description: Client ID
+        in: path
+        name: clientID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.CreditAccountResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Assign credit account to client
+      tags:
+      - CreditAccounts
+  /api/v1/credit-accounts/{creditAccountID}/installments:
+    get:
+      description: Retrieves all installments for a specific credit account.
+      parameters:
+      - description: Credit Account ID
+        in: path
+        name: creditAccountID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/response.InstallmentResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Get installments by credit account ID
+      tags:
+      - Installments
+  /api/v1/credit-accounts/{creditAccountID}/installments/overdue:
+    get:
+      description: Retrieves all overdue installments for a specific credit account.
+      parameters:
+      - description: Credit Account ID
+        in: path
+        name: creditAccountID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/response.InstallmentResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Get overdue installments by credit account ID
+      tags:
+      - Installments
+  /api/v1/credit-accounts/{creditAccountID}/late-fees:
+    get:
+      description: Retrieves all late fees for a specific credit account.
+      parameters:
+      - description: Credit Account ID
+        in: path
+        name: creditAccountID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/response.LateFeeResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Get late fees by credit account ID
+      tags:
+      - LateFees
+  /api/v1/credit-accounts/{creditAccountID}/payments:
+    post:
+      consumes:
+      - application/json
+      description: Processes a payment transaction on a credit account.
+      parameters:
+      - description: Credit Account ID
+        in: path
+        name: creditAccountID
+        required: true
+        type: integer
+      - description: Payment details
+        in: body
+        name: payment
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreateTransactionRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Payment processed successfully
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Process a payment
+      tags:
+      - CreditAccounts
+  /api/v1/credit-accounts/{creditAccountID}/purchases:
+    post:
+      consumes:
+      - application/json
+      description: Processes a purchase transaction on a credit account.
+      parameters:
+      - description: Credit Account ID
+        in: path
+        name: creditAccountID
+        required: true
+        type: integer
+      - description: Purchase details
+        in: body
+        name: purchase
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreateTransactionRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Purchase processed successfully
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Process a purchase
+      tags:
+      - CreditAccounts
+  /api/v1/credit-accounts/{creditAccountID}/transactions:
+    get:
+      consumes:
+      - application/json
+      description: Get all transactions for a specific credit account.
+      parameters:
+      - description: Credit Account ID
+        in: path
+        name: creditAccountID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/response.TransactionResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Get Transaction by Credit Account ID
+      tags:
+      - Transactions
+  /api/v1/credit-accounts/{id}:
+    delete:
+      description: Deletes a credit account by its ID.
+      parameters:
+      - description: Credit Account ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Delete a credit account
+      tags:
+      - CreditAccounts
+    get:
+      description: Retrieves a credit account by its ID.
+      parameters:
+      - description: Credit Account ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.CreditAccountResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Get credit account by ID
+      tags:
+      - CreditAccounts
+    put:
+      consumes:
+      - application/json
+      description: Updates an existing credit account by its ID.
+      parameters:
+      - description: Credit Account ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Updated credit account details
+        in: body
+        name: creditAccount
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdateCreditAccountRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.CreditAccountResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Update a credit account
+      tags:
+      - CreditAccounts
+  /api/v1/credit-requests:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new credit request for a client.
+      parameters:
+      - description: Credit request details
+        in: body
+        name: creditRequest
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreateCreditRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/response.CreditRequestResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Create a credit request
+      tags:
+      - CreditRequests
+  /api/v1/credit-requests/{id}:
+    get:
+      description: Retrieves a credit request by its ID.
+      parameters:
+      - description: Credit Request ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.CreditRequestResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Get credit request by ID
+      tags:
+      - CreditRequests
+  /api/v1/credit-requests/{id}/approve:
+    put:
+      description: Approves a pending credit request and creates a credit account.
+      parameters:
+      - description: Credit Request ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.CreditAccountResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Approve credit request
+      tags:
+      - CreditRequests
+  /api/v1/credit-requests/{id}/reject:
+    put:
+      description: Rejects a pending credit request.
+      parameters:
+      - description: Credit Request ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Credit request rejected successfully
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Reject credit request
+      tags:
+      - CreditRequests
+  /api/v1/establishments:
+    get:
+      description: Retrieve a list of all establishments.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/response.EstablishmentResponse'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Get all establishments
+      tags:
+      - Establishments
+    post:
+      consumes:
+      - application/json
+      description: Create a new establishment with admin details.
+      parameters:
+      - description: Establishment details
+        in: body
+        name: establishment
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreateEstablishmentRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/response.EstablishmentResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Create a new establishment
+      tags:
+      - Establishments
+  /api/v1/establishments/{establishment_id}/products:
+    get:
+      description: Retrieve products associated with a specific establishment ID.
+      parameters:
+      - description: Establishment ID
+        in: path
+        name: establishment_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/response.ProductResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Get products by establishment ID
+      tags:
+      - Products
+  /api/v1/establishments/{establishmentID}/credit-accounts:
+    get:
+      description: Retrieves all credit accounts associated with an establishment.
+      parameters:
+      - description: Establishment ID
+        in: path
+        name: establishmentID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/response.CreditAccountResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Get credit accounts by establishment ID
+      tags:
+      - CreditAccounts
+  /api/v1/establishments/{establishmentID}/credit-accounts/apply-interest:
+    post:
+      description: Applies interest to all eligible credit accounts within an establishment.
+      parameters:
+      - description: Establishment ID
+        in: path
+        name: establishmentID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Interest applied successfully
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Apply interest to all accounts
+      tags:
+      - CreditAccounts
+  /api/v1/establishments/{establishmentID}/credit-accounts/apply-late-fees:
+    post:
+      description: Applies late fees to all eligible credit accounts within an establishment.
+      parameters:
+      - description: Establishment ID
+        in: path
+        name: establishmentID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Late fees applied successfully
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Apply late fees to all accounts
+      tags:
+      - CreditAccounts
+  /api/v1/establishments/{establishmentID}/credit-accounts/debt-summary:
+    get:
+      description: Retrieves a summary of debts owed to an establishment.
+      parameters:
+      - description: Establishment ID
+        in: path
+        name: establishmentID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/response.AdminDebtSummary'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Get admin debt summary
+      tags:
+      - CreditAccounts
+  /api/v1/establishments/{establishmentID}/credit-requests/pending:
+    get:
+      description: Retrieves all pending credit requests for an establishment.
+      parameters:
+      - description: Establishment ID
+        in: path
+        name: establishmentID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/response.CreditRequestResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Get pending credit requests
+      tags:
+      - CreditRequests
+  /api/v1/establishments/{establishmentID}/late-fee-rules:
+    get:
+      description: Retrieves all late fee rules for a specific establishment.
+      parameters:
+      - description: Establishment ID
+        in: path
+        name: establishmentID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/response.LateFeeRuleResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Get late fee rules by establishment ID
+      tags:
+      - LateFeeRules
+  /api/v1/establishments/{id}:
+    delete:
+      description: Delete an establishment by ID.
+      parameters:
+      - description: Establishment ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Delete an establishment
+      tags:
+      - Establishments
+    get:
+      description: Retrieve an establishment by its ID.
+      parameters:
+      - description: Establishment ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.EstablishmentResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Get an establishment by ID
+      tags:
+      - Establishments
+    put:
+      consumes:
+      - application/json
+      description: Update an existing establishment by ID.
+      parameters:
+      - description: Establishment ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Establishment details
+        in: body
+        name: establishment
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdateEstablishmentRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.EstablishmentResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Update an existing establishment
+      tags:
+      - Establishments
+  /api/v1/establishments/{id}/clients/{client_id}:
+    put:
+      description: Associate a client with an establishment.
+      parameters:
+      - description: Establishment ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Client ID
+        in: path
+        name: client_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Add a client to an establishment
+      tags:
+      - Establishments
+  /api/v1/establishments/{id}/products:
+    post:
+      consumes:
+      - application/json
+      description: Associate a list of products with an establishment.
+      parameters:
+      - description: Establishment ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: List of product IDs
+        in: body
+        name: products
+        required: true
+        schema:
+          items:
+            type: integer
+          type: array
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Register products for an establishment
+      tags:
+      - Establishments
+  /api/v1/installments:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new installment for a credit account.
+      parameters:
+      - description: Installment details
+        in: body
+        name: installment
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreateInstallmentRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/response.InstallmentResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Create a new installment
+      tags:
+      - Installments
+  /api/v1/installments/{id}:
+    delete:
+      description: Deletes an installment by its ID.
+      parameters:
+      - description: Installment ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Delete an installment
+      tags:
+      - Installments
+    get:
+      description: Retrieves an installment by its ID.
+      parameters:
+      - description: Installment ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.InstallmentResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Get installment by ID
+      tags:
+      - Installments
+    put:
+      consumes:
+      - application/json
+      description: Updates an existing installment by its ID.
+      parameters:
+      - description: Installment ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Updated installment details
+        in: body
+        name: installment
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdateInstallmentRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.InstallmentResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Update an installment
+      tags:
+      - Installments
+  /api/v1/late-fee-rules:
+    get:
+      description: Retrieves all late fee rules.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/response.LateFeeRuleResponse'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Get all late fee rules
+      tags:
+      - LateFeeRules
+    post:
+      consumes:
+      - application/json
+      description: Creates a new late fee rule for an establishment (or globally).
+      parameters:
+      - description: Late fee rule details
+        in: body
+        name: lateFeeRule
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreateLateFeeRuleRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/response.LateFeeRuleResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Create a late fee rule
+      tags:
+      - LateFeeRules
+  /api/v1/late-fee-rules/{id}:
+    delete:
+      description: Deletes a late fee rule by its ID.
+      parameters:
+      - description: Late Fee Rule ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Delete a late fee rule
+      tags:
+      - LateFeeRules
+    get:
+      description: Retrieves a late fee rule by its ID.
+      parameters:
+      - description: Late Fee Rule ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.LateFeeRuleResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Get late fee rule by ID
+      tags:
+      - LateFeeRules
+    put:
+      consumes:
+      - application/json
+      description: Updates an existing late fee rule by its ID.
+      parameters:
+      - description: Late Fee Rule ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Updated late fee rule details
+        in: body
+        name: lateFeeRule
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdateLateFeeRuleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.LateFeeRuleResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Update a late fee rule
+      tags:
+      - LateFeeRules
+  /api/v1/late-fees:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new late fee for a credit account.
+      parameters:
+      - description: Late fee details
+        in: body
+        name: lateFee
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreateLateFeeRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/response.LateFeeResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Create a late fee
+      tags:
+      - LateFees
+  /api/v1/late-fees/{id}:
+    delete:
+      description: Deletes a late fee by its ID.
+      parameters:
+      - description: Late Fee ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Delete a late fee
+      tags:
+      - LateFees
+    get:
+      description: Retrieves a late fee by its ID.
+      parameters:
+      - description: Late Fee ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.LateFeeResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Get late fee by ID
+      tags:
+      - LateFees
+    put:
+      consumes:
+      - application/json
+      description: Updates an existing late fee by its ID.
+      parameters:
+      - description: Late Fee ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Updated late fee details
+        in: body
+        name: lateFee
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdateLateFeeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.LateFeeResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Update a late fee
+      tags:
+      - LateFees
+  /api/v1/login:
+    post:
+      consumes:
+      - application/json
+      description: Logs in with user credentials
+      parameters:
+      - description: User credentials
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/request.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.AuthResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Login
+      tags:
+      - Authentication
+  /api/v1/products:
+    get:
+      description: Retrieve a list of all products.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/response.ProductResponse'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Get all products
+      tags:
+      - Products
+    post:
+      consumes:
+      - application/json
+      description: Create a new product associated with an establishment.
+      parameters:
+      - description: Product details
+        in: body
+        name: product
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreateProductRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/response.ProductResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Create a new product
+      tags:
+      - Products
+  /api/v1/products/{id}:
+    delete:
+      description: Delete a product by ID.
+      parameters:
+      - description: Product ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Delete a product
+      tags:
+      - Products
+    get:
+      description: Retrieve a product by its ID.
+      parameters:
+      - description: Product ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.ProductResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Get a product by ID
+      tags:
+      - Products
+    put:
+      consumes:
+      - application/json
+      description: Update an existing product by ID.
+      parameters:
+      - description: Product ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Product details
+        in: body
+        name: product
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdateProductRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.ProductResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Update an existing product
+      tags:
+      - Products
+  /api/v1/refresh:
+    post:
+      consumes:
+      - application/json
+      description: Generates a new access token from a valid refresh token.
+      parameters:
+      - description: Bearer {refreshToken}
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.AuthResponse'
+        "401":
+          description: Invalid or expired refresh token.
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Refresh access token
+      tags:
+      - Authentication
+  /api/v1/register:
+    post:
+      consumes:
+      - application/json
+      description: Registers a new user with the provided data
+      parameters:
+      - description: User data
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Register a new user
+      tags:
+      - Authentication
+  /api/v1/reset-password:
+    post:
+      consumes:
+      - application/json
+      description: Resets the password for the authenticated user, requiring the current
+        password
+      parameters:
+      - description: Bearer {accessToken}
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Reset password request
+        in: body
+        name: reset
+        required: true
+        schema:
+          $ref: '#/definitions/request.ResetPasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Reset password
+      tags:
+      - Authentication
+  /api/v1/transactions:
+    post:
+      consumes:
+      - application/json
+      description: Create a new transaction for a credit account.
+      parameters:
+      - description: Transaction Data
+        in: body
+        name: transaction
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreateTransactionRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/response.TransactionResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Create Transaction
+      tags:
+      - Transactions
+  /api/v1/transactions/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a transaction by its ID.
+      parameters:
+      - description: Transaction ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          schema:
+            $ref: '#/definitions/response.TransactionResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Delete Transaction
+      tags:
+      - Transactions
+    get:
+      consumes:
+      - application/json
+      description: Get a transaction by its ID.
+      parameters:
+      - description: Transaction ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.TransactionResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Get Transaction by ID
+      tags:
+      - Transactions
+    put:
+      consumes:
+      - application/json
+      description: Update a transaction by its ID.
+      parameters:
+      - description: Transaction ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Transaction Data
+        in: body
+        name: transaction
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdateTransactionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.TransactionResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Update Transaction
+      tags:
+      - Transactions
+swagger: "2.0"
