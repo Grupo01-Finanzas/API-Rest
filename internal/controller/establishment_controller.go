@@ -31,7 +31,7 @@ func NewEstablishmentController(establishmentService service.EstablishmentServic
 // @Produce json
 // @Success 200 {array} response.EstablishmentResponse
 // @Failure 500 {object} response.ErrorResponse
-// @Router /api/v1/establishments [get]
+// @Router /establishments [get]
 func (c *EstablishmentController) GetAllEstablishments(ctx *gin.Context) {
 	establishments, err := c.establishmentService.GetAll()
 	if err != nil {
@@ -51,7 +51,7 @@ func (c *EstablishmentController) GetAllEstablishments(ctx *gin.Context) {
 // @Success 200 {object} response.EstablishmentResponse
 // @Failure 404 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
-// @Router /api/v1/establishments/{id} [get]
+// @Router /establishments/{id} [get]
 func (c *EstablishmentController) GetEstablishmentByID(ctx *gin.Context) {
 	id, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
 	if err != nil {
@@ -82,7 +82,7 @@ func (c *EstablishmentController) GetEstablishmentByID(ctx *gin.Context) {
 // @Success 201 {object} response.EstablishmentResponse
 // @Failure 400 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
-// @Router /api/v1/establishments [post]
+// @Router /establishments [post]
 func (c *EstablishmentController) CreateEstablishment(ctx *gin.Context) {
 	var req request.CreateEstablishmentRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -111,7 +111,7 @@ func (c *EstablishmentController) CreateEstablishment(ctx *gin.Context) {
 // @Failure 400 {object} response.ErrorResponse
 // @Failure 404 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
-// @Router /api/v1/establishments/{id} [put]
+// @Router /establishments/{id} [put]
 func (c *EstablishmentController) UpdateEstablishment(ctx *gin.Context) {
 	id, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
 	if err != nil {
@@ -147,7 +147,7 @@ func (c *EstablishmentController) UpdateEstablishment(ctx *gin.Context) {
 // @Success 204
 // @Failure 404 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
-// @Router /api/v1/establishments/{id} [delete]
+// @Router /establishments/{id} [delete]
 func (c *EstablishmentController) DeleteEstablishment(ctx *gin.Context) {
 	id, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
 	if err != nil {
@@ -180,7 +180,7 @@ func (c *EstablishmentController) DeleteEstablishment(ctx *gin.Context) {
 // @Failure 400 {object} response.ErrorResponse
 // @Failure 404 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
-// @Router /api/v1/establishments/{id}/products [post]
+// @Router /establishments/{id}/products [post]
 func (c *EstablishmentController) RegisterProducts(ctx *gin.Context) {
 	establishmentID, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
 	if err != nil {
@@ -218,7 +218,7 @@ func (c *EstablishmentController) RegisterProducts(ctx *gin.Context) {
 // @Failure 400 {object} response.ErrorResponse
 // @Failure 404 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
-// @Router /api/v1/establishments/{id}/clients/{client_id} [put]
+// @Router /establishments/{id}/clients/{client_id} [put]
 func (c *EstablishmentController) AddClientToEstablishment(ctx *gin.Context) {
 	establishmentID, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
 	if err != nil {

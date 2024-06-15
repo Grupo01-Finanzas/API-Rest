@@ -34,7 +34,7 @@ func NewTransactionController(transactionService service.TransactionService) *Tr
 // @Success 201 {object} response.TransactionResponse
 // @Failure 400 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
-// @Router /api/v1/transactions [post]
+// @Router /transactions [post]
 func (c *TransactionController) CreateTransaction(ctx *gin.Context) {
 	var req request.CreateTransactionRequest
 
@@ -62,7 +62,7 @@ func (c *TransactionController) CreateTransaction(ctx *gin.Context) {
 // @Failure 400 {object} response.ErrorResponse
 // @Failure 404 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
-// @Router /api/v1/transactions/{id} [get]
+// @Router /transactions/{id} [get]
 func (c *TransactionController) GetTransactionByID(ctx *gin.Context) {
 	transactionID, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
@@ -94,7 +94,7 @@ func (c *TransactionController) GetTransactionByID(ctx *gin.Context) {
 // @Failure 400 {object} response.ErrorResponse
 // @Failure 404 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
-// @Router /api/v1/transactions/{id} [put]
+// @Router /transactions/{id} [put]
 func (c *TransactionController) UpdateTransaction(ctx *gin.Context) {
 	transactionID, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
@@ -131,7 +131,7 @@ func (c *TransactionController) UpdateTransaction(ctx *gin.Context) {
 // @Failure 400 {object} response.ErrorResponse
 // @Failure 404 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
-// @Router /api/v1/transactions/{id} [delete]
+// @Router /transactions/{id} [delete]
 func (c *TransactionController) DeleteTransaction(ctx *gin.Context) {
 	transactionID, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
@@ -161,7 +161,7 @@ func (c *TransactionController) DeleteTransaction(ctx *gin.Context) {
 // @Failure 400 {object} response.ErrorResponse
 // @Failure 404 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
-// @Router /api/v1/credit-accounts/{creditAccountID}/transactions [get]
+// @Router /credit-accounts/{creditAccountID}/transactions [get]
 func (c *TransactionController) GetTransactionsByCreditAccountID(ctx *gin.Context) {
 	creditAccountID, err := strconv.Atoi(ctx.Param("creditAccountID"))
 	if err != nil {

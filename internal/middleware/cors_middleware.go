@@ -6,9 +6,10 @@ import (
 )
 
 func CorsMiddleware() gin.HandlerFunc {
+
 	// Configure CORS middleware
 	c := cors.New(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:3000", "http://localhost:8080"},
+		AllowedOrigins:   []string{"*"},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Authorization", "Content-Type", "Accept"},
 		AllowCredentials: true,

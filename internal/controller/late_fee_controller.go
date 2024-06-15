@@ -32,7 +32,7 @@ func NewLateFeeController(lateFeeService service.LateFeeService) *LateFeeControl
 // @Success 201 {object} response.LateFeeResponse
 // @Failure 400 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
-// @Router /api/v1/late-fees [post]
+// @Router /late-fees [post]
 func (c *LateFeeController) CreateLateFee(ctx *gin.Context) {
 	var req request.CreateLateFeeRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -59,7 +59,7 @@ func (c *LateFeeController) CreateLateFee(ctx *gin.Context) {
 // @Failure 400 {object} response.ErrorResponse
 // @Failure 404 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
-// @Router /api/v1/late-fees/{id} [get]
+// @Router /late-fees/{id} [get]
 func (c *LateFeeController) GetLateFeeByID(ctx *gin.Context) {
 	id, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
@@ -92,7 +92,7 @@ func (c *LateFeeController) GetLateFeeByID(ctx *gin.Context) {
 // @Failure 400 {object} response.ErrorResponse
 // @Failure 404 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
-// @Router /api/v1/late-fees/{id} [put]
+// @Router /late-fees/{id} [put]
 func (c *LateFeeController) UpdateLateFee(ctx *gin.Context) {
 	id, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
@@ -129,7 +129,7 @@ func (c *LateFeeController) UpdateLateFee(ctx *gin.Context) {
 // @Failure 400 {object} response.ErrorResponse
 // @Failure 404 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
-// @Router /api/v1/late-fees/{id} [delete]
+// @Router /late-fees/{id} [delete]
 func (c *LateFeeController) DeleteLateFee(ctx *gin.Context) {
 	id, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
@@ -158,7 +158,7 @@ func (c *LateFeeController) DeleteLateFee(ctx *gin.Context) {
 // @Success 200 {array} response.LateFeeResponse
 // @Failure 400 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
-// @Router /api/v1/credit-accounts/{creditAccountID}/late-fees [get]
+// @Router /credit-accounts/{creditAccountID}/late-fees [get]
 func (c *LateFeeController) GetLateFeesByCreditAccountID(ctx *gin.Context) {
 	creditAccountID, err := strconv.Atoi(ctx.Param("creditAccountID"))
 	if err != nil {

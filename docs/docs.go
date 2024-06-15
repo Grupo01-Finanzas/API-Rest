@@ -24,7 +24,7 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/api/v1/admins": {
+        "/admins": {
             "get": {
                 "description": "Gets a list of all admins.",
                 "consumes": [
@@ -109,7 +109,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/admins/{id}": {
+        "/admins/{id}": {
             "get": {
                 "description": "Gets an admin by their ID.",
                 "consumes": [
@@ -297,7 +297,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/clients": {
+        "/clients": {
             "get": {
                 "description": "Gets a list of all clients.",
                 "consumes": [
@@ -382,7 +382,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/clients/{clientID}/credit-accounts": {
+        "/clients/{clientID}/credit-accounts": {
             "get": {
                 "description": "Retrieves all credit accounts associated with a client.",
                 "produces": [
@@ -426,7 +426,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/clients/{id}": {
+        "/clients/{id}": {
             "get": {
                 "description": "Gets a client by its ID.",
                 "consumes": [
@@ -614,7 +614,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/credit-accounts": {
+        "/credit-accounts": {
             "post": {
                 "description": "Creates a new credit account for a client.",
                 "consumes": [
@@ -660,7 +660,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/credit-accounts/{creditAccountID}/clients/{clientID}": {
+        "/credit-accounts/{creditAccountID}/clients/{clientID}": {
             "put": {
                 "description": "Assigns an existing credit account to a client.",
                 "produces": [
@@ -714,7 +714,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/credit-accounts/{creditAccountID}/installments": {
+        "/credit-accounts/{creditAccountID}/installments": {
             "get": {
                 "description": "Retrieves all installments for a specific credit account.",
                 "produces": [
@@ -758,7 +758,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/credit-accounts/{creditAccountID}/installments/overdue": {
+        "/credit-accounts/{creditAccountID}/installments/overdue": {
             "get": {
                 "description": "Retrieves all overdue installments for a specific credit account.",
                 "produces": [
@@ -802,7 +802,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/credit-accounts/{creditAccountID}/late-fees": {
+        "/credit-accounts/{creditAccountID}/late-fees": {
             "get": {
                 "description": "Retrieves all late fees for a specific credit account.",
                 "produces": [
@@ -846,7 +846,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/credit-accounts/{creditAccountID}/payments": {
+        "/credit-accounts/{creditAccountID}/payments": {
             "post": {
                 "description": "Processes a payment transaction on a credit account.",
                 "consumes": [
@@ -902,7 +902,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/credit-accounts/{creditAccountID}/purchases": {
+        "/credit-accounts/{creditAccountID}/purchases": {
             "post": {
                 "description": "Processes a purchase transaction on a credit account.",
                 "consumes": [
@@ -958,7 +958,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/credit-accounts/{creditAccountID}/transactions": {
+        "/credit-accounts/{creditAccountID}/transactions": {
             "get": {
                 "description": "Get all transactions for a specific credit account.",
                 "consumes": [
@@ -1011,7 +1011,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/credit-accounts/{id}": {
+        "/credit-accounts/{id}": {
             "get": {
                 "description": "Retrieves a credit account by its ID.",
                 "produces": [
@@ -1157,7 +1157,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/credit-requests": {
+        "/credit-requests": {
             "post": {
                 "description": "Creates a new credit request for a client.",
                 "consumes": [
@@ -1203,7 +1203,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/credit-requests/{id}": {
+        "/credit-requests/{id}": {
             "get": {
                 "description": "Retrieves a credit request by its ID.",
                 "produces": [
@@ -1250,7 +1250,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/credit-requests/{id}/approve": {
+        "/credit-requests/{id}/approve": {
             "put": {
                 "description": "Approves a pending credit request and creates a credit account.",
                 "produces": [
@@ -1297,7 +1297,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/credit-requests/{id}/reject": {
+        "/credit-requests/{id}/reject": {
             "put": {
                 "description": "Rejects a pending credit request.",
                 "produces": [
@@ -1341,7 +1341,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/establishments": {
+        "/establishments": {
             "get": {
                 "description": "Retrieve a list of all establishments.",
                 "produces": [
@@ -1414,7 +1414,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/establishments/{establishmentID}/credit-accounts": {
+        "/establishments/{establishmentID}/credit-accounts": {
             "get": {
                 "description": "Retrieves all credit accounts associated with an establishment.",
                 "produces": [
@@ -1458,7 +1458,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/establishments/{establishmentID}/credit-accounts/apply-interest": {
+        "/establishments/{establishmentID}/credit-accounts/apply-interest": {
             "post": {
                 "description": "Applies interest to all eligible credit accounts within an establishment.",
                 "produces": [
@@ -1496,7 +1496,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/establishments/{establishmentID}/credit-accounts/apply-late-fees": {
+        "/establishments/{establishmentID}/credit-accounts/apply-late-fees": {
             "post": {
                 "description": "Applies late fees to all eligible credit accounts within an establishment.",
                 "produces": [
@@ -1534,7 +1534,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/establishments/{establishmentID}/credit-accounts/debt-summary": {
+        "/establishments/{establishmentID}/credit-accounts/debt-summary": {
             "get": {
                 "description": "Retrieves a summary of debts owed to an establishment.",
                 "produces": [
@@ -1578,7 +1578,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/establishments/{establishmentID}/credit-requests/pending": {
+        "/establishments/{establishmentID}/credit-requests/pending": {
             "get": {
                 "description": "Retrieves all pending credit requests for an establishment.",
                 "produces": [
@@ -1622,7 +1622,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/establishments/{establishmentID}/late-fee-rules": {
+        "/establishments/{establishmentID}/late-fee-rules": {
             "get": {
                 "description": "Retrieves all late fee rules for a specific establishment.",
                 "produces": [
@@ -1666,7 +1666,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/establishments/{establishment_id}/products": {
+        "/establishments/{establishment_id}/products": {
             "get": {
                 "description": "Retrieve products associated with a specific establishment ID.",
                 "produces": [
@@ -1710,7 +1710,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/establishments/{id}": {
+        "/establishments/{id}": {
             "get": {
                 "description": "Retrieve an establishment by its ID.",
                 "produces": [
@@ -1844,7 +1844,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/establishments/{id}/clients/{client_id}": {
+        "/establishments/{id}/clients/{client_id}": {
             "put": {
                 "description": "Associate a client with an establishment.",
                 "produces": [
@@ -1895,7 +1895,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/establishments/{id}/products": {
+        "/establishments/{id}/products": {
             "post": {
                 "description": "Associate a list of products with an establishment.",
                 "consumes": [
@@ -1954,7 +1954,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/installments": {
+        "/installments": {
             "post": {
                 "description": "Creates a new installment for a credit account.",
                 "consumes": [
@@ -2000,7 +2000,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/installments/{id}": {
+        "/installments/{id}": {
             "get": {
                 "description": "Retrieves an installment by its ID.",
                 "produces": [
@@ -2146,7 +2146,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/late-fee-rules": {
+        "/late-fee-rules": {
             "get": {
                 "description": "Retrieves all late fee rules.",
                 "produces": [
@@ -2219,7 +2219,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/late-fee-rules/{id}": {
+        "/late-fee-rules/{id}": {
             "get": {
                 "description": "Retrieves a late fee rule by its ID.",
                 "produces": [
@@ -2365,7 +2365,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/late-fees": {
+        "/late-fees": {
             "post": {
                 "description": "Creates a new late fee for a credit account.",
                 "consumes": [
@@ -2411,7 +2411,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/late-fees/{id}": {
+        "/late-fees/{id}": {
             "get": {
                 "description": "Retrieves a late fee by its ID.",
                 "produces": [
@@ -2557,7 +2557,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/login": {
+        "/login": {
             "post": {
                 "description": "Logs in with user credentials",
                 "consumes": [
@@ -2600,7 +2600,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/products": {
+        "/products": {
             "get": {
                 "description": "Retrieve a list of all products.",
                 "produces": [
@@ -2673,7 +2673,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/products/{id}": {
+        "/products/{id}": {
             "get": {
                 "description": "Retrieve a product by its ID.",
                 "produces": [
@@ -2807,7 +2807,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/refresh": {
+        "/refresh": {
             "post": {
                 "description": "Generates a new access token from a valid refresh token.",
                 "consumes": [
@@ -2848,7 +2848,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/register": {
+        "/register": {
             "post": {
                 "description": "Registers a new user with the provided data",
                 "consumes": [
@@ -2894,7 +2894,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/reset-password": {
+        "/reset-password": {
             "post": {
                 "description": "Resets the password for the authenticated user, requiring the current password",
                 "consumes": [
@@ -2956,7 +2956,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/transactions": {
+        "/transactions": {
             "post": {
                 "description": "Create a new transaction for a credit account.",
                 "consumes": [
@@ -3002,7 +3002,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/transactions/{id}": {
+        "/transactions/{id}": {
             "get": {
                 "description": "Get a transaction by its ID.",
                 "consumes": [
@@ -3595,7 +3595,7 @@ const docTemplate = `{
                 },
                 "password": {
                     "type": "string",
-                    "minLength": 6
+                    "minLength": 8
                 },
                 "role": {
                     "description": "Puedes usar enum si lo prefieres",
@@ -4191,7 +4191,7 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
-	Host:             "localhost:8080",
+	Host:             "",
 	BasePath:         "/api/v1",
 	Schemes:          []string{},
 	Title:            "Final Assignment Finance API Rest",

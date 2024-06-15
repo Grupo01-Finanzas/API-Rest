@@ -31,7 +31,7 @@ func NewClientController(clientService service.ClientService) *ClientController 
 // @Success      201     {object}  response.ClientResponse
 // @Failure      400     {object}  map[string]string  "Invalid request"
 // @Failure      500     {object}  map[string]string  "Internal server error"
-// @Router       /api/v1/clients [post]
+// @Router       /clients [post]
 func (c *ClientController) CreateClient(ctx *gin.Context) {
 	var req request.CreateClientRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -68,7 +68,7 @@ func (c *ClientController) CreateClient(ctx *gin.Context) {
 // @Produce      json
 // @Success      200     {array}   response.ClientResponse
 // @Failure      500     {object}  map[string]string  "Internal server error"
-// @Router       /api/v1/clients [get]
+// @Router       /clients [get]
 func (c *ClientController) GetAllClients(ctx *gin.Context) {
 	clients, err := c.clientService.GetAllClients()
 	if err != nil {
@@ -104,7 +104,7 @@ func (c *ClientController) GetAllClients(ctx *gin.Context) {
 // @Failure      400  {object}  map[string]string  "Invalid client ID"
 // @Failure      404  {object}  map[string]string  "Client not found"
 // @Failure      500  {object}  map[string]string  "Internal server error"
-// @Router       /api/v1/clients/{id} [get]
+// @Router       /clients/{id} [get]
 func (c *ClientController) GetClientByID(ctx *gin.Context) {
 	clientID, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
@@ -144,7 +144,7 @@ func (c *ClientController) GetClientByID(ctx *gin.Context) {
 // @Failure      400     {object}  map[string]string  "Invalid client ID or request body"
 // @Failure      404     {object}  map[string]string  "Client not found"
 // @Failure      500     {object}  map[string]string  "Internal server error"
-// @Router       /api/v1/clients/{id} [put]
+// @Router       /clients/{id} [put]
 func (c *ClientController) UpdateClient(ctx *gin.Context) {
 	clientID, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
@@ -191,7 +191,7 @@ func (c *ClientController) UpdateClient(ctx *gin.Context) {
 // @Failure      400  {object}  map[string]string  "Invalid client ID"
 // @Failure      404  {object}  map[string]string  "Client not found"
 // @Failure      500  {object}  map[string]string  "Internal server error"
-// @Router       /api/v1/clients/{id} [delete]
+// @Router       /clients/{id} [delete]
 func (c *ClientController) DeleteClient(ctx *gin.Context) {
 	clientID, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {

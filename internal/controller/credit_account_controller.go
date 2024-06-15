@@ -33,7 +33,7 @@ func NewCreditAccountController(creditAccountService service.CreditAccountServic
 // @Success 201 {object} response.CreditAccountResponse
 // @Failure 400 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
-// @Router /api/v1/credit-accounts [post]
+// @Router /credit-accounts [post]
 func (c *CreditAccountController) CreateCreditAccount(ctx *gin.Context) {
 	var req request.CreateCreditAccountRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -60,7 +60,7 @@ func (c *CreditAccountController) CreateCreditAccount(ctx *gin.Context) {
 // @Failure 400 {object} response.ErrorResponse
 // @Failure 404 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
-// @Router /api/v1/credit-accounts/{id} [get]
+// @Router /credit-accounts/{id} [get]
 func (c *CreditAccountController) GetCreditAccountByID(ctx *gin.Context) {
 	id, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
@@ -93,7 +93,7 @@ func (c *CreditAccountController) GetCreditAccountByID(ctx *gin.Context) {
 // @Failure 400 {object} response.ErrorResponse
 // @Failure 404 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
-// @Router /api/v1/credit-accounts/{id} [put]
+// @Router /credit-accounts/{id} [put]
 func (c *CreditAccountController) UpdateCreditAccount(ctx *gin.Context) {
 	id, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
@@ -130,7 +130,7 @@ func (c *CreditAccountController) UpdateCreditAccount(ctx *gin.Context) {
 // @Failure 400 {object} response.ErrorResponse
 // @Failure 404 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
-// @Router /api/v1/credit-accounts/{id} [delete]
+// @Router /credit-accounts/{id} [delete]
 func (c *CreditAccountController) DeleteCreditAccount(ctx *gin.Context) {
 	id, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
@@ -159,7 +159,7 @@ func (c *CreditAccountController) DeleteCreditAccount(ctx *gin.Context) {
 // @Success 200 {array} response.CreditAccountResponse
 // @Failure 400 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
-// @Router /api/v1/establishments/{establishmentID}/credit-accounts [get]
+// @Router /establishments/{establishmentID}/credit-accounts [get]
 func (c *CreditAccountController) GetCreditAccountsByEstablishmentID(ctx *gin.Context) {
 	establishmentID, err := strconv.Atoi(ctx.Param("establishmentID"))
 	if err != nil {
@@ -185,7 +185,7 @@ func (c *CreditAccountController) GetCreditAccountsByEstablishmentID(ctx *gin.Co
 // @Success 200 {array} response.CreditAccountResponse
 // @Failure 400 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
-// @Router /api/v1/clients/{clientID}/credit-accounts [get]
+// @Router /clients/{clientID}/credit-accounts [get]
 func (c *CreditAccountController) GetCreditAccountsByClientID(ctx *gin.Context) {
 	clientID, err := strconv.Atoi(ctx.Param("clientID"))
 	if err != nil {
@@ -211,7 +211,7 @@ func (c *CreditAccountController) GetCreditAccountsByClientID(ctx *gin.Context) 
 // @Success 200 "Interest applied successfully"
 // @Failure 400 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
-// @Router /api/v1/establishments/{establishmentID}/credit-accounts/apply-interest [post]
+// @Router /establishments/{establishmentID}/credit-accounts/apply-interest [post]
 func (c *CreditAccountController) ApplyInterestToAllAccounts(ctx *gin.Context) {
 	establishmentID, err := strconv.Atoi(ctx.Param("establishmentID"))
 	if err != nil {
@@ -236,7 +236,7 @@ func (c *CreditAccountController) ApplyInterestToAllAccounts(ctx *gin.Context) {
 // @Success 200 "Late fees applied successfully"
 // @Failure 400 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
-// @Router /api/v1/establishments/{establishmentID}/credit-accounts/apply-late-fees [post]
+// @Router /establishments/{establishmentID}/credit-accounts/apply-late-fees [post]
 func (c *CreditAccountController) ApplyLateFeesToAllAccounts(ctx *gin.Context) {
 	establishmentID, err := strconv.Atoi(ctx.Param("establishmentID"))
 	if err != nil {
@@ -261,7 +261,7 @@ func (c *CreditAccountController) ApplyLateFeesToAllAccounts(ctx *gin.Context) {
 // @Success 200 {array} response.AdminDebtSummary
 // @Failure 400 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
-// @Router /api/v1/establishments/{establishmentID}/credit-accounts/debt-summary [get]
+// @Router /establishments/{establishmentID}/credit-accounts/debt-summary [get]
 func (c *CreditAccountController) GetAdminDebtSummary(ctx *gin.Context) {
 	establishmentID, err := strconv.Atoi(ctx.Param("establishmentID"))
 	if err != nil {
@@ -290,7 +290,7 @@ func (c *CreditAccountController) GetAdminDebtSummary(ctx *gin.Context) {
 // @Failure 400 {object} response.ErrorResponse
 // @Failure 404 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
-// @Router /api/v1/credit-accounts/{creditAccountID}/purchases [post]
+// @Router /credit-accounts/{creditAccountID}/purchases [post]
 func (c *CreditAccountController) ProcessPurchase(ctx *gin.Context) {
 	creditAccountID, err := strconv.Atoi(ctx.Param("creditAccountID"))
 	if err != nil {
@@ -327,7 +327,7 @@ func (c *CreditAccountController) ProcessPurchase(ctx *gin.Context) {
 // @Failure 400 {object} response.ErrorResponse
 // @Failure 404 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
-// @Router /api/v1/credit-accounts/{creditAccountID}/payments [post]
+// @Router /credit-accounts/{creditAccountID}/payments [post]
 func (c *CreditAccountController) ProcessPayment(ctx *gin.Context) {
 	creditAccountID, err := strconv.Atoi(ctx.Param("creditAccountID"))
 	if err != nil {
@@ -362,7 +362,7 @@ func (c *CreditAccountController) ProcessPayment(ctx *gin.Context) {
 // @Success 201 {object} response.CreditRequestResponse
 // @Failure 400 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
-// @Router /api/v1/credit-requests [post]
+// @Router /credit-requests [post]
 func (c *CreditAccountController) CreateCreditRequest(ctx *gin.Context) {
 	var req request.CreateCreditRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -389,7 +389,7 @@ func (c *CreditAccountController) CreateCreditRequest(ctx *gin.Context) {
 // @Failure 400 {object} response.ErrorResponse
 // @Failure 404 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
-// @Router /api/v1/credit-requests/{id} [get]
+// @Router /credit-requests/{id} [get]
 func (c *CreditAccountController) GetCreditRequestByID(ctx *gin.Context) {
 	id, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
@@ -420,7 +420,7 @@ func (c *CreditAccountController) GetCreditRequestByID(ctx *gin.Context) {
 // @Failure 400 {object} response.ErrorResponse
 // @Failure 404 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
-// @Router /api/v1/credit-requests/{id}/approve [put]
+// @Router /credit-requests/{id}/approve [put]
 func (c *CreditAccountController) ApproveCreditRequest(ctx *gin.Context) {
 	id, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
@@ -454,7 +454,7 @@ func (c *CreditAccountController) ApproveCreditRequest(ctx *gin.Context) {
 // @Failure 400 {object} response.ErrorResponse
 // @Failure 404 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
-// @Router /api/v1/credit-requests/{id}/reject [put]
+// @Router /credit-requests/{id}/reject [put]
 func (c *CreditAccountController) RejectCreditRequest(ctx *gin.Context) {
 	id, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
@@ -486,7 +486,7 @@ func (c *CreditAccountController) RejectCreditRequest(ctx *gin.Context) {
 // @Success 200 {array} response.CreditRequestResponse
 // @Failure 400 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
-// @Router /api/v1/establishments/{establishmentID}/credit-requests/pending [get]
+// @Router /establishments/{establishmentID}/credit-requests/pending [get]
 func (c *CreditAccountController) GetPendingCreditRequests(ctx *gin.Context) {
 	establishmentID, err := strconv.Atoi(ctx.Param("establishmentID"))
 	if err != nil {
@@ -514,7 +514,7 @@ func (c *CreditAccountController) GetPendingCreditRequests(ctx *gin.Context) {
 // @Failure 400 {object} response.ErrorResponse
 // @Failure 404 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
-// @Router /api/v1/credit-accounts/{creditAccountID}/clients/{clientID} [put]
+// @Router /credit-accounts/{creditAccountID}/clients/{clientID} [put]
 func (c *CreditAccountController) AssignCreditAccountToClient(ctx *gin.Context) {
 	creditAccountID, err := strconv.Atoi(ctx.Param("creditAccountID"))
 	if err != nil {

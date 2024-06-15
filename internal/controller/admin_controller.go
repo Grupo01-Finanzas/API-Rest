@@ -30,7 +30,7 @@ func NewAdminController(adminService service.AdminService) *AdminController {
 // @Success      201     {object}  response.AdminResponse
 // @Failure      400     {object}  map[string]string  "Invalid request"
 // @Failure      500     {object}  map[string]string  "Internal server error"
-// @Router       /api/v1/admins [post]
+// @Router       /admins [post]
 func (c *AdminController) CreateAdmin(ctx *gin.Context) {
 	var req request.CreateAdminRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -93,7 +93,7 @@ func (c *AdminController) CreateAdmin(ctx *gin.Context) {
 // @Produce      json
 // @Success      200     {array}   response.AdminResponse
 // @Failure      500     {object}  map[string]string  "Internal server error"
-// @Router       /api/v1/admins [get]
+// @Router       /admins [get]
 func (c *AdminController) GetAllAdmins(ctx *gin.Context) {
 	admins, err := c.adminService.GetAllAdmins()
 	if err != nil {
@@ -150,7 +150,7 @@ func (c *AdminController) GetAllAdmins(ctx *gin.Context) {
 // @Failure      400  {object}  map[string]string  "Invalid admin ID"
 // @Failure      404  {object}  map[string]string  "Admin not found"
 // @Failure      500  {object}  map[string]string  "Internal server error"
-// @Router       /api/v1/admins/{id} [get]
+// @Router       /admins/{id} [get]
 func (c *AdminController) GetAdminByID(ctx *gin.Context) {
 	adminID, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
@@ -205,7 +205,7 @@ func (c *AdminController) GetAdminByID(ctx *gin.Context) {
 // @Failure      400     {object}  map[string]string  "Invalid admin ID or request body"
 // @Failure      404     {object}  map[string]string  "Admin not found"
 // @Failure      500     {object}  map[string]string  "Internal server error"
-// @Router       /api/v1/admins/{id} [put]
+// @Router       /admins/{id} [put]
 func (c *AdminController) UpdateAdmin(ctx *gin.Context) {
 	adminID, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
@@ -249,7 +249,7 @@ func (c *AdminController) UpdateAdmin(ctx *gin.Context) {
 // @Failure      400  {object}  map[string]string  "Invalid admin ID"
 // @Failure      404  {object}  map[string]string  "Admin not found"
 // @Failure      500  {object}  map[string]string  "Internal server error"
-// @Router       /api/v1/admins/{id} [delete]
+// @Router       /admins/{id} [delete]
 func (c *AdminController) DeleteAdmin(ctx *gin.Context) {
 	adminID, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
@@ -277,7 +277,7 @@ func (c *AdminController) DeleteAdmin(ctx *gin.Context) {
 // @Failure      400     {object}  map[string]string  "Invalid request"
 // @Failure      401     {object}  map[string]string  "Unauthorized"
 // @Failure      500     {object}  map[string]string  "Internal server error"
-// @Router       /api/v1/establishments [post]
+// @Router       /establishments [post]
 func (c *AdminController) RegisterEstablishment(ctx *gin.Context) {
 	var req request.CreateEstablishmentRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {

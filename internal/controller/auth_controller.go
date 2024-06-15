@@ -27,7 +27,7 @@ func NewAuthController(authService service.AuthService) *AuthController {
 // @Param        user  body      request.CreateUserRequest  true  "User data"
 // @Success      201  {object}  map[string]string
 // @Failure      400  {object}  map[string]string
-// @Router       /api/v1/register [post]
+// @Router       /register [post]
 func (c *AuthController) Register(ctx *gin.Context) {
 	var req request.CreateUserRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -52,7 +52,7 @@ func (c *AuthController) Register(ctx *gin.Context) {
 // @Param        user  body      request.LoginRequest  true  "User credentials"
 // @Success      200  {object}  response.AuthResponse
 // @Failure      401  {object}  map[string]string
-// @Router       /api/v1/login [post]
+// @Router      /login [post]
 func (c *AuthController) Login(ctx *gin.Context) {
 	var req request.LoginRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -78,7 +78,7 @@ func (c *AuthController) Login(ctx *gin.Context) {
 // @Param        Authorization  header      string  true  "Bearer {refreshToken}"
 // @Success      200  {object}  response.AuthResponse
 // @Failure      401  {object}  map[string]string  "Invalid or expired refresh token."
-// @Router       /api/v1/refresh [post]
+// @Router       /refresh [post]
 func (c *AuthController) RefreshToken(ctx *gin.Context) {
 	refreshToken := ctx.GetHeader("Authorization")
 	if refreshToken == "" {
@@ -106,7 +106,7 @@ func (c *AuthController) RefreshToken(ctx *gin.Context) {
 // @Success      200  {object}  map[string]string
 // @Failure      400  {object}  map[string]string
 // @Failure      401  {object}  map[string]string
-// @Router       /api/v1/reset-password [post]
+// @Router       /reset-password [post]
 func (c *AuthController) ResetPassword(ctx *gin.Context) {
 	var req request.ResetPasswordRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {

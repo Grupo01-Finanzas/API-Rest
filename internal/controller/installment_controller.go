@@ -32,7 +32,7 @@ func NewInstallmentController(installmentService service.InstallmentService) *In
 // @Success 201 {object} response.InstallmentResponse
 // @Failure 400 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
-// @Router /api/v1/installments [post]
+// @Router /installments [post]
 func (c *InstallmentController) CreateInstallment(ctx *gin.Context) {
 	var req request.CreateInstallmentRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -59,7 +59,7 @@ func (c *InstallmentController) CreateInstallment(ctx *gin.Context) {
 // @Failure 400 {object} response.ErrorResponse
 // @Failure 404 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
-// @Router /api/v1/installments/{id} [get]
+// @Router /installments/{id} [get]
 func (c *InstallmentController) GetInstallmentByID(ctx *gin.Context) {
 	id, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
@@ -92,7 +92,7 @@ func (c *InstallmentController) GetInstallmentByID(ctx *gin.Context) {
 // @Failure 400 {object} response.ErrorResponse
 // @Failure 404 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
-// @Router /api/v1/installments/{id} [put]
+// @Router /installments/{id} [put]
 func (c *InstallmentController) UpdateInstallment(ctx *gin.Context) {
 	id, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
@@ -129,7 +129,7 @@ func (c *InstallmentController) UpdateInstallment(ctx *gin.Context) {
 // @Failure 400 {object} response.ErrorResponse
 // @Failure 404 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
-// @Router /api/v1/installments/{id} [delete]
+// @Router /installments/{id} [delete]
 func (c *InstallmentController) DeleteInstallment(ctx *gin.Context) {
 	id, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
@@ -158,7 +158,7 @@ func (c *InstallmentController) DeleteInstallment(ctx *gin.Context) {
 // @Success 200 {array} response.InstallmentResponse
 // @Failure 400 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
-// @Router /api/v1/credit-accounts/{creditAccountID}/installments [get]
+// @Router /credit-accounts/{creditAccountID}/installments [get]
 func (c *InstallmentController) GetInstallmentsByCreditAccountID(ctx *gin.Context) {
 	creditAccountID, err := strconv.Atoi(ctx.Param("creditAccountID"))
 	if err != nil {
@@ -184,7 +184,7 @@ func (c *InstallmentController) GetInstallmentsByCreditAccountID(ctx *gin.Contex
 // @Success 200 {array} response.InstallmentResponse
 // @Failure 400 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
-// @Router /api/v1/credit-accounts/{creditAccountID}/installments/overdue [get]
+// @Router /credit-accounts/{creditAccountID}/installments/overdue [get]
 func (c *InstallmentController) GetOverdueInstallments(ctx *gin.Context) {
 	creditAccountID, err := strconv.Atoi(ctx.Param("creditAccountID"))
 	if err != nil {

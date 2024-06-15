@@ -32,7 +32,7 @@ func NewLateFeeRuleController(lateFeeRuleService service.LateFeeRuleService) *La
 // @Success 201 {object} response.LateFeeRuleResponse
 // @Failure 400 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
-// @Router /api/v1/late-fee-rules [post]
+// @Router /late-fee-rules [post]
 func (c *LateFeeRuleController) CreateLateFeeRule(ctx *gin.Context) {
 	var req request.CreateLateFeeRuleRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -59,7 +59,7 @@ func (c *LateFeeRuleController) CreateLateFeeRule(ctx *gin.Context) {
 // @Failure 400 {object} response.ErrorResponse
 // @Failure 404 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
-// @Router /api/v1/late-fee-rules/{id} [get]
+// @Router /late-fee-rules/{id} [get]
 func (c *LateFeeRuleController) GetLateFeeRuleByID(ctx *gin.Context) {
 	id, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
@@ -92,7 +92,7 @@ func (c *LateFeeRuleController) GetLateFeeRuleByID(ctx *gin.Context) {
 // @Failure 400 {object} response.ErrorResponse
 // @Failure 404 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
-// @Router /api/v1/late-fee-rules/{id} [put]
+// @Router /late-fee-rules/{id} [put]
 func (c *LateFeeRuleController) UpdateLateFeeRule(ctx *gin.Context) {
 	id, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
@@ -129,7 +129,7 @@ func (c *LateFeeRuleController) UpdateLateFeeRule(ctx *gin.Context) {
 // @Failure 400 {object} response.ErrorResponse
 // @Failure 404 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
-// @Router /api/v1/late-fee-rules/{id} [delete]
+// @Router /late-fee-rules/{id} [delete]
 func (c *LateFeeRuleController) DeleteLateFeeRule(ctx *gin.Context) {
 	id, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
@@ -156,7 +156,7 @@ func (c *LateFeeRuleController) DeleteLateFeeRule(ctx *gin.Context) {
 // @Produce json
 // @Success 200 {array} response.LateFeeRuleResponse
 // @Failure 500 {object} response.ErrorResponse
-// @Router /api/v1/late-fee-rules [get]
+// @Router /late-fee-rules [get]
 func (c *LateFeeRuleController) GetAllLateFeeRules(ctx *gin.Context) {
 	lateFeeRules, err := c.lateFeeRuleService.GetAllLateFeeRules()
 	if err != nil {
@@ -176,7 +176,7 @@ func (c *LateFeeRuleController) GetAllLateFeeRules(ctx *gin.Context) {
 // @Success 200 {array} response.LateFeeRuleResponse
 // @Failure 400 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
-// @Router /api/v1/establishments/{establishmentID}/late-fee-rules [get]
+// @Router /establishments/{establishmentID}/late-fee-rules [get]
 func (c *LateFeeRuleController) GetLateFeeRulesByEstablishmentID(ctx *gin.Context) {
 	establishmentID, err := strconv.Atoi(ctx.Param("establishmentID"))
 	if err != nil {

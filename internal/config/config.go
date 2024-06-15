@@ -14,6 +14,7 @@ type Config struct {
 	DB         *gorm.DB
 	JwtSecret  string
 	ServerPort string
+	ServerHost string
 }
 
 // LoadConfig loads configuration from environment variables or .env file
@@ -41,6 +42,12 @@ func LoadConfig() (*Config, error) {
 		serverPort = "8080" // Default port
 	}
 
+	// Server host
+	serverHost := os.Getenv("SERVER_HOST")
+	if serverHost == "" {
+		serverHost = "localhost" // Default host
+	}
+
 	// Database connection string
 	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
 		dbHost, dbPort, dbUser, dbPass, dbName, dbSSLMode)
@@ -56,6 +63,7 @@ func LoadConfig() (*Config, error) {
 		DB:         db,
 		JwtSecret:  jwtSecret,
 		ServerPort: serverPort,
+		ServerHost: serverHost,
 	}
 
 	return cfg, nil

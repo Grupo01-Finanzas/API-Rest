@@ -316,7 +316,7 @@ definitions:
       name:
         type: string
       password:
-        minLength: 6
+        minLength: 8
         type: string
       role:
         description: Puedes usar enum si lo prefieres
@@ -715,7 +715,6 @@ definitions:
       updated_at:
         type: string
     type: object
-host: localhost:8080
 info:
   contact:
     email: support@swagger.io
@@ -729,7 +728,7 @@ info:
   title: Final Assignment Finance API Rest
   version: "1.0"
 paths:
-  /api/v1/admins:
+  /admins:
     get:
       consumes:
       - application/json
@@ -785,7 +784,7 @@ paths:
       summary: Create a new admin
       tags:
       - Admins
-  /api/v1/admins/{id}:
+  /admins/{id}:
     delete:
       consumes:
       - application/json
@@ -910,7 +909,7 @@ paths:
       summary: Update admin
       tags:
       - Admins
-  /api/v1/clients:
+  /clients:
     get:
       consumes:
       - application/json
@@ -966,7 +965,7 @@ paths:
       summary: Create a new client
       tags:
       - Clients
-  /api/v1/clients/{clientID}/credit-accounts:
+  /clients/{clientID}/credit-accounts:
     get:
       description: Retrieves all credit accounts associated with a client.
       parameters:
@@ -995,7 +994,7 @@ paths:
       summary: Get credit accounts by client ID
       tags:
       - CreditAccounts
-  /api/v1/clients/{id}:
+  /clients/{id}:
     delete:
       consumes:
       - application/json
@@ -1120,7 +1119,7 @@ paths:
       summary: Update client
       tags:
       - Clients
-  /api/v1/credit-accounts:
+  /credit-accounts:
     post:
       consumes:
       - application/json
@@ -1150,7 +1149,7 @@ paths:
       summary: Create a new credit account
       tags:
       - CreditAccounts
-  /api/v1/credit-accounts/{creditAccountID}/clients/{clientID}:
+  /credit-accounts/{creditAccountID}/clients/{clientID}:
     put:
       description: Assigns an existing credit account to a client.
       parameters:
@@ -1186,7 +1185,7 @@ paths:
       summary: Assign credit account to client
       tags:
       - CreditAccounts
-  /api/v1/credit-accounts/{creditAccountID}/installments:
+  /credit-accounts/{creditAccountID}/installments:
     get:
       description: Retrieves all installments for a specific credit account.
       parameters:
@@ -1215,7 +1214,7 @@ paths:
       summary: Get installments by credit account ID
       tags:
       - Installments
-  /api/v1/credit-accounts/{creditAccountID}/installments/overdue:
+  /credit-accounts/{creditAccountID}/installments/overdue:
     get:
       description: Retrieves all overdue installments for a specific credit account.
       parameters:
@@ -1244,7 +1243,7 @@ paths:
       summary: Get overdue installments by credit account ID
       tags:
       - Installments
-  /api/v1/credit-accounts/{creditAccountID}/late-fees:
+  /credit-accounts/{creditAccountID}/late-fees:
     get:
       description: Retrieves all late fees for a specific credit account.
       parameters:
@@ -1273,7 +1272,7 @@ paths:
       summary: Get late fees by credit account ID
       tags:
       - LateFees
-  /api/v1/credit-accounts/{creditAccountID}/payments:
+  /credit-accounts/{creditAccountID}/payments:
     post:
       consumes:
       - application/json
@@ -1310,7 +1309,7 @@ paths:
       summary: Process a payment
       tags:
       - CreditAccounts
-  /api/v1/credit-accounts/{creditAccountID}/purchases:
+  /credit-accounts/{creditAccountID}/purchases:
     post:
       consumes:
       - application/json
@@ -1347,7 +1346,7 @@ paths:
       summary: Process a purchase
       tags:
       - CreditAccounts
-  /api/v1/credit-accounts/{creditAccountID}/transactions:
+  /credit-accounts/{creditAccountID}/transactions:
     get:
       consumes:
       - application/json
@@ -1382,7 +1381,7 @@ paths:
       summary: Get Transaction by Credit Account ID
       tags:
       - Transactions
-  /api/v1/credit-accounts/{id}:
+  /credit-accounts/{id}:
     delete:
       description: Deletes a credit account by its ID.
       parameters:
@@ -1479,7 +1478,7 @@ paths:
       summary: Update a credit account
       tags:
       - CreditAccounts
-  /api/v1/credit-requests:
+  /credit-requests:
     post:
       consumes:
       - application/json
@@ -1509,7 +1508,7 @@ paths:
       summary: Create a credit request
       tags:
       - CreditRequests
-  /api/v1/credit-requests/{id}:
+  /credit-requests/{id}:
     get:
       description: Retrieves a credit request by its ID.
       parameters:
@@ -1540,7 +1539,7 @@ paths:
       summary: Get credit request by ID
       tags:
       - CreditRequests
-  /api/v1/credit-requests/{id}/approve:
+  /credit-requests/{id}/approve:
     put:
       description: Approves a pending credit request and creates a credit account.
       parameters:
@@ -1571,7 +1570,7 @@ paths:
       summary: Approve credit request
       tags:
       - CreditRequests
-  /api/v1/credit-requests/{id}/reject:
+  /credit-requests/{id}/reject:
     put:
       description: Rejects a pending credit request.
       parameters:
@@ -1600,7 +1599,7 @@ paths:
       summary: Reject credit request
       tags:
       - CreditRequests
-  /api/v1/establishments:
+  /establishments:
     get:
       description: Retrieve a list of all establishments.
       produces:
@@ -1648,7 +1647,7 @@ paths:
       summary: Create a new establishment
       tags:
       - Establishments
-  /api/v1/establishments/{establishment_id}/products:
+  /establishments/{establishment_id}/products:
     get:
       description: Retrieve products associated with a specific establishment ID.
       parameters:
@@ -1677,7 +1676,7 @@ paths:
       summary: Get products by establishment ID
       tags:
       - Products
-  /api/v1/establishments/{establishmentID}/credit-accounts:
+  /establishments/{establishmentID}/credit-accounts:
     get:
       description: Retrieves all credit accounts associated with an establishment.
       parameters:
@@ -1706,7 +1705,7 @@ paths:
       summary: Get credit accounts by establishment ID
       tags:
       - CreditAccounts
-  /api/v1/establishments/{establishmentID}/credit-accounts/apply-interest:
+  /establishments/{establishmentID}/credit-accounts/apply-interest:
     post:
       description: Applies interest to all eligible credit accounts within an establishment.
       parameters:
@@ -1731,7 +1730,7 @@ paths:
       summary: Apply interest to all accounts
       tags:
       - CreditAccounts
-  /api/v1/establishments/{establishmentID}/credit-accounts/apply-late-fees:
+  /establishments/{establishmentID}/credit-accounts/apply-late-fees:
     post:
       description: Applies late fees to all eligible credit accounts within an establishment.
       parameters:
@@ -1756,7 +1755,7 @@ paths:
       summary: Apply late fees to all accounts
       tags:
       - CreditAccounts
-  /api/v1/establishments/{establishmentID}/credit-accounts/debt-summary:
+  /establishments/{establishmentID}/credit-accounts/debt-summary:
     get:
       description: Retrieves a summary of debts owed to an establishment.
       parameters:
@@ -1785,7 +1784,7 @@ paths:
       summary: Get admin debt summary
       tags:
       - CreditAccounts
-  /api/v1/establishments/{establishmentID}/credit-requests/pending:
+  /establishments/{establishmentID}/credit-requests/pending:
     get:
       description: Retrieves all pending credit requests for an establishment.
       parameters:
@@ -1814,7 +1813,7 @@ paths:
       summary: Get pending credit requests
       tags:
       - CreditRequests
-  /api/v1/establishments/{establishmentID}/late-fee-rules:
+  /establishments/{establishmentID}/late-fee-rules:
     get:
       description: Retrieves all late fee rules for a specific establishment.
       parameters:
@@ -1843,7 +1842,7 @@ paths:
       summary: Get late fee rules by establishment ID
       tags:
       - LateFeeRules
-  /api/v1/establishments/{id}:
+  /establishments/{id}:
     delete:
       description: Delete an establishment by ID.
       parameters:
@@ -1932,7 +1931,7 @@ paths:
       summary: Update an existing establishment
       tags:
       - Establishments
-  /api/v1/establishments/{id}/clients/{client_id}:
+  /establishments/{id}/clients/{client_id}:
     put:
       description: Associate a client with an establishment.
       parameters:
@@ -1966,7 +1965,7 @@ paths:
       summary: Add a client to an establishment
       tags:
       - Establishments
-  /api/v1/establishments/{id}/products:
+  /establishments/{id}/products:
     post:
       consumes:
       - application/json
@@ -2005,7 +2004,7 @@ paths:
       summary: Register products for an establishment
       tags:
       - Establishments
-  /api/v1/installments:
+  /installments:
     post:
       consumes:
       - application/json
@@ -2035,7 +2034,7 @@ paths:
       summary: Create a new installment
       tags:
       - Installments
-  /api/v1/installments/{id}:
+  /installments/{id}:
     delete:
       description: Deletes an installment by its ID.
       parameters:
@@ -2132,7 +2131,7 @@ paths:
       summary: Update an installment
       tags:
       - Installments
-  /api/v1/late-fee-rules:
+  /late-fee-rules:
     get:
       description: Retrieves all late fee rules.
       produces:
@@ -2180,7 +2179,7 @@ paths:
       summary: Create a late fee rule
       tags:
       - LateFeeRules
-  /api/v1/late-fee-rules/{id}:
+  /late-fee-rules/{id}:
     delete:
       description: Deletes a late fee rule by its ID.
       parameters:
@@ -2277,7 +2276,7 @@ paths:
       summary: Update a late fee rule
       tags:
       - LateFeeRules
-  /api/v1/late-fees:
+  /late-fees:
     post:
       consumes:
       - application/json
@@ -2307,7 +2306,7 @@ paths:
       summary: Create a late fee
       tags:
       - LateFees
-  /api/v1/late-fees/{id}:
+  /late-fees/{id}:
     delete:
       description: Deletes a late fee by its ID.
       parameters:
@@ -2404,7 +2403,7 @@ paths:
       summary: Update a late fee
       tags:
       - LateFees
-  /api/v1/login:
+  /login:
     post:
       consumes:
       - application/json
@@ -2432,7 +2431,7 @@ paths:
       summary: Login
       tags:
       - Authentication
-  /api/v1/products:
+  /products:
     get:
       description: Retrieve a list of all products.
       produces:
@@ -2480,7 +2479,7 @@ paths:
       summary: Create a new product
       tags:
       - Products
-  /api/v1/products/{id}:
+  /products/{id}:
     delete:
       description: Delete a product by ID.
       parameters:
@@ -2569,7 +2568,7 @@ paths:
       summary: Update an existing product
       tags:
       - Products
-  /api/v1/refresh:
+  /refresh:
     post:
       consumes:
       - application/json
@@ -2596,7 +2595,7 @@ paths:
       summary: Refresh access token
       tags:
       - Authentication
-  /api/v1/register:
+  /register:
     post:
       consumes:
       - application/json
@@ -2626,7 +2625,7 @@ paths:
       summary: Register a new user
       tags:
       - Authentication
-  /api/v1/reset-password:
+  /reset-password:
     post:
       consumes:
       - application/json
@@ -2668,7 +2667,7 @@ paths:
       summary: Reset password
       tags:
       - Authentication
-  /api/v1/transactions:
+  /transactions:
     post:
       consumes:
       - application/json
@@ -2698,7 +2697,7 @@ paths:
       summary: Create Transaction
       tags:
       - Transactions
-  /api/v1/transactions/{id}:
+  /transactions/{id}:
     delete:
       consumes:
       - application/json

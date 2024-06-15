@@ -30,7 +30,7 @@ func NewProductController(productService service.ProductService) *ProductControl
 // @Produce json
 // @Success 200 {array} response.ProductResponse
 // @Failure 500 {object} response.ErrorResponse
-// @Router /api/v1/products [get]
+// @Router /products [get]
 func (c *ProductController) GetAllProducts(ctx *gin.Context) {
 	products, err := c.productService.GetAll()
 	if err != nil {
@@ -50,7 +50,7 @@ func (c *ProductController) GetAllProducts(ctx *gin.Context) {
 // @Success 200 {object} response.ProductResponse
 // @Failure 404 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
-// @Router /api/v1/products/{id} [get]
+// @Router /products/{id} [get]
 func (c *ProductController) GetProductByID(ctx *gin.Context) {
 	id, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
 	if err != nil {
@@ -80,7 +80,7 @@ func (c *ProductController) GetProductByID(ctx *gin.Context) {
 // @Success 200 {array} response.ProductResponse
 // @Failure 400 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
-// @Router /api/v1/establishments/{establishment_id}/products [get]
+// @Router /establishments/{establishment_id}/products [get]
 func (c *ProductController) GetProductsByEstablishmentID(ctx *gin.Context) {
 	establishmentID, err := strconv.ParseUint(ctx.Param("establishment_id"), 10, 64)
 	if err != nil {
@@ -107,7 +107,7 @@ func (c *ProductController) GetProductsByEstablishmentID(ctx *gin.Context) {
 // @Success 201 {object} response.ProductResponse
 // @Failure 400 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
-// @Router /api/v1/products [post]
+// @Router /products [post]
 func (c *ProductController) CreateProduct(ctx *gin.Context) {
 	var req request.CreateProductRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -136,7 +136,7 @@ func (c *ProductController) CreateProduct(ctx *gin.Context) {
 // @Failure 400 {object} response.ErrorResponse
 // @Failure 404 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
-// @Router /api/v1/products/{id} [put]
+// @Router /products/{id} [put]
 func (c *ProductController) UpdateProduct(ctx *gin.Context) {
 	id, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
 	if err != nil {
@@ -172,7 +172,7 @@ func (c *ProductController) UpdateProduct(ctx *gin.Context) {
 // @Success 204
 // @Failure 404 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
-// @Router /api/v1/products/{id} [delete]
+// @Router /products/{id} [delete]
 func (c *ProductController) DeleteProduct(ctx *gin.Context) {
 	id, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
 	if err != nil {
