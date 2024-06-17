@@ -39,8 +39,9 @@ func (c *ClientController) GetAllClients(ctx *gin.Context) {
 	var resp []response.ClientResponse
 	for _, client := range clients {
 		resp = append(resp, response.ClientResponse{
-			ID:        client.ID,        // Access ID from entities.Client
-			User:      client.User,      // Access UserID from entities.Client // Access CreditLimit from entities.Client
+			ID:        client.ID,
+			UserID:    client.UserID,
+			User:      client.User,
 			IsActive:  client.IsActive,  // Access IsActive from entities.Client
 			CreatedAt: client.CreatedAt, // Access CreatedAt from entities.Client
 			UpdatedAt: client.UpdatedAt, // Access UpdatedAt from entities.Client
@@ -78,6 +79,7 @@ func (c *ClientController) GetClientByID(ctx *gin.Context) {
 
 	resp := response.ClientResponse{
 		ID:        client.ID,
+		UserID:    client.UserID,
 		User:      client.User,
 		IsActive:  client.IsActive,
 		CreatedAt: client.CreatedAt,

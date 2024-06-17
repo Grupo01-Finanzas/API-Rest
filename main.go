@@ -133,7 +133,6 @@ func main() {
 		protectedRoutes.PUT("/establishments/:id/clients/:client_id", establishmentController.AddClientToEstablishment)
 
 		// Client routes
-		protectedRoutes.POST("/clients", clientController.CreateClient)
 		protectedRoutes.GET("/clients", clientController.GetAllClients)
 		protectedRoutes.GET("/clients/:id", clientController.GetClientByID)
 		protectedRoutes.PUT("/clients/:id", clientController.UpdateClient)
@@ -190,7 +189,7 @@ func main() {
 		protectedRoutes.GET("/clients/:id/balance", purchaseController.GetClientBalance)
 		protectedRoutes.GET("/clients/:id/transactions", purchaseController.GetClientTransactions)
 		protectedRoutes.GET("/clients/:id/overdue-balance", purchaseController.GetClientOverdueBalance)
-		protectedRoutes.GET("/clients/:id/credit-accounts", purchaseController.GetClientCreditAccount)
+		//protectedRoutes.GET("/clients/:id/credit-accounts", purchaseController.GetClientCreditAccount)
 
 		// Late Fee Routes
 		protectedRoutes.POST("/late-fees", lateFeeController.CreateLateFee)
