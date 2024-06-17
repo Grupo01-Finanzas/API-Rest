@@ -96,18 +96,6 @@ definitions:
     - EarlyPayment
     - AccountBlocked
     - AccountUnblocked
-  request.CreateAdminRequest:
-    properties:
-      establishment_id:
-        type: integer
-      is_active:
-        type: boolean
-      user_id:
-        type: integer
-    required:
-    - establishment_id
-    - user_id
-    type: object
   request.CreateClientRequest:
     properties:
       credit_limit:
@@ -196,10 +184,6 @@ definitions:
     properties:
       address:
         type: string
-      admin_id:
-        type: integer
-      is_active:
-        type: boolean
       name:
         type: string
       phone:
@@ -208,7 +192,6 @@ definitions:
         type: string
     required:
     - address
-    - admin_id
     - name
     - phone
     - ruc
@@ -311,6 +294,13 @@ definitions:
     type: object
   request.CreateUserRequest:
     properties:
+      address:
+        minLength: 5
+        type: string
+      dni:
+        maxLength: 8
+        minLength: 8
+        type: string
       email:
         type: string
       name:
@@ -318,18 +308,17 @@ definitions:
       password:
         minLength: 8
         type: string
-      role:
-        description: Puedes usar enum si lo prefieres
-        enum:
-        - user
-        - client
-        - admin
+      phone:
+        maxLength: 9
+        minLength: 9
         type: string
     required:
+    - address
+    - dni
     - email
     - name
     - password
-    - role
+    - phone
     type: object
   request.LoginRequest:
     properties:
@@ -749,39 +738,6 @@ paths:
               type: string
             type: object
       summary: Get all admins
-      tags:
-      - Admins
-    post:
-      consumes:
-      - application/json
-      description: Creates a new admin with the provided data
-      parameters:
-      - description: Admin data
-        in: body
-        name: admin
-        required: true
-        schema:
-          $ref: '#/definitions/request.CreateAdminRequest'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/response.AdminResponse'
-        "400":
-          description: Invalid request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Internal server error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Create a new admin
       tags:
       - Admins
   /admins/{id}:
@@ -1616,35 +1572,6 @@ paths:
           schema:
             $ref: '#/definitions/response.ErrorResponse'
       summary: Get all establishments
-      tags:
-      - Establishments
-    post:
-      consumes:
-      - application/json
-      description: Create a new establishment with admin details.
-      parameters:
-      - description: Establishment details
-        in: body
-        name: establishment
-        required: true
-        schema:
-          $ref: '#/definitions/request.CreateEstablishmentRequest'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/response.EstablishmentResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-      summary: Create a new establishment
       tags:
       - Establishments
   /establishments/{establishment_id}/products:
@@ -2572,9 +2499,12 @@ paths:
     post:
       consumes:
       - application/json
-      description: Generates a new access token from a valid refresh token.
+      description: |-
+        Gets a new access token if the current access token has expired less than 5 minutes ago.
+        If the access token is invalid or expired for more than 5 minutes, the user must log in again.
+        The access token must be sent in the Authorization header as a Bearer token.
       parameters:
-      - description: Bearer {refreshToken}
+      - description: Bearer {accessToken}
         in: header
         name: Authorization
         required: true
@@ -2587,7 +2517,7 @@ paths:
           schema:
             $ref: '#/definitions/response.AuthResponse'
         "401":
-          description: Invalid or expired refresh token.
+          description: Token expired or invalid
           schema:
             additionalProperties:
               type: string
@@ -2625,6 +2555,51 @@ paths:
       summary: Register a new user
       tags:
       - Authentication
+  /register-establishments:
+    post:
+      consumes:
+      - application/json
+      description: Registers a new establishment associated with the admin.
+      parameters:
+      - description: Bearer {accessToken}
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Establishment data
+        in: body
+        name: establishment
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreateEstablishmentRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/response.EstablishmentResponse'
+        "400":
+          description: Invalid request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Register establishment
+      tags:
+      - Admins
   /reset-password:
     post:
       consumes:

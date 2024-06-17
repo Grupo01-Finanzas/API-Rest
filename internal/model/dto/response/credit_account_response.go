@@ -1,6 +1,7 @@
 package response
 
 import (
+	"ApiRestFinance/internal/model/entities"
 	"ApiRestFinance/internal/model/entities/enums"
 	"time"
 )
@@ -21,6 +22,6 @@ type CreditAccountResponse struct {
 	CreatedAt               time.Time            `json:"created_at"`
 	UpdatedAt               time.Time            `json:"updated_at"`
 	LateFeeRuleID           uint                 `json:"late_fee_rule_id"`
-	Client                  *ClientResponse      `json:"client"`
+	Client                  *entities.Client     `json:"client"`
 	LateFeeRule             *LateFeeRuleResponse `json:"late_fee_rule"`
 }

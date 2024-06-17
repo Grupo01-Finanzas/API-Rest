@@ -30,6 +30,7 @@ func NewTransactionController(transactionService service.TransactionService) *Tr
 // @Tags Transactions
 // @Accept  json
 // @Produce  json
+// @Param        Authorization  header      string  true  "Bearer {token}"
 // @Param transaction body request.CreateTransactionRequest true "Transaction Data"
 // @Success 201 {object} response.TransactionResponse
 // @Failure 400 {object} response.ErrorResponse
@@ -57,6 +58,7 @@ func (c *TransactionController) CreateTransaction(ctx *gin.Context) {
 // @Tags Transactions
 // @Accept  json
 // @Produce  json
+// @Param        Authorization  header      string  true  "Bearer {token}"
 // @Param id path int true "Transaction ID"
 // @Success 200 {object} response.TransactionResponse
 // @Failure 400 {object} response.ErrorResponse
@@ -88,6 +90,7 @@ func (c *TransactionController) GetTransactionByID(ctx *gin.Context) {
 // @Tags Transactions
 // @Accept  json
 // @Produce  json
+// @Param        Authorization  header      string  true  "Bearer {token}"
 // @Param id path int true "Transaction ID"
 // @Param transaction body request.UpdateTransactionRequest true "Transaction Data"
 // @Success 200 {object} response.TransactionResponse
@@ -126,6 +129,7 @@ func (c *TransactionController) UpdateTransaction(ctx *gin.Context) {
 // @Tags Transactions
 // @Accept  json
 // @Produce  json
+// @Param        Authorization  header      string  true  "Bearer {token}"
 // @Param id path int true "Transaction ID"
 // @Success 204 {object} response.TransactionResponse
 // @Failure 400 {object} response.ErrorResponse
@@ -156,6 +160,7 @@ func (c *TransactionController) DeleteTransaction(ctx *gin.Context) {
 // @Tags Transactions
 // @Accept  json
 // @Produce  json
+// @Param        Authorization  header      string  true  "Bearer {token}"
 // @Param creditAccountID path int true "Credit Account ID"
 // @Success 200 {array} response.TransactionResponse
 // @Failure 400 {object} response.ErrorResponse

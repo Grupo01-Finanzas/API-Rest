@@ -28,6 +28,7 @@ func NewLateFeeRuleController(lateFeeRuleService service.LateFeeRuleService) *La
 // @Tags LateFeeRules
 // @Accept json
 // @Produce json
+// @Param        Authorization  header      string  true  "Bearer {token}"
 // @Param lateFeeRule body request.CreateLateFeeRuleRequest true "Late fee rule details"
 // @Success 201 {object} response.LateFeeRuleResponse
 // @Failure 400 {object} response.ErrorResponse
@@ -54,6 +55,7 @@ func (c *LateFeeRuleController) CreateLateFeeRule(ctx *gin.Context) {
 // @Description Retrieves a late fee rule by its ID.
 // @Tags LateFeeRules
 // @Produce json
+// @Param        Authorization  header      string  true  "Bearer {token}"
 // @Param id path int true "Late Fee Rule ID"
 // @Success 200 {object} response.LateFeeRuleResponse
 // @Failure 400 {object} response.ErrorResponse
@@ -86,6 +88,7 @@ func (c *LateFeeRuleController) GetLateFeeRuleByID(ctx *gin.Context) {
 // @Tags LateFeeRules
 // @Accept json
 // @Produce json
+// @Param        Authorization  header      string  true  "Bearer {token}"
 // @Param id path int true "Late Fee Rule ID"
 // @Param lateFeeRule body request.UpdateLateFeeRuleRequest true "Updated late fee rule details"
 // @Success 200 {object} response.LateFeeRuleResponse
@@ -124,6 +127,7 @@ func (c *LateFeeRuleController) UpdateLateFeeRule(ctx *gin.Context) {
 // @Description Deletes a late fee rule by its ID.
 // @Tags LateFeeRules
 // @Produce json
+// @Param        Authorization  header      string  true  "Bearer {token}"
 // @Param id path int true "Late Fee Rule ID"
 // @Success 204 "No Content"
 // @Failure 400 {object} response.ErrorResponse
@@ -154,6 +158,7 @@ func (c *LateFeeRuleController) DeleteLateFeeRule(ctx *gin.Context) {
 // @Description Retrieves all late fee rules.
 // @Tags LateFeeRules
 // @Produce json
+// @Param        Authorization  header      string  true  "Bearer {token}"
 // @Success 200 {array} response.LateFeeRuleResponse
 // @Failure 500 {object} response.ErrorResponse
 // @Router /late-fee-rules [get]
@@ -172,6 +177,7 @@ func (c *LateFeeRuleController) GetAllLateFeeRules(ctx *gin.Context) {
 // @Description Retrieves all late fee rules for a specific establishment.
 // @Tags LateFeeRules
 // @Produce json
+// @Param        Authorization  header      string  true  "Bearer {token}"
 // @Param establishmentID path int true "Establishment ID"
 // @Success 200 {array} response.LateFeeRuleResponse
 // @Failure 400 {object} response.ErrorResponse

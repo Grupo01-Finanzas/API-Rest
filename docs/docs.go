@@ -57,56 +57,6 @@ const docTemplate = `{
                         }
                     }
                 }
-            },
-            "post": {
-                "description": "Creates a new admin with the provided data",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Admins"
-                ],
-                "summary": "Create a new admin",
-                "parameters": [
-                    {
-                        "description": "Admin data",
-                        "name": "admin",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.CreateAdminRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created",
-                        "schema": {
-                            "$ref": "#/definitions/response.AdminResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
             }
         },
         "/admins/{id}": {
@@ -1359,50 +1309,6 @@ const docTemplate = `{
                             "items": {
                                 "$ref": "#/definitions/response.EstablishmentResponse"
                             }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    }
-                }
-            },
-            "post": {
-                "description": "Create a new establishment with admin details.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Establishments"
-                ],
-                "summary": "Create a new establishment",
-                "parameters": [
-                    {
-                        "description": "Establishment details",
-                        "name": "establishment",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.CreateEstablishmentRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created",
-                        "schema": {
-                            "$ref": "#/definitions/response.EstablishmentResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     },
                     "500": {
@@ -2809,7 +2715,7 @@ const docTemplate = `{
         },
         "/refresh": {
             "post": {
-                "description": "Generates a new access token from a valid refresh token.",
+                "description": "Gets a new access token if the current access token has expired less than 5 minutes ago.\nIf the access token is invalid or expired for more than 5 minutes, the user must log in again.\nThe access token must be sent in the Authorization header as a Bearer token.",
                 "consumes": [
                     "application/json"
                 ],
@@ -2823,7 +2729,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Bearer {refreshToken}",
+                        "description": "Bearer {accessToken}",
                         "name": "Authorization",
                         "in": "header",
                         "required": true
@@ -2837,7 +2743,7 @@ const docTemplate = `{
                         }
                     },
                     "401": {
-                        "description": "Invalid or expired refresh token.",
+                        "description": "Token expired or invalid",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -2884,6 +2790,74 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/register-establishments": {
+            "post": {
+                "description": "Registers a new establishment associated with the admin.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admins"
+                ],
+                "summary": "Register establishment",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer {accessToken}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "Establishment data",
+                        "name": "establishment",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.CreateEstablishmentRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/response.EstablishmentResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -3279,24 +3253,6 @@ const docTemplate = `{
                 "AccountUnblocked"
             ]
         },
-        "request.CreateAdminRequest": {
-            "type": "object",
-            "required": [
-                "establishment_id",
-                "user_id"
-            ],
-            "properties": {
-                "establishment_id": {
-                    "type": "integer"
-                },
-                "is_active": {
-                    "type": "boolean"
-                },
-                "user_id": {
-                    "type": "integer"
-                }
-            }
-        },
         "request.CreateClientRequest": {
             "type": "object",
             "required": [
@@ -3416,7 +3372,6 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "address",
-                "admin_id",
                 "name",
                 "phone",
                 "ruc"
@@ -3424,12 +3379,6 @@ const docTemplate = `{
             "properties": {
                 "address": {
                     "type": "string"
-                },
-                "admin_id": {
-                    "type": "integer"
-                },
-                "is_active": {
-                    "type": "boolean"
                 },
                 "name": {
                     "type": "string"
@@ -3581,12 +3530,23 @@ const docTemplate = `{
         "request.CreateUserRequest": {
             "type": "object",
             "required": [
+                "address",
+                "dni",
                 "email",
                 "name",
                 "password",
-                "role"
+                "phone"
             ],
             "properties": {
+                "address": {
+                    "type": "string",
+                    "minLength": 5
+                },
+                "dni": {
+                    "type": "string",
+                    "maxLength": 8,
+                    "minLength": 8
+                },
                 "email": {
                     "type": "string"
                 },
@@ -3597,14 +3557,10 @@ const docTemplate = `{
                     "type": "string",
                     "minLength": 8
                 },
-                "role": {
-                    "description": "Puedes usar enum si lo prefieres",
+                "phone": {
                     "type": "string",
-                    "enum": [
-                        "user",
-                        "client",
-                        "admin"
-                    ]
+                    "maxLength": 9,
+                    "minLength": 9
                 }
             }
         },

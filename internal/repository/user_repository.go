@@ -2,6 +2,7 @@ package repository
 
 import (
 	"ApiRestFinance/internal/model/entities"
+	"ApiRestFinance/internal/model/entities/enums"
 	"gorm.io/gorm"
 )
 
@@ -10,6 +11,7 @@ type UserRepository interface {
 	GetUserByEmail(email string) (*entities.User, error)
 	GetUserByID(userID uint) (*entities.User, error)
 	UpdateUser(user *entities.User) error
+	UpdateRol(userID uint, nuevoRol enums.Role) error
 }
 
 type userRepository struct {
@@ -26,7 +28,7 @@ func (r *userRepository) CreateUser(user *entities.User) error {
 
 func (r *userRepository) GetUserByEmail(email string) (*entities.User, error) {
 	var user entities.User
-	err := r.db.Preload("Roles").Where("email = ?", email).First(&user).Error
+	err := r.db.Where("email = ?", email).First(&user).Error
 	if err != nil {
 		return nil, err
 	}
@@ -35,7 +37,7 @@ func (r *userRepository) GetUserByEmail(email string) (*entities.User, error) {
 
 func (r *userRepository) GetUserByID(userID uint) (*entities.User, error) {
 	var user entities.User
-	err := r.db.Preload("Roles").First(&user, userID).Error
+	err := r.db.First(&user, userID).Error
 	if err != nil {
 		return nil, err
 	}
@@ -44,4 +46,8 @@ func (r *userRepository) GetUserByID(userID uint) (*entities.User, error) {
 
 func (r *userRepository) UpdateUser(user *entities.User) error {
 	return r.db.Save(user).Error
+}
+
+func (r *userRepository) UpdateRol(userID uint, nuevoRol enums.Role) error {
+	return r.db.Model(&entities.User{}).Where("id = ?", userID).Update("Rol", nuevoRol).Error
 }

@@ -29,6 +29,7 @@ func NewEstablishmentController(establishmentService service.EstablishmentServic
 // @Description Retrieve a list of all establishments.
 // @Tags Establishments
 // @Produce json
+// @Param        Authorization  header      string  true  "Bearer {token}"
 // @Success 200 {array} response.EstablishmentResponse
 // @Failure 500 {object} response.ErrorResponse
 // @Router /establishments [get]
@@ -47,6 +48,7 @@ func (c *EstablishmentController) GetAllEstablishments(ctx *gin.Context) {
 // @Description Retrieve an establishment by its ID.
 // @Tags Establishments
 // @Produce json
+// @Param        Authorization  header      string  true  "Bearer {token}"
 // @Param id path uint true "Establishment ID"
 // @Success 200 {object} response.EstablishmentResponse
 // @Failure 404 {object} response.ErrorResponse
@@ -72,39 +74,13 @@ func (c *EstablishmentController) GetEstablishmentByID(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, establishment)
 }
 
-// CreateEstablishment godoc
-// @Summary Create a new establishment
-// @Description Create a new establishment with admin details.
-// @Tags Establishments
-// @Accept json
-// @Produce json
-// @Param establishment body request.CreateEstablishmentRequest true "Establishment details"
-// @Success 201 {object} response.EstablishmentResponse
-// @Failure 400 {object} response.ErrorResponse
-// @Failure 500 {object} response.ErrorResponse
-// @Router /establishments [post]
-func (c *EstablishmentController) CreateEstablishment(ctx *gin.Context) {
-	var req request.CreateEstablishmentRequest
-	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, response.ErrorResponse{Error: err.Error()})
-		return
-	}
-
-	establishment, err := c.establishmentService.Create(req)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, response.ErrorResponse{Error: err.Error()})
-		return
-	}
-
-	ctx.JSON(http.StatusCreated, establishment)
-}
-
 // UpdateEstablishment godoc
 // @Summary Update an existing establishment
 // @Description Update an existing establishment by ID.
 // @Tags Establishments
 // @Accept json
 // @Produce json
+// @Param        Authorization  header      string  true  "Bearer {token}"
 // @Param id path uint true "Establishment ID"
 // @Param establishment body request.UpdateEstablishmentRequest true "Establishment details"
 // @Success 200 {object} response.EstablishmentResponse
@@ -143,6 +119,7 @@ func (c *EstablishmentController) UpdateEstablishment(ctx *gin.Context) {
 // @Description Delete an establishment by ID.
 // @Tags Establishments
 // @Produce json
+// @Param        Authorization  header      string  true  "Bearer {token}"
 // @Param id path uint true "Establishment ID"
 // @Success 204
 // @Failure 404 {object} response.ErrorResponse
@@ -174,6 +151,7 @@ func (c *EstablishmentController) DeleteEstablishment(ctx *gin.Context) {
 // @Tags Establishments
 // @Accept json
 // @Produce json
+// @Param        Authorization  header      string  true  "Bearer {token}"
 // @Param id path uint true "Establishment ID"
 // @Param products body []uint true "List of product IDs"
 // @Success 204
@@ -212,6 +190,7 @@ func (c *EstablishmentController) RegisterProducts(ctx *gin.Context) {
 // @Description Associate a client with an establishment.
 // @Tags Establishments
 // @Produce json
+// @Param        Authorization  header      string  true  "Bearer {token}"
 // @Param id path uint true "Establishment ID"
 // @Param client_id path uint true "Client ID"
 // @Success 204

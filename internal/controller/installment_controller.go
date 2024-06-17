@@ -28,6 +28,7 @@ func NewInstallmentController(installmentService service.InstallmentService) *In
 // @Tags Installments
 // @Accept json
 // @Produce json
+// @Param        Authorization  header      string  true  "Bearer {token}"
 // @Param installment body request.CreateInstallmentRequest true "Installment details"
 // @Success 201 {object} response.InstallmentResponse
 // @Failure 400 {object} response.ErrorResponse
@@ -54,6 +55,7 @@ func (c *InstallmentController) CreateInstallment(ctx *gin.Context) {
 // @Description Retrieves an installment by its ID.
 // @Tags Installments
 // @Produce json
+// @Param        Authorization  header      string  true  "Bearer {token}"
 // @Param id path int true "Installment ID"
 // @Success 200 {object} response.InstallmentResponse
 // @Failure 400 {object} response.ErrorResponse
@@ -86,6 +88,7 @@ func (c *InstallmentController) GetInstallmentByID(ctx *gin.Context) {
 // @Tags Installments
 // @Accept json
 // @Produce json
+// @Param        Authorization  header      string  true  "Bearer {token}"
 // @Param id path int true "Installment ID"
 // @Param installment body request.UpdateInstallmentRequest true "Updated installment details"
 // @Success 200 {object} response.InstallmentResponse
@@ -124,6 +127,7 @@ func (c *InstallmentController) UpdateInstallment(ctx *gin.Context) {
 // @Description Deletes an installment by its ID.
 // @Tags Installments
 // @Produce json
+// @Param        Authorization  header      string  true  "Bearer {token}"
 // @Param id path int true "Installment ID"
 // @Success 204 "No Content"
 // @Failure 400 {object} response.ErrorResponse
@@ -154,6 +158,7 @@ func (c *InstallmentController) DeleteInstallment(ctx *gin.Context) {
 // @Description Retrieves all installments for a specific credit account.
 // @Tags Installments
 // @Produce json
+// @Param        Authorization  header      string  true  "Bearer {token}"
 // @Param creditAccountID path int true "Credit Account ID"
 // @Success 200 {array} response.InstallmentResponse
 // @Failure 400 {object} response.ErrorResponse
@@ -180,6 +185,7 @@ func (c *InstallmentController) GetInstallmentsByCreditAccountID(ctx *gin.Contex
 // @Description Retrieves all overdue installments for a specific credit account.
 // @Tags Installments
 // @Produce json
+// @Param        Authorization  header      string  true  "Bearer {token}"
 // @Param creditAccountID path int true "Credit Account ID"
 // @Success 200 {array} response.InstallmentResponse
 // @Failure 400 {object} response.ErrorResponse

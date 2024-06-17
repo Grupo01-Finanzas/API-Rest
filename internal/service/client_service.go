@@ -17,18 +17,18 @@ type ClientService interface {
 
 type clientService struct {
 	clientRepo repository.ClientRepository
-	userRepo   repository.UserRepository // Agrega userRepo
+	userRepo   repository.UserRepository
 }
 
-func NewClientService(clientRepo repository.ClientRepository, userRepo repository.UserRepository) ClientService { // Actualiza la firma
+func NewClientService(clientRepo repository.ClientRepository, userRepo repository.UserRepository) ClientService {
 	return &clientService{clientRepo: clientRepo, userRepo: userRepo}
 }
 
 func (s *clientService) CreateClient(client *entities.Client) error {
-	// Verificar si ya existe un cliente con el mismo UserID
+
 	existingClient, _ := s.clientRepo.GetClientByUserID(client.UserID)
 	if existingClient != nil {
-		return errors.New("ya existe un cliente asociado a este usuario")
+		return errors.New("client already exists")
 	}
 	return s.clientRepo.CreateClient(client)
 }

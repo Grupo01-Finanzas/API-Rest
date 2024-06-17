@@ -20,7 +20,7 @@ type CreditAccountService interface {
 	GetCreditAccountByID(id uint) (*response.CreditAccountResponse, error)
 	UpdateCreditAccount(id uint, req request.UpdateCreditAccountRequest) (*response.CreditAccountResponse, error)
 	DeleteCreditAccount(id uint) error
-	GetCreditAccountsByEstablishmentID(establishmentID uint) ([]response.CreditAccountResponse, error) // Return type corrected
+	GetCreditAccountsByEstablishmentID(establishmentID uint) ([]response.CreditAccountResponse, error)
 	GetCreditAccountsByClientID(clientID uint) ([]response.CreditAccountResponse, error)
 	ApplyInterestToAllAccounts(establishmentID uint) error
 	ApplyLateFeesToAllAccounts(establishmentID uint) error
@@ -496,9 +496,7 @@ func creditAccountToResponse(creditAccount *entities.CreditAccount) *response.Cr
 		CreatedAt:               creditAccount.CreatedAt,
 		UpdatedAt:               creditAccount.UpdatedAt,
 		LateFeeRuleID:           creditAccount.LateFeeRuleID,
-		// You can add Client and LateFeeRule data if needed
-		// Client:          // ... (map client entity to response)
-		// LateFeeRule:     // ... (map lateFeeRule entity to response)
+		Client:                  creditAccount.Client,
 	}
 }
 
@@ -521,9 +519,6 @@ func responseToCreditAccount(res *response.CreditAccountResponse) *entities.Cred
 		LastInterestAccrualDate: res.LastInterestAccrualDate,
 		CurrentBalance:          res.CurrentBalance,
 		LateFeeRuleID:           res.LateFeeRuleID,
-		// You can add Client and LateFeeRule data if needed
-		// You'll need to convert ClientResponse and LateFeeRuleResponse to entities as well
-		// Client:          // ... (map client response to entity)
-		// LateFeeRule:     // ... (map lateFeeRule response to entity)
+		Client:                  res.Client,
 	}
 }

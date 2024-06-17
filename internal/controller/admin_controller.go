@@ -1,7 +1,7 @@
 package controller
 
 import (
-	"ApiRestFinance/internal/model/entities"
+	"fmt"
 	"github.com/golang-jwt/jwt/v4"
 	"net/http"
 	"strconv"
@@ -20,79 +20,15 @@ func NewAdminController(adminService service.AdminService) *AdminController {
 	return &AdminController{adminService: adminService}
 }
 
-// CreateAdmin godoc
-// @Summary      Create a new admin
-// @Description  Creates a new admin with the provided data
-// @Tags         Admins
-// @Accept       json
-// @Produce      json
-// @Param        admin  body      request.CreateAdminRequest  true  "Admin data"
-// @Success      201     {object}  response.AdminResponse
-// @Failure      400     {object}  map[string]string  "Invalid request"
-// @Failure      500     {object}  map[string]string  "Internal server error"
-// @Router       /admins [post]
-func (c *AdminController) CreateAdmin(ctx *gin.Context) {
-	var req request.CreateAdminRequest
-	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	admin := &entities.Admin{
-		UserID:          req.UserID,
-		EstablishmentID: req.EstablishmentID,
-		IsActive:        req.IsActive,
-	}
-
-	if err := c.adminService.CreateAdmin(admin); err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	// Get the created admin
-	createdAdmin, err := c.adminService.GetAdminByUserID(req.UserID) // Call directly on adminRepo
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Admin created but failed to retrieve: " + err.Error()})
-		return
-	}
-
-	// Get the associated establishment using the new method in adminService
-	establishment, err := c.adminService.GetEstablishmentByID(createdAdmin.EstablishmentID)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve associated establishment: " + err.Error()})
-		return
-	}
-
-	resp := response.AdminResponse{
-		ID:              createdAdmin.ID,
-		UserID:          createdAdmin.UserID,
-		EstablishmentID: createdAdmin.EstablishmentID,
-		IsActive:        createdAdmin.IsActive,
-		CreatedAt:       createdAdmin.CreatedAt,
-		UpdatedAt:       createdAdmin.UpdatedAt,
-		Establishment: response.EstablishmentResponse{ // Include establishment details
-			ID:        establishment.ID,
-			RUC:       establishment.RUC,
-			Name:      establishment.Name,
-			Phone:     establishment.Phone,
-			Address:   establishment.Address,
-			IsActive:  establishment.IsActive,
-			CreatedAt: establishment.CreatedAt,
-			UpdatedAt: establishment.UpdatedAt,
-		},
-	}
-
-	ctx.JSON(http.StatusCreated, resp)
-}
-
 // GetAllAdmins godoc
 // @Summary      Get all admins
 // @Description  Gets a list of all admins.
 // @Tags         Admins
 // @Accept       json
 // @Produce      json
+// @Param        Authorization  header      string  true  "Bearer {token}"
 // @Success      200     {array}   response.AdminResponse
-// @Failure      500     {object}  map[string]string  "Internal server error"
+// @Failure      500     {object}  response.ErrorResponse
 // @Router       /admins [get]
 func (c *AdminController) GetAllAdmins(ctx *gin.Context) {
 	admins, err := c.adminService.GetAllAdmins()
@@ -104,7 +40,7 @@ func (c *AdminController) GetAllAdmins(ctx *gin.Context) {
 	var resp []response.AdminResponse
 	for _, admin := range admins {
 		// Get the associated establishment
-		establishment, err := c.adminService.GetEstablishmentByID(admin.EstablishmentID)
+		establishment, err := c.adminService.GetEstablishmentByAdminID(admin.ID)
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve associated establishment: " + err.Error()})
 			return
@@ -145,11 +81,12 @@ func (c *AdminController) GetAllAdmins(ctx *gin.Context) {
 // @Tags         Admins
 // @Accept       json
 // @Produce      json
+// @Param        Authorization  header      string  true  "Bearer {token}"
 // @Param        id   path      int  true  "Admin ID"
 // @Success      200  {object}  response.AdminResponse
-// @Failure      400  {object}  map[string]string  "Invalid admin ID"
-// @Failure      404  {object}  map[string]string  "Admin not found"
-// @Failure      500  {object}  map[string]string  "Internal server error"
+// @Failure      400  {object}  response.ErrorResponse
+// @Failure      404  {object}  response.ErrorResponse
+// @Failure      500  {object}  response.ErrorResponse
 // @Router       /admins/{id} [get]
 func (c *AdminController) GetAdminByID(ctx *gin.Context) {
 	adminID, err := strconv.Atoi(ctx.Param("id"))
@@ -165,7 +102,7 @@ func (c *AdminController) GetAdminByID(ctx *gin.Context) {
 	}
 
 	// Get the associated establishment
-	establishment, err := c.adminService.GetEstablishmentByID(admin.EstablishmentID)
+	establishment, err := c.adminService.GetEstablishmentByAdminID(admin.ID)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve associated establishment: " + err.Error()})
 		return
@@ -199,12 +136,13 @@ func (c *AdminController) GetAdminByID(ctx *gin.Context) {
 // @Tags         Admins
 // @Accept       json
 // @Produce      json
+// @Param        Authorization  header      string  true  "Bearer {token}"
 // @Param        id     path      int                     true  "Admin ID"
 // @Param        admin  body      request.UpdateAdminRequest  true  "Updated admin data"
-// @Success      200     {object}  map[string]string  "Admin updated successfully"
-// @Failure      400     {object}  map[string]string  "Invalid admin ID or request body"
-// @Failure      404     {object}  map[string]string  "Admin not found"
-// @Failure      500     {object}  map[string]string  "Internal server error"
+// @Success      200     {object}  map[string]string
+// @Failure      400     {object} response.ErrorResponse
+// @Failure      404     {object}  response.ErrorResponse
+// @Failure      500     {object}  response.ErrorResponse
 // @Router       /admins/{id} [put]
 func (c *AdminController) UpdateAdmin(ctx *gin.Context) {
 	adminID, err := strconv.Atoi(ctx.Param("id"))
@@ -244,11 +182,12 @@ func (c *AdminController) UpdateAdmin(ctx *gin.Context) {
 // @Tags         Admins
 // @Accept       json
 // @Produce      json
+// @Param        Authorization  header      string  true  "Bearer {token}"
 // @Param        id   path      int  true  "Admin ID"
 // @Success      200  {object}  map[string]string  "Admin deleted successfully"
-// @Failure      400  {object}  map[string]string  "Invalid admin ID"
-// @Failure      404  {object}  map[string]string  "Admin not found"
-// @Failure      500  {object}  map[string]string  "Internal server error"
+// @Failure      400     {object}   response.ErrorResponse
+// @Failure      401     {object}  response.ErrorResponse
+// @Failure      500     {object}  response.ErrorResponse
 // @Router       /admins/{id} [delete]
 func (c *AdminController) DeleteAdmin(ctx *gin.Context) {
 	adminID, err := strconv.Atoi(ctx.Param("id"))
@@ -271,13 +210,13 @@ func (c *AdminController) DeleteAdmin(ctx *gin.Context) {
 // @Tags         Admins
 // @Accept       json
 // @Produce      json
-// @Param        Authorization  header      string                          true  "Bearer {accessToken}"
+// @Param        Authorization  header      string  true  "Bearer {token}"
 // @Param        establishment  body      request.CreateEstablishmentRequest  true  "Establishment data"
 // @Success      201     {object}  response.EstablishmentResponse
-// @Failure      400     {object}  map[string]string  "Invalid request"
-// @Failure      401     {object}  map[string]string  "Unauthorized"
-// @Failure      500     {object}  map[string]string  "Internal server error"
-// @Router       /establishments [post]
+// @Failure      400     {object}   response.ErrorResponse
+// @Failure      401     {object}  response.ErrorResponse
+// @Failure      500     {object}  response.ErrorResponse
+// @Router       /register-establishments [post]
 func (c *AdminController) RegisterEstablishment(ctx *gin.Context) {
 	var req request.CreateEstablishmentRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -305,21 +244,23 @@ func (c *AdminController) RegisterEstablishment(ctx *gin.Context) {
 
 	userID := uint(userIDFloat)
 
-	establishment := &entities.Establishment{
-		RUC:      req.RUC,
-		Name:     req.Name,
-		Phone:    req.Phone,
-		Address:  req.Address,
-		IsActive: req.IsActive,
+	fmt.Print(userID)
+
+	establishment := &request.CreateEstablishmentRequest{
+		RUC:     req.RUC,
+		Name:    req.Name,
+		Phone:   req.Phone,
+		Address: req.Address,
 	}
+
+	fmt.Println(establishment)
 
 	if err := c.adminService.RegisterEstablishment(establishment, userID); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	// Get the created establishment by ID (you might need to update your establishmentRepo)
-	createdEstablishment, err := c.adminService.GetEstablishmentByID(establishment.ID)
+	createdEstablishment, err := c.adminService.GetEstablishmentByAdminID(userID)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Establishment created but failed to retrieve: " + err.Error()})
 		return

@@ -29,6 +29,7 @@ func NewCreditAccountController(creditAccountService service.CreditAccountServic
 // @Tags CreditAccounts
 // @Accept json
 // @Produce json
+// @Param        Authorization  header      string  true  "Bearer {token}"
 // @Param creditAccount body request.CreateCreditAccountRequest true "Credit account details"
 // @Success 201 {object} response.CreditAccountResponse
 // @Failure 400 {object} response.ErrorResponse
@@ -55,6 +56,7 @@ func (c *CreditAccountController) CreateCreditAccount(ctx *gin.Context) {
 // @Description Retrieves a credit account by its ID.
 // @Tags CreditAccounts
 // @Produce json
+// @Param        Authorization  header      string  true  "Bearer {token}"
 // @Param id path int true "Credit Account ID"
 // @Success 200 {object} response.CreditAccountResponse
 // @Failure 400 {object} response.ErrorResponse
@@ -87,6 +89,7 @@ func (c *CreditAccountController) GetCreditAccountByID(ctx *gin.Context) {
 // @Tags CreditAccounts
 // @Accept json
 // @Produce json
+// @Param        Authorization  header      string  true  "Bearer {token}"
 // @Param id path int true "Credit Account ID"
 // @Param creditAccount body request.UpdateCreditAccountRequest true "Updated credit account details"
 // @Success 200 {object} response.CreditAccountResponse
@@ -125,6 +128,7 @@ func (c *CreditAccountController) UpdateCreditAccount(ctx *gin.Context) {
 // @Description Deletes a credit account by its ID.
 // @Tags CreditAccounts
 // @Produce json
+// @Param        Authorization  header      string  true  "Bearer {token}"
 // @Param id path int true "Credit Account ID"
 // @Success 204 "No Content"
 // @Failure 400 {object} response.ErrorResponse
@@ -155,6 +159,7 @@ func (c *CreditAccountController) DeleteCreditAccount(ctx *gin.Context) {
 // @Description Retrieves all credit accounts associated with an establishment.
 // @Tags CreditAccounts
 // @Produce json
+// @Param        Authorization  header      string  true  "Bearer {token}"
 // @Param establishmentID path int true "Establishment ID"
 // @Success 200 {array} response.CreditAccountResponse
 // @Failure 400 {object} response.ErrorResponse
@@ -181,6 +186,7 @@ func (c *CreditAccountController) GetCreditAccountsByEstablishmentID(ctx *gin.Co
 // @Description Retrieves all credit accounts associated with a client.
 // @Tags CreditAccounts
 // @Produce json
+// @Param        Authorization  header      string  true  "Bearer {token}"
 // @Param clientID path int true "Client ID"
 // @Success 200 {array} response.CreditAccountResponse
 // @Failure 400 {object} response.ErrorResponse
@@ -207,6 +213,7 @@ func (c *CreditAccountController) GetCreditAccountsByClientID(ctx *gin.Context) 
 // @Description Applies interest to all eligible credit accounts within an establishment.
 // @Tags CreditAccounts
 // @Produce json
+// @Param        Authorization  header      string  true  "Bearer {token}"
 // @Param establishmentID path int true "Establishment ID"
 // @Success 200 "Interest applied successfully"
 // @Failure 400 {object} response.ErrorResponse
@@ -232,6 +239,7 @@ func (c *CreditAccountController) ApplyInterestToAllAccounts(ctx *gin.Context) {
 // @Description Applies late fees to all eligible credit accounts within an establishment.
 // @Tags CreditAccounts
 // @Produce json
+// @Param        Authorization  header      string  true  "Bearer {token}"
 // @Param establishmentID path int true "Establishment ID"
 // @Success 200 "Late fees applied successfully"
 // @Failure 400 {object} response.ErrorResponse
@@ -257,6 +265,7 @@ func (c *CreditAccountController) ApplyLateFeesToAllAccounts(ctx *gin.Context) {
 // @Description Retrieves a summary of debts owed to an establishment.
 // @Tags CreditAccounts
 // @Produce json
+// @Param        Authorization  header      string  true  "Bearer {token}"
 // @Param establishmentID path int true "Establishment ID"
 // @Success 200 {array} response.AdminDebtSummary
 // @Failure 400 {object} response.ErrorResponse
@@ -284,6 +293,7 @@ func (c *CreditAccountController) GetAdminDebtSummary(ctx *gin.Context) {
 // @Tags CreditAccounts
 // @Accept json
 // @Produce json
+// @Param        Authorization  header      string  true  "Bearer {token}"
 // @Param creditAccountID path int true "Credit Account ID"
 // @Param purchase body request.CreateTransactionRequest true "Purchase details"
 // @Success 201 "Purchase processed successfully"
@@ -321,6 +331,7 @@ func (c *CreditAccountController) ProcessPurchase(ctx *gin.Context) {
 // @Tags CreditAccounts
 // @Accept json
 // @Produce json
+// @Param        Authorization  header      string  true  "Bearer {token}"
 // @Param creditAccountID path int true "Credit Account ID"
 // @Param payment body request.CreateTransactionRequest true "Payment details"
 // @Success 201 "Payment processed successfully"
@@ -358,6 +369,7 @@ func (c *CreditAccountController) ProcessPayment(ctx *gin.Context) {
 // @Tags CreditRequests
 // @Accept json
 // @Produce json
+// @Param        Authorization  header      string  true  "Bearer {token}"
 // @Param creditRequest body request.CreateCreditRequest true "Credit request details"
 // @Success 201 {object} response.CreditRequestResponse
 // @Failure 400 {object} response.ErrorResponse
@@ -384,6 +396,7 @@ func (c *CreditAccountController) CreateCreditRequest(ctx *gin.Context) {
 // @Description Retrieves a credit request by its ID.
 // @Tags CreditRequests
 // @Produce json
+// @Param        Authorization  header      string  true  "Bearer {token}"
 // @Param id path int true "Credit Request ID"
 // @Success 200 {object} response.CreditRequestResponse
 // @Failure 400 {object} response.ErrorResponse
@@ -415,6 +428,7 @@ func (c *CreditAccountController) GetCreditRequestByID(ctx *gin.Context) {
 // @Description Approves a pending credit request and creates a credit account.
 // @Tags CreditRequests
 // @Produce json
+// @Param        Authorization  header      string  true  "Bearer {token}"
 // @Param id path int true "Credit Request ID"
 // @Success 200 {object} response.CreditAccountResponse
 // @Failure 400 {object} response.ErrorResponse
@@ -448,7 +462,7 @@ func (c *CreditAccountController) ApproveCreditRequest(ctx *gin.Context) {
 // @Summary Reject credit request
 // @Description Rejects a pending credit request.
 // @Tags CreditRequests
-// @Produce json
+// @Param        Authorization  header      string  true  "Bearer {token}"
 // @Param id path int true "Credit Request ID"
 // @Success 200 "Credit request rejected successfully"
 // @Failure 400 {object} response.ErrorResponse
@@ -482,6 +496,7 @@ func (c *CreditAccountController) RejectCreditRequest(ctx *gin.Context) {
 // @Description Retrieves all pending credit requests for an establishment.
 // @Tags CreditRequests
 // @Produce json
+// @Param        Authorization  header      string  true  "Bearer {token}"
 // @Param establishmentID path int true "Establishment ID"
 // @Success 200 {array} response.CreditRequestResponse
 // @Failure 400 {object} response.ErrorResponse
@@ -508,6 +523,7 @@ func (c *CreditAccountController) GetPendingCreditRequests(ctx *gin.Context) {
 // @Description Assigns an existing credit account to a client.
 // @Tags CreditAccounts
 // @Produce json
+// @Param        Authorization  header      string  true  "Bearer {token}"
 // @Param creditAccountID path int true "Credit Account ID"
 // @Param clientID path int true "Client ID"
 // @Success 200 {object} response.CreditAccountResponse

@@ -8,9 +8,9 @@ import (
 )
 
 type EstablishmentService interface {
+	Create(req *request.CreateEstablishmentRequest) (*response.EstablishmentResponse, error)
 	GetAll() ([]response.EstablishmentResponse, error)
 	GetByID(id uint) (*response.EstablishmentResponse, error)
-	Create(req request.CreateEstablishmentRequest) (*response.EstablishmentResponse, error)
 	Update(id uint, req request.UpdateEstablishmentRequest) (*response.EstablishmentResponse, error)
 	Delete(id uint) error
 	RegisterProducts(establishmentID uint, productIDs []uint) error
@@ -27,6 +27,14 @@ func NewEstablishmentService(establishmentRepository repository.EstablishmentRep
 	}
 }
 
+func (s *establishmentService) Create(req *request.CreateEstablishmentRequest) (*response.EstablishmentResponse, error) {
+	establishment, err := s.establishmentRepository.Create(req)
+	if err != nil {
+		return nil, err
+	}
+	return establishment, nil
+}
+
 func (s *establishmentService) GetAll() ([]response.EstablishmentResponse, error) {
 	establishments, err := s.establishmentRepository.GetAll()
 	if err != nil {
@@ -37,14 +45,6 @@ func (s *establishmentService) GetAll() ([]response.EstablishmentResponse, error
 
 func (s *establishmentService) GetByID(id uint) (*response.EstablishmentResponse, error) {
 	establishment, err := s.establishmentRepository.GetByID(id)
-	if err != nil {
-		return nil, err
-	}
-	return establishment, nil
-}
-
-func (s *establishmentService) Create(req request.CreateEstablishmentRequest) (*response.EstablishmentResponse, error) {
-	establishment, err := s.establishmentRepository.Create(req)
 	if err != nil {
 		return nil, err
 	}

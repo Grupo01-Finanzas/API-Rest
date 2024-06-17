@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"gorm.io/gorm/clause"
+	"math"
 	"time"
 
 	"ApiRestFinance/internal/model/dto/request"
@@ -33,10 +34,14 @@ type CreditAccountRepository interface {
 	ApproveCreditRequest(creditRequest *entities.CreditRequest) (*response.CreditAccountResponse, error)
 	GetPendingCreditRequests(establishmentID uint) ([]entities.CreditRequest, error)
 	AssignCreditAccountToClient(creditAccountID, clientID uint) error
+	GetOverdueBalance(userID uint) (float64, error)
+	CalculateInterest(creditAccount entities.CreditAccount) float64
+	GetCreditAccountByUserID(userID uint) (*entities.CreditAccount, error)
 }
 
 type creditAccountRepository struct {
-	db *gorm.DB
+	db              *gorm.DB
+	installmentRepo InstallmentRepository
 }
 
 // NewCreditAccountRepository creates a new instance of creditAccountRepository.
@@ -155,7 +160,7 @@ func (r *creditAccountRepository) ApplyInterest(creditAccountID uint) error {
 		}
 
 		// 3. Calculate interest based on the interest type (Nominal or Effective)
-		interest := calculateInterest(creditAccount)
+		interest := r.CalculateInterest(creditAccount)
 
 		// 4. Create a transaction for the interest
 		interestTransaction := entities.Transaction{
@@ -287,12 +292,60 @@ func (r *creditAccountRepository) GetOverdueAccounts(establishmentID uint) ([]re
 
 // Helper functions for calculations
 
-func calculateInterest(creditAccount entities.CreditAccount) float64 {
-	// Implement your interest calculation logic based on InterestType
-	// (Nominal or Effective) and CreditType (ShortTerm or LongTerm)
-	// ...
+func (r *creditAccountRepository) CalculateInterest(creditAccount entities.CreditAccount) float64 {
+	if creditAccount.CurrentBalance == 0 {
+		return 0 // There is no interest to calculate
+	}
 
-	return 0.0 // Placeholder, replace with actual calculation
+	today := time.Now()
+
+	// Calculate the number of days since the last interest accrual
+	daysSinceLastAccrual := today.Sub(creditAccount.LastInterestAccrualDate).Hours() / 24
+
+	if creditAccount.CreditType == enums.ShortTerm {
+		// Short-Term Interest Calculation
+		if creditAccount.InterestType == enums.Nominal {
+			// Nominal Interest
+			// Fórmula: Interest = Balance * (interest rate/100) * (Time in year)
+			return creditAccount.CurrentBalance * (creditAccount.InterestRate / 100) * (daysSinceLastAccrual / 365)
+		} else if creditAccount.InterestType == enums.Effective {
+			// Effective Interest
+			// Fórmula: Interest = Balance * ((1 + interest rate/100)^(Time in year) - 1)
+			return creditAccount.CurrentBalance * (math.Pow(1+(creditAccount.InterestRate/100), daysSinceLastAccrual/365) - 1)
+		}
+	} else if creditAccount.CreditType == enums.LongTerm {
+		// Short-Term Interest Calculation (Dues)
+
+		// Get all overdue installments
+		installments, err := r.installmentRepo.GetOverdueInstallments(creditAccount.ID)
+		if err != nil {
+			// Handle error
+			fmt.Printf("Error al obtener las cuotas: %v", err)
+			return 0
+		}
+
+		totalInterest := 0.0
+		for _, installment := range installments {
+			// Calcular la cantidad de días de atraso para cada cuota
+			daysOverdue := int(today.Sub(installment.DueDate).Hours() / 24)
+
+			if daysOverdue > 0 { // Solo calcular interés en cuotas vencidas
+				if creditAccount.InterestType == enums.Nominal {
+					// Interés nominal
+					dailyRate := creditAccount.InterestRate / 36500 // Tasa diaria nominal
+					totalInterest += installment.Amount * dailyRate * float64(daysOverdue)
+				} else if creditAccount.InterestType == enums.Effective {
+					// Interés efectivo
+					dailyRate := math.Pow(1+(creditAccount.InterestRate/100), 1.0/365) - 1 // Tasa diaria efectiva
+					totalInterest += installment.Amount*math.Pow(1+dailyRate, float64(daysOverdue)) - installment.Amount
+				}
+			}
+		}
+
+		return totalInterest
+	}
+
+	return 0 // Si el tipo de crédito no es válido, no se calcula el interés
 }
 
 func calculateDaysOverdue(monthlyDueDate int) int {
@@ -333,26 +386,23 @@ func getCreditAccountResponse(creditAccount *entities.CreditAccount) *response.C
 		IsBlocked:       creditAccount.IsBlocked,
 		CreatedAt:       creditAccount.CreatedAt,
 		UpdatedAt:       creditAccount.UpdatedAt,
-		Client:          getClientResponse(&creditAccount.Client),
+		Client:          creditAccount.Client,
 	}
 }
 
-func getClientResponse(client *entities.Client) *response.ClientResponse {
+/*func getClientResponse(client *entities.Client) *response.ClientResponse {
 	if client == nil {
 		return nil
 	}
 
 	return &response.ClientResponse{
-		ID:          client.ID,
-		UserID:      client.UserID,
-		Phone:       client.Phone,
-		Email:       client.Email,
-		CreditLimit: client.CreditLimit,
-		IsActive:    client.IsActive,
-		CreatedAt:   client.CreatedAt,
-		UpdatedAt:   client.UpdatedAt,
+		ID:        client.ID,
+		User:      client.User,
+		IsActive:  client.IsActive,
+		CreatedAt: client.CreatedAt,
+		UpdatedAt: client.UpdatedAt,
 	}
-}
+}*/
 
 func (r *creditAccountRepository) ExistsByClientAndEstablishment(clientID uint, establishmentID uint) (bool, error) {
 	var count int64
@@ -566,4 +616,45 @@ func (r *creditAccountRepository) AssignCreditAccountToClient(creditAccountID, c
 
 		return nil
 	})
+}
+
+func (r *creditAccountRepository) GetOverdueBalance(userID uint) (float64, error) {
+	var creditAccount entities.CreditAccount
+	err := r.db.Joins("Client").Where("client.user_id = ?", userID).First(&creditAccount).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return 0, nil // No hay cuenta de crédito, por lo tanto, no hay saldo vencido
+		}
+		return 0, fmt.Errorf("error al buscar la cuenta de crédito: %w", err)
+	}
+
+	// Verificar si la cuenta está vencida
+	if !isAccountOverdue(creditAccount) {
+		return 0, nil // La cuenta no está vencida
+	}
+
+	// Calcular el saldo vencido (puedes tener una lógica más compleja aquí)
+	overdueBalance := creditAccount.CurrentBalance
+
+	return overdueBalance, nil
+}
+
+// isAccountOverdue verifica si la cuenta está vencida
+func isAccountOverdue(creditAccount entities.CreditAccount) bool {
+	today := time.Now()
+	dueDate := time.Date(today.Year(), today.Month(), creditAccount.MonthlyDueDate, 0, 0, 0, 0, time.UTC)
+
+	return today.After(dueDate) && creditAccount.CurrentBalance > 0
+}
+
+func (r *creditAccountRepository) GetCreditAccountByUserID(userID uint) (*entities.CreditAccount, error) {
+	var creditAccount entities.CreditAccount
+
+	// Une la tabla CreditAccount con la tabla Client para filtrar por UserID
+	err := r.db.Joins("JOIN clients ON credit_accounts.client_id = clients.id").Where("clients.user_id = ?", userID).First(&creditAccount).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return &creditAccount, nil
 }

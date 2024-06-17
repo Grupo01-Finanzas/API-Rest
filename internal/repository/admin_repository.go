@@ -2,6 +2,7 @@ package repository
 
 import (
 	"ApiRestFinance/internal/model/entities"
+	"errors"
 	"gorm.io/gorm"
 )
 
@@ -12,6 +13,7 @@ type AdminRepository interface {
 	GetAdminByID(adminID uint) (*entities.Admin, error)
 	UpdateAdmin(admin *entities.Admin) error
 	DeleteAdmin(adminID uint) error
+	GetEstablishmentByAdminID(adminID uint) (*entities.Establishment, error)
 }
 
 type adminRepository struct {
@@ -59,4 +61,20 @@ func (r *adminRepository) UpdateAdmin(admin *entities.Admin) error {
 
 func (r *adminRepository) DeleteAdmin(adminID uint) error {
 	return r.db.Delete(&entities.Admin{}, adminID).Error
+}
+
+func (r *adminRepository) GetEstablishmentByAdminID(adminID uint) (*entities.Establishment, error) {
+	var admin entities.Admin
+	err := r.db.Preload("Establishment").First(&admin, adminID).Error
+	if err != nil {
+		return nil, err
+	}
+
+	if admin.EstablishmentID == 0 {
+		return nil, errors.New("establishment not found for admin")
+	}
+
+	establishmentEntity := admin.Establishment
+
+	return establishmentEntity, nil
 }

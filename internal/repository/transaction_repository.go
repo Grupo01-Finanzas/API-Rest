@@ -33,7 +33,7 @@ func (r *transactionRepository) Create(req request.CreateTransactionRequest) (*r
 	transaction := entities.Transaction{
 		CreditAccountID: req.CreditAccountID,
 		RecipientType:   req.RecipientType,
-		RecipientID:     req.RecipientID, // Assuming you have the recipient logic in place
+		RecipientID:     req.RecipientID,
 		TransactionType: req.TransactionType,
 		Amount:          req.Amount,
 		Description:     req.Description,

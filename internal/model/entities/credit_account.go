@@ -20,11 +20,11 @@ type CreditAccount struct {
 	IsBlocked               bool               `gorm:"default:false"`
 	LastInterestAccrualDate time.Time          `gorm:"not null"`
 	CurrentBalance          float64            `gorm:"not null"`
-	Establishment           Establishment      `gorm:"foreignKey:EstablishmentID;references:ID"`
-	Client                  Client             `gorm:"foreignKey:ClientID;references:ID"`
-	Transactions            []Transaction      `gorm:"foreignKey:CreditAccountID;references:ID"`
-	LateFees                []LateFee          `gorm:"foreignKey:CreditAccountID;references:ID"` // New relationship
-	Installments            []Installment      `gorm:"foreignKey:CreditAccountID;references:ID"` // New relationship (for long-term credit)
+	Establishment           *Establishment     `gorm:"foreignKey:EstablishmentID;references:ID"`
+	Client                  *Client            `gorm:"foreignKey:ClientID;references:ID"`
+	Transactions            []*Transaction     `gorm:"foreignKey:CreditAccountID;references:ID"`
+	LateFees                []*LateFee         `gorm:"foreignKey:CreditAccountID;references:ID"` // New relationship
+	Installments            []*Installment     `gorm:"foreignKey:CreditAccountID;references:ID"` // New relationship (for long-term credit)
 	LateFeeRuleID           uint               `gorm:"index"`                                    // Foreign key to LateFeeRule
 	LateFeeRule             *LateFeeRule       `gorm:"foreignKey:LateFeeRuleID;references:ID"`   // Relationship with LateFeeRule
 }

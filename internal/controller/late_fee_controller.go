@@ -28,6 +28,7 @@ func NewLateFeeController(lateFeeService service.LateFeeService) *LateFeeControl
 // @Tags LateFees
 // @Accept json
 // @Produce json
+// @Param        Authorization  header      string  true  "Bearer {token}"
 // @Param lateFee body request.CreateLateFeeRequest true "Late fee details"
 // @Success 201 {object} response.LateFeeResponse
 // @Failure 400 {object} response.ErrorResponse
@@ -54,6 +55,7 @@ func (c *LateFeeController) CreateLateFee(ctx *gin.Context) {
 // @Description Retrieves a late fee by its ID.
 // @Tags LateFees
 // @Produce json
+// @Param        Authorization  header      string  true  "Bearer {token}"
 // @Param id path int true "Late Fee ID"
 // @Success 200 {object} response.LateFeeResponse
 // @Failure 400 {object} response.ErrorResponse
@@ -86,6 +88,7 @@ func (c *LateFeeController) GetLateFeeByID(ctx *gin.Context) {
 // @Tags LateFees
 // @Accept json
 // @Produce json
+// @Param        Authorization  header      string  true  "Bearer {token}"
 // @Param id path int true "Late Fee ID"
 // @Param lateFee body request.UpdateLateFeeRequest true "Updated late fee details"
 // @Success 200 {object} response.LateFeeResponse
@@ -124,6 +127,7 @@ func (c *LateFeeController) UpdateLateFee(ctx *gin.Context) {
 // @Description Deletes a late fee by its ID.
 // @Tags LateFees
 // @Produce json
+// @Param        Authorization  header      string  true  "Bearer {token}"
 // @Param id path int true "Late Fee ID"
 // @Success 204 "No Content"
 // @Failure 400 {object} response.ErrorResponse
@@ -154,6 +158,7 @@ func (c *LateFeeController) DeleteLateFee(ctx *gin.Context) {
 // @Description Retrieves all late fees for a specific credit account.
 // @Tags LateFees
 // @Produce json
+// @Param        Authorization  header      string  true  "Bearer {token}"
 // @Param creditAccountID path int true "Credit Account ID"
 // @Success 200 {array} response.LateFeeResponse
 // @Failure 400 {object} response.ErrorResponse

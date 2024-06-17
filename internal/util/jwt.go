@@ -27,7 +27,6 @@ func GenerateAccessToken(userID uint, jwtSecret string) (string, error) {
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(expirationTime),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
-			// You can add other registered claims if needed
 		},
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -42,7 +41,6 @@ func GenerateRefreshToken(userID uint, jwtSecret string) (string, error) {
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(expirationTime),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
-			// You can add other registered claims if needed
 		},
 	}
 	refreshToken := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)

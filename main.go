@@ -55,7 +55,7 @@ func main() {
 	// Initialize database connection
 	db := cfg.DB
 
-	// Migrate database (create tables)
+	// Migrate the database
 	if err := migrateDB(db); err != nil {
 		log.Fatal("Error migrating database: ", err)
 	}
@@ -83,6 +83,7 @@ func main() {
 	lateFeeService := service.NewLateFeeService(lateFeeRepo)
 	lateFeeRuleService := service.NewLateFeeRuleService(lateFeeRuleRepo)
 	installmentService := service.NewInstallmentService(installmentRepo)
+	purchaseService := service.NewPurchaseService(userRepo, establishmentRepo, productRepo, creditAccountRepo, transactionRepo, installmentRepo, db)
 
 	// Initialize controllers
 	authController := controller.NewAuthController(authService)
@@ -95,6 +96,7 @@ func main() {
 	lateFeeController := controller.NewLateFeeController(lateFeeService)
 	lateFeeRuleController := controller.NewLateFeeRuleController(lateFeeRuleService)
 	installmentController := controller.NewInstallmentController(installmentService)
+	purchaseController := controller.NewPurchaseController(purchaseService)
 
 	// Initialize Gin router
 	router := gin.Default()
@@ -138,11 +140,11 @@ func main() {
 		protectedRoutes.DELETE("/clients/:id", clientController.DeleteClient)
 
 		// Admin routes
-		protectedRoutes.POST("/admins", adminController.CreateAdmin)
 		protectedRoutes.GET("/admins", adminController.GetAllAdmins)
 		protectedRoutes.GET("/admins/:id", adminController.GetAdminByID)
 		protectedRoutes.PUT("/admins/:id", adminController.UpdateAdmin)
 		protectedRoutes.DELETE("/admins/:id", adminController.DeleteAdmin)
+		protectedRoutes.POST("/register-establishments", adminController.RegisterEstablishment)
 
 		// Authentication route (reset password)
 		protectedRoutes.POST("/reset-password", authController.ResetPassword)
@@ -183,6 +185,13 @@ func main() {
 		protectedRoutes.DELETE("/transactions/:id", transactionController.DeleteTransaction)
 		protectedRoutes.GET("/credit-accounts/:id/transactions", transactionController.GetTransactionsByCreditAccountID)
 
+		// Purchase Routes
+		protectedRoutes.POST("/purchases", purchaseController.CreatePurchase)
+		protectedRoutes.GET("/clients/:id/balance", purchaseController.GetClientBalance)
+		protectedRoutes.GET("/clients/:id/transactions", purchaseController.GetClientTransactions)
+		protectedRoutes.GET("/clients/:id/overdue-balance", purchaseController.GetClientOverdueBalance)
+		protectedRoutes.GET("/clients/:id/credit-accounts", purchaseController.GetClientCreditAccount)
+
 		// Late Fee Routes
 		protectedRoutes.POST("/late-fees", lateFeeController.CreateLateFee)
 		protectedRoutes.GET("/late-fees/:id", lateFeeController.GetLateFeeByID)
@@ -219,7 +228,6 @@ func main() {
 func migrateDB(db *gorm.DB) error {
 	return db.AutoMigrate(
 		&entities.User{},
-		&entities.Role{},
 		&entities.Admin{},
 		&entities.Client{},
 		&entities.Establishment{},

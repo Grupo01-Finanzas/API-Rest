@@ -2,7 +2,10 @@ package service
 
 import (
 	"ApiRestFinance/internal/model/dto/request"
+
 	"ApiRestFinance/internal/model/entities"
+	"ApiRestFinance/internal/model/entities/enums"
+
 	"errors"
 	"fmt"
 
@@ -15,8 +18,8 @@ type AdminService interface {
 	GetAdminByID(adminID uint) (*entities.Admin, error)
 	UpdateAdmin(admin *entities.Admin) error
 	DeleteAdmin(adminID uint) error
-	RegisterEstablishment(establishment *entities.Establishment, adminID uint) error
-	GetEstablishmentByID(establishmentID uint) (*entities.Establishment, error)
+	RegisterEstablishment(establishment *request.CreateEstablishmentRequest, adminID uint) error
+	GetEstablishmentByAdminID(adminID uint) (*entities.Establishment, error)
 	GetAdminByUserID(userID uint) (*entities.Admin, error)
 }
 
@@ -54,11 +57,9 @@ func (s *adminService) DeleteAdmin(adminID uint) error {
 	return s.adminRepo.DeleteAdmin(adminID)
 }
 
-func (s *adminService) RegisterEstablishment(establishment *entities.Establishment, adminID uint) error {
+func (s *adminService) RegisterEstablishment(establishment *request.CreateEstablishmentRequest, adminID uint) error {
+
 	existingAdmin, err := s.adminRepo.GetAdminByUserID(adminID)
-	if err != nil {
-		return fmt.Errorf("error al buscar el administrador: %w", err)
-	}
 
 	if existingAdmin != nil {
 		return errors.New("admin already has an establishment")
@@ -66,39 +67,45 @@ func (s *adminService) RegisterEstablishment(establishment *entities.Establishme
 
 	admin, err := s.userRepo.GetUserByID(adminID)
 	if err != nil {
-		return fmt.Errorf("error al buscar el administrador: %w", err)
+		return fmt.Errorf("error al buscar el usuario administrador: %w", err)
 	}
 
 	if admin == nil {
 		return errors.New("admin not found")
 	}
 
-	establishment.Admin = &entities.Admin{
-		UserID: admin.ID,
-		User:   *admin,
-	}
-
-	// Create the establishment request
-	createEstablishmentRequest := request.CreateEstablishmentRequest{
-		RUC:      establishment.RUC,
-		Name:     establishment.Name,
-		Phone:    establishment.Phone,
-		Address:  establishment.Address,
-		IsActive: establishment.IsActive,
-		AdminID:  admin.ID,
-	}
-
-	// Use the request to create the establishment
-	_, err = s.establishmentRepo.Create(createEstablishmentRequest)
+	establishmentCreated, err := s.establishmentRepo.Create(establishment)
 	if err != nil {
 		return fmt.Errorf("error al crear el establecimiento: %w", err)
 	}
 
+	admin.Rol = enums.ADMIN
+	if err := s.userRepo.UpdateUser(admin); err != nil {
+		return fmt.Errorf("error al actualizar el rol del administrador: %w", err)
+	}
+
+	establishmentEntity, err := s.establishmentRepo.GetByEstablishmentID(establishmentCreated.ID)
+
+	newAdmin := &entities.Admin{
+		UserID:          admin.ID,
+		User:            admin,
+		EstablishmentID: establishmentCreated.ID,
+		Establishment:   establishmentEntity,
+		IsActive:        true,
+	}
+
+	if err := s.adminRepo.CreateAdmin(newAdmin); err != nil {
+		return fmt.Errorf("error al crear el registro del administrador: %w", err)
+	}
+
+	establishmentEntity.Admin = newAdmin
+
 	return nil
 }
-func (s *adminService) GetEstablishmentByID(establishmentID uint) (*entities.Establishment, error) {
+
+func (s *adminService) GetEstablishmentByAdminID(adminID uint) (*entities.Establishment, error) {
 	// Call the correct method in the repository
-	establishmentResponse, err := s.establishmentRepo.GetByID(establishmentID)
+	establishmentResponse, err := s.adminRepo.GetEstablishmentByAdminID(adminID)
 	if err != nil {
 		return nil, err
 	}

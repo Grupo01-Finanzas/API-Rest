@@ -1,7 +1,9 @@
 package service
 
 import (
+	"ApiRestFinance/internal/model/entities/enums"
 	"errors"
+	"time"
 
 	"ApiRestFinance/internal/model/dto/request"
 	"ApiRestFinance/internal/model/dto/response"
@@ -15,7 +17,7 @@ import (
 type AuthService interface {
 	RegisterUser(req *request.CreateUserRequest) error
 	Login(req *request.LoginRequest) (*response.AuthResponse, error)
-	Refresh(refreshToken string) (*response.AuthResponse, error)
+	AttemptRefresh(accessToken string) (*response.AuthResponse, error)
 	ValidateToken(tokenString string) (jwt.MapClaims, error)
 	ResetPassword(req *request.ResetPasswordRequest, userID uint) error
 }
@@ -31,48 +33,48 @@ func NewAuthService(userRepo repository.UserRepository, establishmentRepo reposi
 }
 
 func (s *authService) RegisterUser(req *request.CreateUserRequest) error {
-	// Verificar si el usuario ya existe
+
 	_, err := s.userRepo.GetUserByEmail(req.Email)
 	if err == nil {
-		return errors.New("el correo electrónico ya está en uso")
+		return errors.New("email already in use")
 	}
 
-	// Hashear la contraseña
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return err
 	}
 
-	// Crear usuario con rol "user" por defecto
 	user := &entities.User{
-		Email:    req.Email,
-		Password: string(hashedPassword),
-		Name:     req.Name,
-		Roles:    []entities.Role{{Name: "user"}}, // Rol por defecto
+		DNI:       req.DNI,
+		Email:     req.Email,
+		Password:  string(hashedPassword),
+		Name:      req.Name,
+		Address:   req.Address,
+		Phone:     req.Phone,
+		Rol:       enums.USER,
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
 	}
 
 	return s.userRepo.CreateUser(user)
 }
 
 func (s *authService) Login(req *request.LoginRequest) (*response.AuthResponse, error) {
-	// Obtener el usuario por correo electrónico
+
 	user, err := s.userRepo.GetUserByEmail(req.Email)
 	if err != nil {
-		return nil, errors.New("credenciales inválidas")
+		return nil, errors.New("credentials invalids")
 	}
 
-	// Comparar la contraseña ingresada con la contraseña hasheada
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password)); err != nil {
-		return nil, errors.New("credenciales inválidas")
+		return nil, errors.New("credentials invalids")
 	}
 
-	// Generar el token de acceso
 	accessToken, err := util.GenerateAccessToken(user.ID, s.jwtSecret)
 	if err != nil {
 		return nil, err
 	}
 
-	// Generar el token de refresco
 	refreshToken, err := util.GenerateRefreshToken(user.ID, s.jwtSecret)
 	if err != nil {
 		return nil, err
@@ -86,38 +88,44 @@ func (s *authService) Login(req *request.LoginRequest) (*response.AuthResponse, 
 	return authResponse, nil
 }
 
-func (s *authService) Refresh(refreshToken string) (*response.AuthResponse, error) {
-	token, err := util.ValidateToken(refreshToken, s.jwtSecret)
+func (s *authService) AttemptRefresh(accessToken string) (*response.AuthResponse, error) {
+
+	token, err := util.ValidateToken(accessToken, s.jwtSecret)
 	if err != nil {
-		return nil, err
+		return nil, errors.New("access token invalid")
 	}
 
-	// Obtener los claims como jwt.MapClaims
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok || !token.Valid {
-		return nil, errors.New("token de refresco inválido")
+		return nil, errors.New("access token invalid")
 	}
 
-	// Obtener el ID del usuario de los claims
-	userID, ok := claims["user_id"].(float64)
+	exp, ok := claims["exp"].(float64)
 	if !ok {
-		return nil, errors.New("token de refresco inválido")
+		return nil, errors.New("access token invalid")
 	}
 
-	// Verificar si el usuario existe (opcional, pero recomendado)
-	_, err = s.userRepo.GetUserByID(uint(userID))
-	if err != nil {
-		return nil, errors.New("usuario no encontrado")
+	expirationTime := time.Unix(int64(exp), 0)
+
+	if time.Since(expirationTime) > 5*time.Minute {
+		return nil, errors.New("token expired, login again")
 	}
 
-	// Generar un nuevo token de acceso
-	newAccessToken, err := util.GenerateAccessToken(uint(userID), s.jwtSecret)
+	userIDFloat, ok := claims["user_id"].(float64)
+	if !ok {
+		return nil, errors.New("access token invalid")
+	}
+
+	userID := uint(userIDFloat)
+
+	newAccessToken, err := util.GenerateAccessToken(userID, s.jwtSecret)
 	if err != nil {
 		return nil, err
 	}
 
 	authResponse := &response.AuthResponse{
-		AccessToken: newAccessToken,
+		AccessToken:  newAccessToken,
+		RefreshToken: newAccessToken,
 	}
 	return authResponse, nil
 }
@@ -128,7 +136,6 @@ func (s *authService) ValidateToken(tokenString string) (jwt.MapClaims, error) {
 		return nil, err
 	}
 
-	// Extract claims and assert the type
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok || !token.Valid {
 		return nil, errors.New("invalid JWT token")
@@ -138,26 +145,22 @@ func (s *authService) ValidateToken(tokenString string) (jwt.MapClaims, error) {
 }
 
 func (s *authService) ResetPassword(req *request.ResetPasswordRequest, userID uint) error {
-	// Obtener el usuario de la base de datos
+
 	user, err := s.userRepo.GetUserByID(userID)
 	if err != nil {
-		return errors.New("usuario no encontrado")
+		return errors.New("user not found")
 	}
 
-	// Verificar contraseña actual
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.CurrentPassword)); err != nil {
-		return errors.New("contraseña actual incorrecta")
+		return errors.New("current password incorrect")
 	}
 
-	// Hashear la nueva contraseña
 	newPasswordHash, err := bcrypt.GenerateFromPassword([]byte(req.NewPassword), bcrypt.DefaultCost)
 	if err != nil {
 		return err
 	}
 
-	// Actualizar la contraseña en el modelo
 	user.Password = string(newPasswordHash)
 
-	// Guardar el usuario actualizado en la base de datos
 	return s.userRepo.UpdateUser(user)
 }

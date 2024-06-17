@@ -13,11 +13,13 @@ import (
 type EstablishmentRepository interface {
 	GetAll() ([]response.EstablishmentResponse, error)
 	GetByID(id uint) (*response.EstablishmentResponse, error)
-	Create(req request.CreateEstablishmentRequest) (*response.EstablishmentResponse, error)
+	GetByEstablishmentID(establishmentID uint) (*entities.Establishment, error)
+	Create(req *request.CreateEstablishmentRequest) (*response.EstablishmentResponse, error)
 	Update(id uint, req request.UpdateEstablishmentRequest) (*response.EstablishmentResponse, error)
 	Delete(id uint) error
 	RegisterProducts(establishmentID uint, productIDs []uint) error
 	AddClientToEstablishment(establishmentID uint, clientID uint) error
+	GetLateFeeRules(establishmentID uint) ([]entities.LateFeeRule, error)
 }
 
 type establishmentRepository struct {
@@ -75,19 +77,25 @@ func (r *establishmentRepository) GetByID(id uint) (*response.EstablishmentRespo
 	}, nil
 }
 
-func (r *establishmentRepository) Create(req request.CreateEstablishmentRequest) (*response.EstablishmentResponse, error) {
-	var admin entities.Admin
-	if err := r.db.First(&admin, req.AdminID).Error; err != nil {
-		return nil, errors.New("admin not found")
+func (r *establishmentRepository) GetByEstablishmentID(establishmentID uint) (*entities.Establishment, error) {
+	var establishment entities.Establishment
+	err := r.db.Preload("Admin.Establishment").Preload("Products").First(&establishment, establishmentID).Error
+	if err != nil {
+		return nil, err
 	}
+
+	return &establishment, nil
+
+}
+
+func (r *establishmentRepository) Create(req *request.CreateEstablishmentRequest) (*response.EstablishmentResponse, error) {
 
 	establishment := entities.Establishment{
 		RUC:      req.RUC,
 		Name:     req.Name,
 		Phone:    req.Phone,
 		Address:  req.Address,
-		IsActive: req.IsActive,
-		Admin:    &admin,
+		IsActive: true,
 	}
 
 	err := r.db.Create(&establishment).Error
@@ -224,4 +232,13 @@ func (r *establishmentRepository) AddClientToEstablishment(establishmentID uint,
 	establishment.Clients = append(establishment.Clients, client)
 
 	return r.db.Save(&establishment).Error
+}
+
+func (r *establishmentRepository) GetLateFeeRules(establishmentID uint) ([]entities.LateFeeRule, error) {
+	var lateFeeRules []entities.LateFeeRule
+	err := r.db.Where("establishment_id = ?", establishmentID).Find(&lateFeeRules).Error
+	if err != nil {
+		return nil, err
+	}
+	return lateFeeRules, nil
 }

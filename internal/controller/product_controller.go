@@ -28,6 +28,7 @@ func NewProductController(productService service.ProductService) *ProductControl
 // @Description Retrieve a list of all products.
 // @Tags Products
 // @Produce json
+// @Param        Authorization  header      string  true  "Bearer {token}"
 // @Success 200 {array} response.ProductResponse
 // @Failure 500 {object} response.ErrorResponse
 // @Router /products [get]
@@ -46,6 +47,7 @@ func (c *ProductController) GetAllProducts(ctx *gin.Context) {
 // @Description Retrieve a product by its ID.
 // @Tags Products
 // @Produce json
+// @Param        Authorization  header      string  true  "Bearer {token}"
 // @Param id path uint true "Product ID"
 // @Success 200 {object} response.ProductResponse
 // @Failure 404 {object} response.ErrorResponse
@@ -76,6 +78,7 @@ func (c *ProductController) GetProductByID(ctx *gin.Context) {
 // @Description Retrieve products associated with a specific establishment ID.
 // @Tags Products
 // @Produce json
+// @Param        Authorization  header      string  true  "Bearer {token}"
 // @Param establishment_id path uint true "Establishment ID"
 // @Success 200 {array} response.ProductResponse
 // @Failure 400 {object} response.ErrorResponse
@@ -103,6 +106,7 @@ func (c *ProductController) GetProductsByEstablishmentID(ctx *gin.Context) {
 // @Tags Products
 // @Accept json
 // @Produce json
+// @Param        Authorization  header      string  true  "Bearer {token}"
 // @Param product body request.CreateProductRequest true "Product details"
 // @Success 201 {object} response.ProductResponse
 // @Failure 400 {object} response.ErrorResponse
@@ -130,6 +134,7 @@ func (c *ProductController) CreateProduct(ctx *gin.Context) {
 // @Tags Products
 // @Accept json
 // @Produce json
+// @Param        Authorization  header      string  true  "Bearer {token}"
 // @Param id path uint true "Product ID"
 // @Param product body request.UpdateProductRequest true "Product details"
 // @Success 200 {object} response.ProductResponse
@@ -168,6 +173,7 @@ func (c *ProductController) UpdateProduct(ctx *gin.Context) {
 // @Description Delete a product by ID.
 // @Tags Products
 // @Produce json
+// @Param        Authorization  header      string  true  "Bearer {token}"
 // @Param id path uint true "Product ID"
 // @Success 204
 // @Failure 404 {object} response.ErrorResponse
