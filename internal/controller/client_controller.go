@@ -27,7 +27,7 @@ func NewClientController(clientService service.ClientService) *ClientController 
 // @Produce      json
 // @Param        Authorization  header      string  true  "Bearer {token}"
 // @Success      200     {array}   response.ClientResponse
-// @Failure      500     {object}  map[string]string
+// @Failure      500     {object}  response.ErrorResponse
 // @Router       /clients [get]
 func (c *ClientController) GetAllClients(ctx *gin.Context) {
 	clients, err := c.clientService.GetAllClients()
@@ -38,10 +38,10 @@ func (c *ClientController) GetAllClients(ctx *gin.Context) {
 
 	var resp []response.ClientResponse
 	for _, client := range clients {
+		userResponse := c.clientService.NewUserResponse(client.User)
 		resp = append(resp, response.ClientResponse{
 			ID:        client.ID,
-			UserID:    client.UserID,
-			User:      client.User,
+			User:      userResponse,
 			IsActive:  client.IsActive,  // Access IsActive from entities.Client
 			CreatedAt: client.CreatedAt, // Access CreatedAt from entities.Client
 			UpdatedAt: client.UpdatedAt, // Access UpdatedAt from entities.Client
@@ -60,9 +60,9 @@ func (c *ClientController) GetAllClients(ctx *gin.Context) {
 // @Param        Authorization  header      string  true  "Bearer {token}"
 // @Param        id   path      int  true  "Client ID"
 // @Success      200  {object}  response.ClientResponse
-// @Failure      400  {object}  map[string]string
-// @Failure      404  {object}  map[string]string
-// @Failure      500  {object}  map[string]string
+// @Failure      400  {object}  response.ErrorResponse
+// @Failure      404  {object}  response.ErrorResponse
+// @Failure      500  {object}  response.ErrorResponse
 // @Router       /clients/{id} [get]
 func (c *ClientController) GetClientByID(ctx *gin.Context) {
 	clientID, err := strconv.Atoi(ctx.Param("id"))
@@ -76,11 +76,11 @@ func (c *ClientController) GetClientByID(ctx *gin.Context) {
 		ctx.JSON(http.StatusNotFound, gin.H{"error": "Client not found"})
 		return
 	}
+	userResponse := c.clientService.NewUserResponse(client.User)
 
 	resp := response.ClientResponse{
 		ID:        client.ID,
-		UserID:    client.UserID,
-		User:      client.User,
+		User:      userResponse,
 		IsActive:  client.IsActive,
 		CreatedAt: client.CreatedAt,
 		UpdatedAt: client.UpdatedAt,
@@ -98,10 +98,10 @@ func (c *ClientController) GetClientByID(ctx *gin.Context) {
 // @Param        Authorization  header      string  true  "Bearer {token}"
 // @Param        id     path      int                      true  "Client ID"
 // @Param        client  body      request.UpdateClientRequest  true  "Updated client data"
-// @Success      200     {object}  map[string]string  "Client updated successfully"
-// @Failure      400     {object}  map[string]string  "Invalid client ID or request body"
-// @Failure      404     {object}  map[string]string  "Client not found"
-// @Failure      500     {object}  map[string]string  "Internal server error"
+// @Success      200     {object}  map[string]string  
+// @Failure      400     {object}  response.ErrorResponse
+// @Failure      404     {object}  response.ErrorResponse
+// @Failure      500     {object}  response.ErrorResponse
 // @Router       /clients/{id} [put]
 func (c *ClientController) UpdateClient(ctx *gin.Context) {
 	clientID, err := strconv.Atoi(ctx.Param("id"))
@@ -143,10 +143,10 @@ func (c *ClientController) UpdateClient(ctx *gin.Context) {
 // @Produce      json
 // @Param        Authorization  header      string  true  "Bearer {token}"
 // @Param        id   path      int  true  "Client ID"
-// @Success      200  {object}  map[string]string  "Client deleted successfully"
-// @Failure      400  {object}  map[string]string  "Invalid client ID"
-// @Failure      404  {object}  map[string]string  "Client not found"
-// @Failure      500  {object}  map[string]string  "Internal server error"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  response.ErrorResponse
+// @Failure      404  {object}  response.ErrorResponse
+// @Failure      500  {object} response.ErrorResponse
 // @Router       /clients/{id} [delete]
 func (c *ClientController) DeleteClient(ctx *gin.Context) {
 	clientID, err := strconv.Atoi(ctx.Param("id"))

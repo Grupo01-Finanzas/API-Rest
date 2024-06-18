@@ -74,6 +74,16 @@ definitions:
     - RolClient
     - RolEstablishment
     - RolAdmin
+  enums.Role:
+    enum:
+    - ADMIN
+    - CLIENT
+    - USER
+    type: string
+    x-enum-varnames:
+    - ADMIN
+    - CLIENT
+    - USER
   enums.TransactionType:
     enum:
     - PURCHASE
@@ -96,25 +106,6 @@ definitions:
     - EarlyPayment
     - AccountBlocked
     - AccountUnblocked
-  request.CreateClientRequest:
-    properties:
-      credit_limit:
-        minimum: 0
-        type: number
-      email:
-        type: string
-      is_active:
-        type: boolean
-      phone:
-        type: string
-      user_id:
-        type: integer
-    required:
-    - credit_limit
-    - email
-    - phone
-    - user_id
-    type: object
   request.CreateCreditAccountRequest:
     properties:
       client_id:
@@ -270,6 +261,24 @@ definitions:
     - price
     - stock
     type: object
+  request.CreatePurchaseRequest:
+    properties:
+      amount:
+        type: number
+      credit_type:
+        $ref: '#/definitions/enums.CreditType'
+      establishment_id:
+        type: integer
+      product_ids:
+        items:
+          type: integer
+        type: array
+    required:
+    - amount
+    - credit_type
+    - establishment_id
+    - product_ids
+    type: object
   request.CreateTransactionRequest:
     properties:
       amount:
@@ -348,19 +357,8 @@ definitions:
     type: object
   request.UpdateClientRequest:
     properties:
-      credit_limit:
-        minimum: 0
-        type: number
-      email:
-        type: string
       is_active:
         type: boolean
-      phone:
-        type: string
-    required:
-    - credit_limit
-    - email
-    - phone
     type: object
   request.UpdateCreditAccountRequest:
     properties:
@@ -508,24 +506,25 @@ definitions:
       refresh_token:
         type: string
     type: object
+  response.ClientBalanceResponse:
+    properties:
+      client_id:
+        type: integer
+      current_balance:
+        type: number
+    type: object
   response.ClientResponse:
     properties:
       created_at:
-        type: string
-      credit_limit:
-        type: number
-      email:
         type: string
       id:
         type: integer
       is_active:
         type: boolean
-      phone:
-        type: string
       updated_at:
         type: string
-      user_id:
-        type: integer
+      user:
+        $ref: '#/definitions/response.UserResponse'
     type: object
   response.CreditAccountResponse:
     properties:
@@ -704,6 +703,27 @@ definitions:
       updated_at:
         type: string
     type: object
+  response.UserResponse:
+    properties:
+      address:
+        type: string
+      created_at:
+        type: string
+      dni:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      phone:
+        type: string
+      rol:
+        $ref: '#/definitions/enums.Role'
+      updated_at:
+        type: string
+    type: object
 info:
   contact:
     email: support@swagger.io
@@ -722,6 +742,12 @@ paths:
       consumes:
       - application/json
       description: Gets a list of all admins.
+      parameters:
+      - description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -732,11 +758,9 @@ paths:
               $ref: '#/definitions/response.AdminResponse'
             type: array
         "500":
-          description: Internal server error
+          description: Internal Server Error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/response.ErrorResponse'
       summary: Get all admins
       tags:
       - Admins
@@ -746,6 +770,11 @@ paths:
       - application/json
       description: Deletes an admin by their ID.
       parameters:
+      - description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: Admin ID
         in: path
         name: id
@@ -761,23 +790,17 @@ paths:
               type: string
             type: object
         "400":
-          description: Invalid admin ID
+          description: Bad Request
           schema:
-            additionalProperties:
-              type: string
-            type: object
-        "404":
-          description: Admin not found
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/response.ErrorResponse'
         "500":
-          description: Internal server error
+          description: Internal Server Error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/response.ErrorResponse'
       summary: Delete admin
       tags:
       - Admins
@@ -786,6 +809,11 @@ paths:
       - application/json
       description: Gets an admin by their ID.
       parameters:
+      - description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: Admin ID
         in: path
         name: id
@@ -799,23 +827,17 @@ paths:
           schema:
             $ref: '#/definitions/response.AdminResponse'
         "400":
-          description: Invalid admin ID
+          description: Bad Request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/response.ErrorResponse'
         "404":
-          description: Admin not found
+          description: Not Found
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/response.ErrorResponse'
         "500":
-          description: Internal server error
+          description: Internal Server Error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/response.ErrorResponse'
       summary: Get admin by ID
       tags:
       - Admins
@@ -824,6 +846,11 @@ paths:
       - application/json
       description: Updates an admin\'s data.
       parameters:
+      - description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: Admin ID
         in: path
         name: id
@@ -839,29 +866,23 @@ paths:
       - application/json
       responses:
         "200":
-          description: Admin updated successfully
+          description: OK
           schema:
             additionalProperties:
               type: string
             type: object
         "400":
-          description: Invalid admin ID or request body
+          description: Bad Request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/response.ErrorResponse'
         "404":
-          description: Admin not found
+          description: Not Found
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/response.ErrorResponse'
         "500":
-          description: Internal server error
+          description: Internal Server Error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/response.ErrorResponse'
       summary: Update admin
       tags:
       - Admins
@@ -870,6 +891,12 @@ paths:
       consumes:
       - application/json
       description: Gets a list of all clients.
+      parameters:
+      - description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -880,51 +907,21 @@ paths:
               $ref: '#/definitions/response.ClientResponse'
             type: array
         "500":
-          description: Internal server error
+          description: Internal Server Error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/response.ErrorResponse'
       summary: Get all clients
-      tags:
-      - Clients
-    post:
-      consumes:
-      - application/json
-      description: Creates a new client with the provided data.
-      parameters:
-      - description: Client data
-        in: body
-        name: client
-        required: true
-        schema:
-          $ref: '#/definitions/request.CreateClientRequest'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/response.ClientResponse'
-        "400":
-          description: Invalid request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Internal server error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Create a new client
       tags:
       - Clients
   /clients/{clientID}/credit-accounts:
     get:
       description: Retrieves all credit accounts associated with a client.
       parameters:
+      - description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: Client ID
         in: path
         name: clientID
@@ -956,6 +953,11 @@ paths:
       - application/json
       description: Deletes a client by its ID.
       parameters:
+      - description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: Client ID
         in: path
         name: id
@@ -965,29 +967,23 @@ paths:
       - application/json
       responses:
         "200":
-          description: Client deleted successfully
+          description: OK
           schema:
             additionalProperties:
               type: string
             type: object
         "400":
-          description: Invalid client ID
+          description: Bad Request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/response.ErrorResponse'
         "404":
-          description: Client not found
+          description: Not Found
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/response.ErrorResponse'
         "500":
-          description: Internal server error
+          description: Internal Server Error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/response.ErrorResponse'
       summary: Delete client
       tags:
       - Clients
@@ -996,6 +992,11 @@ paths:
       - application/json
       description: Gets a client by its ID.
       parameters:
+      - description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: Client ID
         in: path
         name: id
@@ -1009,23 +1010,17 @@ paths:
           schema:
             $ref: '#/definitions/response.ClientResponse'
         "400":
-          description: Invalid client ID
+          description: Bad Request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/response.ErrorResponse'
         "404":
-          description: Client not found
+          description: Not Found
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/response.ErrorResponse'
         "500":
-          description: Internal server error
+          description: Internal Server Error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/response.ErrorResponse'
       summary: Get client by ID
       tags:
       - Clients
@@ -1034,6 +1029,11 @@ paths:
       - application/json
       description: Updates a client's data.
       parameters:
+      - description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: Client ID
         in: path
         name: id
@@ -1049,30 +1049,250 @@ paths:
       - application/json
       responses:
         "200":
-          description: Client updated successfully
+          description: OK
           schema:
             additionalProperties:
               type: string
             type: object
         "400":
-          description: Invalid client ID or request body
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Update client
+      tags:
+      - Clients
+  /clients/{id}/balance:
+    get:
+      consumes:
+      - application/json
+      description: Gets the current balance of a client's credit account.
+      parameters:
+      - description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Client ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.ClientBalanceResponse'
+        "400":
+          description: Bad Request
           schema:
             additionalProperties:
               type: string
             type: object
         "404":
-          description: Client not found
+          description: Not Found
           schema:
             additionalProperties:
               type: string
             type: object
         "500":
-          description: Internal server error
+          description: Internal Server Error
           schema:
             additionalProperties:
               type: string
             type: object
-      summary: Update client
+      summary: Get Client Balance
+      tags:
+      - Clients
+  /clients/{id}/credit-account:
+    get:
+      consumes:
+      - application/json
+      description: Gets the credit account details of a client.
+      parameters:
+      - description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Client ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.CreditAccountResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get Client Credit Account
+      tags:
+      - Clients
+  /clients/{id}/installments:
+    get:
+      consumes:
+      - application/json
+      description: Gets the installments of a client's credit account.
+      parameters:
+      - description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Client ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/response.InstallmentResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get Client Installments
+      tags:
+      - Clients
+  /clients/{id}/overdue-balance:
+    get:
+      consumes:
+      - application/json
+      description: Gets the overdue balance of a client's credit account.
+      parameters:
+      - description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Client ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: number
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get Client Overdue Balance
+      tags:
+      - Clients
+  /clients/{id}/transactions:
+    get:
+      consumes:
+      - application/json
+      description: Gets the transaction history of a client.
+      parameters:
+      - description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Client ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/response.TransactionResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get Client Transactions
       tags:
       - Clients
   /credit-accounts:
@@ -1081,6 +1301,11 @@ paths:
       - application/json
       description: Creates a new credit account for a client.
       parameters:
+      - description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: Credit account details
         in: body
         name: creditAccount
@@ -1109,6 +1334,11 @@ paths:
     put:
       description: Assigns an existing credit account to a client.
       parameters:
+      - description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: Credit Account ID
         in: path
         name: creditAccountID
@@ -1145,6 +1375,11 @@ paths:
     get:
       description: Retrieves all installments for a specific credit account.
       parameters:
+      - description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: Credit Account ID
         in: path
         name: creditAccountID
@@ -1174,6 +1409,11 @@ paths:
     get:
       description: Retrieves all overdue installments for a specific credit account.
       parameters:
+      - description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: Credit Account ID
         in: path
         name: creditAccountID
@@ -1203,6 +1443,11 @@ paths:
     get:
       description: Retrieves all late fees for a specific credit account.
       parameters:
+      - description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: Credit Account ID
         in: path
         name: creditAccountID
@@ -1234,6 +1479,11 @@ paths:
       - application/json
       description: Processes a payment transaction on a credit account.
       parameters:
+      - description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: Credit Account ID
         in: path
         name: creditAccountID
@@ -1271,6 +1521,11 @@ paths:
       - application/json
       description: Processes a purchase transaction on a credit account.
       parameters:
+      - description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: Credit Account ID
         in: path
         name: creditAccountID
@@ -1308,6 +1563,11 @@ paths:
       - application/json
       description: Get all transactions for a specific credit account.
       parameters:
+      - description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: Credit Account ID
         in: path
         name: creditAccountID
@@ -1341,6 +1601,11 @@ paths:
     delete:
       description: Deletes a credit account by its ID.
       parameters:
+      - description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: Credit Account ID
         in: path
         name: id
@@ -1369,6 +1634,11 @@ paths:
     get:
       description: Retrieves a credit account by its ID.
       parameters:
+      - description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: Credit Account ID
         in: path
         name: id
@@ -1401,6 +1671,11 @@ paths:
       - application/json
       description: Updates an existing credit account by its ID.
       parameters:
+      - description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: Credit Account ID
         in: path
         name: id
@@ -1440,6 +1715,11 @@ paths:
       - application/json
       description: Creates a new credit request for a client.
       parameters:
+      - description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: Credit request details
         in: body
         name: creditRequest
@@ -1468,6 +1748,11 @@ paths:
     get:
       description: Retrieves a credit request by its ID.
       parameters:
+      - description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: Credit Request ID
         in: path
         name: id
@@ -1499,6 +1784,11 @@ paths:
     put:
       description: Approves a pending credit request and creates a credit account.
       parameters:
+      - description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: Credit Request ID
         in: path
         name: id
@@ -1530,13 +1820,16 @@ paths:
     put:
       description: Rejects a pending credit request.
       parameters:
+      - description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: Credit Request ID
         in: path
         name: id
         required: true
         type: integer
-      produces:
-      - application/json
       responses:
         "200":
           description: Credit request rejected successfully
@@ -1558,6 +1851,12 @@ paths:
   /establishments:
     get:
       description: Retrieve a list of all establishments.
+      parameters:
+      - description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -1578,6 +1877,11 @@ paths:
     get:
       description: Retrieve products associated with a specific establishment ID.
       parameters:
+      - description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: Establishment ID
         in: path
         name: establishment_id
@@ -1607,6 +1911,11 @@ paths:
     get:
       description: Retrieves all credit accounts associated with an establishment.
       parameters:
+      - description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: Establishment ID
         in: path
         name: establishmentID
@@ -1636,6 +1945,11 @@ paths:
     post:
       description: Applies interest to all eligible credit accounts within an establishment.
       parameters:
+      - description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: Establishment ID
         in: path
         name: establishmentID
@@ -1661,6 +1975,11 @@ paths:
     post:
       description: Applies late fees to all eligible credit accounts within an establishment.
       parameters:
+      - description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: Establishment ID
         in: path
         name: establishmentID
@@ -1686,6 +2005,11 @@ paths:
     get:
       description: Retrieves a summary of debts owed to an establishment.
       parameters:
+      - description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: Establishment ID
         in: path
         name: establishmentID
@@ -1715,6 +2039,11 @@ paths:
     get:
       description: Retrieves all pending credit requests for an establishment.
       parameters:
+      - description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: Establishment ID
         in: path
         name: establishmentID
@@ -1744,6 +2073,11 @@ paths:
     get:
       description: Retrieves all late fee rules for a specific establishment.
       parameters:
+      - description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: Establishment ID
         in: path
         name: establishmentID
@@ -1773,6 +2107,11 @@ paths:
     delete:
       description: Delete an establishment by ID.
       parameters:
+      - description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: Establishment ID
         in: path
         name: id
@@ -1797,6 +2136,11 @@ paths:
     get:
       description: Retrieve an establishment by its ID.
       parameters:
+      - description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: Establishment ID
         in: path
         name: id
@@ -1825,6 +2169,11 @@ paths:
       - application/json
       description: Update an existing establishment by ID.
       parameters:
+      - description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: Establishment ID
         in: path
         name: id
@@ -1862,6 +2211,11 @@ paths:
     put:
       description: Associate a client with an establishment.
       parameters:
+      - description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: Establishment ID
         in: path
         name: id
@@ -1898,6 +2252,11 @@ paths:
       - application/json
       description: Associate a list of products with an establishment.
       parameters:
+      - description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: Establishment ID
         in: path
         name: id
@@ -1937,6 +2296,11 @@ paths:
       - application/json
       description: Creates a new installment for a credit account.
       parameters:
+      - description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: Installment details
         in: body
         name: installment
@@ -1965,6 +2329,11 @@ paths:
     delete:
       description: Deletes an installment by its ID.
       parameters:
+      - description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: Installment ID
         in: path
         name: id
@@ -1993,6 +2362,11 @@ paths:
     get:
       description: Retrieves an installment by its ID.
       parameters:
+      - description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: Installment ID
         in: path
         name: id
@@ -2025,6 +2399,11 @@ paths:
       - application/json
       description: Updates an existing installment by its ID.
       parameters:
+      - description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: Installment ID
         in: path
         name: id
@@ -2061,6 +2440,12 @@ paths:
   /late-fee-rules:
     get:
       description: Retrieves all late fee rules.
+      parameters:
+      - description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -2082,6 +2467,11 @@ paths:
       - application/json
       description: Creates a new late fee rule for an establishment (or globally).
       parameters:
+      - description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: Late fee rule details
         in: body
         name: lateFeeRule
@@ -2110,6 +2500,11 @@ paths:
     delete:
       description: Deletes a late fee rule by its ID.
       parameters:
+      - description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: Late Fee Rule ID
         in: path
         name: id
@@ -2138,6 +2533,11 @@ paths:
     get:
       description: Retrieves a late fee rule by its ID.
       parameters:
+      - description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: Late Fee Rule ID
         in: path
         name: id
@@ -2170,6 +2570,11 @@ paths:
       - application/json
       description: Updates an existing late fee rule by its ID.
       parameters:
+      - description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: Late Fee Rule ID
         in: path
         name: id
@@ -2209,6 +2614,11 @@ paths:
       - application/json
       description: Creates a new late fee for a credit account.
       parameters:
+      - description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: Late fee details
         in: body
         name: lateFee
@@ -2237,6 +2647,11 @@ paths:
     delete:
       description: Deletes a late fee by its ID.
       parameters:
+      - description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: Late Fee ID
         in: path
         name: id
@@ -2265,6 +2680,11 @@ paths:
     get:
       description: Retrieves a late fee by its ID.
       parameters:
+      - description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: Late Fee ID
         in: path
         name: id
@@ -2297,6 +2717,11 @@ paths:
       - application/json
       description: Updates an existing late fee by its ID.
       parameters:
+      - description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: Late Fee ID
         in: path
         name: id
@@ -2352,15 +2777,19 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/response.ErrorResponse'
       summary: Login
       tags:
       - Authentication
   /products:
     get:
       description: Retrieve a list of all products.
+      parameters:
+      - description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -2382,6 +2811,11 @@ paths:
       - application/json
       description: Create a new product associated with an establishment.
       parameters:
+      - description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: Product details
         in: body
         name: product
@@ -2410,6 +2844,11 @@ paths:
     delete:
       description: Delete a product by ID.
       parameters:
+      - description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: Product ID
         in: path
         name: id
@@ -2434,6 +2873,11 @@ paths:
     get:
       description: Retrieve a product by its ID.
       parameters:
+      - description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: Product ID
         in: path
         name: id
@@ -2462,6 +2906,11 @@ paths:
       - application/json
       description: Update an existing product by ID.
       parameters:
+      - description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: Product ID
         in: path
         name: id
@@ -2495,6 +2944,53 @@ paths:
       summary: Update an existing product
       tags:
       - Products
+  /purchases:
+    post:
+      consumes:
+      - application/json
+      description: Processes a product purchase by a user.
+      parameters:
+      - description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Purchase Data
+        in: body
+        name: purchase
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreatePurchaseRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create a Purchase
+      tags:
+      - Purchases
   /refresh:
     post:
       consumes:
@@ -2504,7 +3000,7 @@ paths:
         If the access token is invalid or expired for more than 5 minutes, the user must log in again.
         The access token must be sent in the Authorization header as a Bearer token.
       parameters:
-      - description: Bearer {accessToken}
+      - description: Bearer {token}
         in: header
         name: Authorization
         required: true
@@ -2517,11 +3013,9 @@ paths:
           schema:
             $ref: '#/definitions/response.AuthResponse'
         "401":
-          description: Token expired or invalid
+          description: Unauthorized
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/response.ErrorResponse'
       summary: Refresh access token
       tags:
       - Authentication
@@ -2549,9 +3043,7 @@ paths:
         "400":
           description: Bad Request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/response.ErrorResponse'
       summary: Register a new user
       tags:
       - Authentication
@@ -2561,7 +3053,7 @@ paths:
       - application/json
       description: Registers a new establishment associated with the admin.
       parameters:
-      - description: Bearer {accessToken}
+      - description: Bearer {token}
         in: header
         name: Authorization
         required: true
@@ -2580,23 +3072,17 @@ paths:
           schema:
             $ref: '#/definitions/response.EstablishmentResponse'
         "400":
-          description: Invalid request
+          description: Bad Request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/response.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/response.ErrorResponse'
         "500":
-          description: Internal server error
+          description: Internal Server Error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/response.ErrorResponse'
       summary: Register establishment
       tags:
       - Admins
@@ -2607,7 +3093,7 @@ paths:
       description: Resets the password for the authenticated user, requiring the current
         password
       parameters:
-      - description: Bearer {accessToken}
+      - description: Bearer {token}
         in: header
         name: Authorization
         required: true
@@ -2630,15 +3116,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/response.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/response.ErrorResponse'
       summary: Reset password
       tags:
       - Authentication
@@ -2648,6 +3130,11 @@ paths:
       - application/json
       description: Create a new transaction for a credit account.
       parameters:
+      - description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: Transaction Data
         in: body
         name: transaction
@@ -2678,6 +3165,11 @@ paths:
       - application/json
       description: Delete a transaction by its ID.
       parameters:
+      - description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: Transaction ID
         in: path
         name: id
@@ -2710,6 +3202,11 @@ paths:
       - application/json
       description: Get a transaction by its ID.
       parameters:
+      - description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: Transaction ID
         in: path
         name: id
@@ -2742,6 +3239,11 @@ paths:
       - application/json
       description: Update a transaction by its ID.
       parameters:
+      - description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: Transaction ID
         in: path
         name: id

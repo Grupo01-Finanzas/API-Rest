@@ -59,7 +59,7 @@ func (s *adminService) DeleteAdmin(adminID uint) error {
 
 func (s *adminService) RegisterEstablishment(establishment *request.CreateEstablishmentRequest, adminID uint) error {
 
-	existingAdmin, err := s.adminRepo.GetAdminByUserID(adminID)
+	existingAdmin, _ := s.adminRepo.GetAdminByUserID(adminID)
 
 	if existingAdmin != nil {
 		return errors.New("admin already has an establishment")
@@ -84,7 +84,7 @@ func (s *adminService) RegisterEstablishment(establishment *request.CreateEstabl
 		return fmt.Errorf("error al actualizar el rol del administrador: %w", err)
 	}
 
-	establishmentEntity, err := s.establishmentRepo.GetByEstablishmentID(establishmentCreated.ID)
+	establishmentEntity, _ := s.establishmentRepo.GetByEstablishmentID(establishmentCreated.ID)
 
 	newAdmin := &entities.Admin{
 		UserID:          admin.ID,

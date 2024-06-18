@@ -131,9 +131,7 @@ func (s *creditAccountService) GetCreditAccountsByEstablishmentID(establishmentI
 	}
 
 	creditAccountResponses := make([]response.CreditAccountResponse, len(creditAccounts))
-	for i, account := range creditAccounts {
-		creditAccountResponses[i] = account
-	}
+	copy(creditAccountResponses, creditAccounts)
 	return creditAccountResponses, nil
 }
 
@@ -480,6 +478,7 @@ func (s *creditAccountService) AssignCreditAccountToClient(creditAccountID, clie
 }
 
 func creditAccountToResponse(creditAccount *entities.CreditAccount) *response.CreditAccountResponse {
+	clientResponse := NewClientResponse(creditAccount.Client)
 	return &response.CreditAccountResponse{
 		ID:                      creditAccount.ID,
 		EstablishmentID:         creditAccount.EstablishmentID,
@@ -496,7 +495,38 @@ func creditAccountToResponse(creditAccount *entities.CreditAccount) *response.Cr
 		CreatedAt:               creditAccount.CreatedAt,
 		UpdatedAt:               creditAccount.UpdatedAt,
 		LateFeeRuleID:           creditAccount.LateFeeRuleID,
-		Client:                  creditAccount.Client,
+		Client:                  clientResponse,
+	}
+}
+
+func NewClientResponse(client *entities.Client) *response.ClientResponse {
+	if client == nil {
+		return nil
+	}
+	userResponse := NewUserResponse(client.User)
+	return &response.ClientResponse{
+		ID:        client.ID,
+		User:      userResponse,
+		IsActive:  client.IsActive,
+		CreatedAt: client.CreatedAt,
+		UpdatedAt: client.UpdatedAt,
+	}
+}
+
+func NewUserResponse(user *entities.User) *response.UserResponse {
+	if user == nil {
+		return nil
+	}
+	return &response.UserResponse{
+		ID:        user.ID,
+		DNI:       user.DNI,
+		Name:      user.Name,
+		Email:     user.Email,
+		Address:   user.Address,
+		Phone:     user.Phone,
+		Rol:       user.Rol,
+		CreatedAt: user.CreatedAt,
+		UpdatedAt: user.UpdatedAt,
 	}
 }
 
@@ -510,6 +540,7 @@ func responseToCreditAccount(res *response.CreditAccountResponse) *entities.Cred
 		EstablishmentID:         res.EstablishmentID,
 		ClientID:                res.ClientID,
 		CreditLimit:             res.CreditLimit,
+		CurrentBalance:          res.CurrentBalance,
 		MonthlyDueDate:          res.MonthlyDueDate,
 		InterestRate:            res.InterestRate,
 		InterestType:            res.InterestType,
@@ -517,8 +548,41 @@ func responseToCreditAccount(res *response.CreditAccountResponse) *entities.Cred
 		GracePeriod:             res.GracePeriod,
 		IsBlocked:               res.IsBlocked,
 		LastInterestAccrualDate: res.LastInterestAccrualDate,
-		CurrentBalance:          res.CurrentBalance,
 		LateFeeRuleID:           res.LateFeeRuleID,
-		Client:                  res.Client,
+		Client:                  responseToClient(res.Client),
+		LateFeeRule:             responseToLateFeeRule(res.LateFeeRule),
+	}
+}
+
+func responseToLateFeeRule(res *response.LateFeeRuleResponse) *entities.LateFeeRule {
+	if res == nil {
+		return nil
+	}
+
+	return &entities.LateFeeRule{
+		Model: gorm.Model{
+			ID: res.ID,
+		},
+		EstablishmentID: res.EstablishmentID,
+		Name:            res.Name,
+		DaysOverdueMin:  res.DaysOverdueMin,
+		DaysOverdueMax:  res.DaysOverdueMax,
+		FeeType:         res.FeeType,
+		FeeValue:        res.FeeValue,
+	}
+}
+
+func responseToClient(res *response.ClientResponse) *entities.Client {
+	if res == nil {
+		return nil
+	}
+
+	return &entities.Client{
+		Model: gorm.Model{
+			ID:        res.ID,
+			CreatedAt: res.CreatedAt,
+			UpdatedAt: res.UpdatedAt,
+		},
+		IsActive: res.IsActive,
 	}
 }

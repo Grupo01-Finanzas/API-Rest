@@ -37,6 +37,15 @@ const docTemplate = `{
                     "Admins"
                 ],
                 "summary": "Get all admins",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -48,12 +57,9 @@ const docTemplate = `{
                         }
                     },
                     "500": {
-                        "description": "Internal server error",
+                        "description": "Internal Server Error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     }
                 }
@@ -74,6 +80,13 @@ const docTemplate = `{
                 "summary": "Get admin by ID",
                 "parameters": [
                     {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
                         "type": "integer",
                         "description": "Admin ID",
                         "name": "id",
@@ -89,30 +102,21 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Invalid admin ID",
+                        "description": "Bad Request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     },
                     "404": {
-                        "description": "Admin not found",
+                        "description": "Not Found",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     },
                     "500": {
-                        "description": "Internal server error",
+                        "description": "Internal Server Error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     }
                 }
@@ -130,6 +134,13 @@ const docTemplate = `{
                 ],
                 "summary": "Update admin",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
                     {
                         "type": "integer",
                         "description": "Admin ID",
@@ -149,7 +160,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Admin updated successfully",
+                        "description": "OK",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -158,30 +169,21 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Invalid admin ID or request body",
+                        "description": "Bad Request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     },
                     "404": {
-                        "description": "Admin not found",
+                        "description": "Not Found",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     },
                     "500": {
-                        "description": "Internal server error",
+                        "description": "Internal Server Error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     }
                 }
@@ -199,6 +201,13 @@ const docTemplate = `{
                 ],
                 "summary": "Delete admin",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
                     {
                         "type": "integer",
                         "description": "Admin ID",
@@ -218,30 +227,21 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Invalid admin ID",
+                        "description": "Bad Request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     },
-                    "404": {
-                        "description": "Admin not found",
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     },
                     "500": {
-                        "description": "Internal server error",
+                        "description": "Internal Server Error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     }
                 }
@@ -260,6 +260,15 @@ const docTemplate = `{
                     "Clients"
                 ],
                 "summary": "Get all clients",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -271,62 +280,9 @@ const docTemplate = `{
                         }
                     },
                     "500": {
-                        "description": "Internal server error",
+                        "description": "Internal Server Error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            },
-            "post": {
-                "description": "Creates a new client with the provided data.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Clients"
-                ],
-                "summary": "Create a new client",
-                "parameters": [
-                    {
-                        "description": "Client data",
-                        "name": "client",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.CreateClientRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created",
-                        "schema": {
-                            "$ref": "#/definitions/response.ClientResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     }
                 }
@@ -343,6 +299,13 @@ const docTemplate = `{
                 ],
                 "summary": "Get credit accounts by client ID",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
                     {
                         "type": "integer",
                         "description": "Client ID",
@@ -391,6 +354,13 @@ const docTemplate = `{
                 "summary": "Get client by ID",
                 "parameters": [
                     {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
                         "type": "integer",
                         "description": "Client ID",
                         "name": "id",
@@ -406,30 +376,21 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Invalid client ID",
+                        "description": "Bad Request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     },
                     "404": {
-                        "description": "Client not found",
+                        "description": "Not Found",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     },
                     "500": {
-                        "description": "Internal server error",
+                        "description": "Internal Server Error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     }
                 }
@@ -447,6 +408,13 @@ const docTemplate = `{
                 ],
                 "summary": "Update client",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
                     {
                         "type": "integer",
                         "description": "Client ID",
@@ -466,7 +434,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Client updated successfully",
+                        "description": "OK",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -475,30 +443,21 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Invalid client ID or request body",
+                        "description": "Bad Request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     },
                     "404": {
-                        "description": "Client not found",
+                        "description": "Not Found",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     },
                     "500": {
-                        "description": "Internal server error",
+                        "description": "Internal Server Error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     }
                 }
@@ -517,6 +476,13 @@ const docTemplate = `{
                 "summary": "Delete client",
                 "parameters": [
                     {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
                         "type": "integer",
                         "description": "Client ID",
                         "name": "id",
@@ -526,7 +492,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Client deleted successfully",
+                        "description": "OK",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -535,7 +501,64 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Invalid client ID",
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/clients/{id}/balance": {
+            "get": {
+                "description": "Gets the current balance of a client's credit account.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Clients"
+                ],
+                "summary": "Get Client Balance",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Client ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.ClientBalanceResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -544,7 +567,7 @@ const docTemplate = `{
                         }
                     },
                     "404": {
-                        "description": "Client not found",
+                        "description": "Not Found",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -553,7 +576,280 @@ const docTemplate = `{
                         }
                     },
                     "500": {
-                        "description": "Internal server error",
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/clients/{id}/credit-account": {
+            "get": {
+                "description": "Gets the credit account details of a client.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Clients"
+                ],
+                "summary": "Get Client Credit Account",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Client ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.CreditAccountResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/clients/{id}/installments": {
+            "get": {
+                "description": "Gets the installments of a client's credit account.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Clients"
+                ],
+                "summary": "Get Client Installments",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Client ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/response.InstallmentResponse"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/clients/{id}/overdue-balance": {
+            "get": {
+                "description": "Gets the overdue balance of a client's credit account.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Clients"
+                ],
+                "summary": "Get Client Overdue Balance",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Client ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "number"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/clients/{id}/transactions": {
+            "get": {
+                "description": "Gets the transaction history of a client.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Clients"
+                ],
+                "summary": "Get Client Transactions",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Client ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/response.TransactionResponse"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -578,6 +874,13 @@ const docTemplate = `{
                 ],
                 "summary": "Create a new credit account",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
                     {
                         "description": "Credit account details",
                         "name": "creditAccount",
@@ -621,6 +924,13 @@ const docTemplate = `{
                 ],
                 "summary": "Assign credit account to client",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
                     {
                         "type": "integer",
                         "description": "Credit Account ID",
@@ -676,6 +986,13 @@ const docTemplate = `{
                 "summary": "Get installments by credit account ID",
                 "parameters": [
                     {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
                         "type": "integer",
                         "description": "Credit Account ID",
                         "name": "creditAccountID",
@@ -720,6 +1037,13 @@ const docTemplate = `{
                 "summary": "Get overdue installments by credit account ID",
                 "parameters": [
                     {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
                         "type": "integer",
                         "description": "Credit Account ID",
                         "name": "creditAccountID",
@@ -763,6 +1087,13 @@ const docTemplate = `{
                 ],
                 "summary": "Get late fees by credit account ID",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
                     {
                         "type": "integer",
                         "description": "Credit Account ID",
@@ -810,6 +1141,13 @@ const docTemplate = `{
                 ],
                 "summary": "Process a payment",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
                     {
                         "type": "integer",
                         "description": "Credit Account ID",
@@ -867,6 +1205,13 @@ const docTemplate = `{
                 "summary": "Process a purchase",
                 "parameters": [
                     {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
                         "type": "integer",
                         "description": "Credit Account ID",
                         "name": "creditAccountID",
@@ -923,6 +1268,13 @@ const docTemplate = `{
                 "summary": "Get Transaction by Credit Account ID",
                 "parameters": [
                     {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
                         "type": "integer",
                         "description": "Credit Account ID",
                         "name": "creditAccountID",
@@ -973,6 +1325,13 @@ const docTemplate = `{
                 "summary": "Get credit account by ID",
                 "parameters": [
                     {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
                         "type": "integer",
                         "description": "Credit Account ID",
                         "name": "id",
@@ -1020,6 +1379,13 @@ const docTemplate = `{
                 ],
                 "summary": "Update a credit account",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
                     {
                         "type": "integer",
                         "description": "Credit Account ID",
@@ -1075,6 +1441,13 @@ const docTemplate = `{
                 "summary": "Delete a credit account",
                 "parameters": [
                     {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
                         "type": "integer",
                         "description": "Credit Account ID",
                         "name": "id",
@@ -1122,6 +1495,13 @@ const docTemplate = `{
                 "summary": "Create a credit request",
                 "parameters": [
                     {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
                         "description": "Credit request details",
                         "name": "creditRequest",
                         "in": "body",
@@ -1164,6 +1544,13 @@ const docTemplate = `{
                 ],
                 "summary": "Get credit request by ID",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
                     {
                         "type": "integer",
                         "description": "Credit Request ID",
@@ -1212,6 +1599,13 @@ const docTemplate = `{
                 "summary": "Approve credit request",
                 "parameters": [
                     {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
                         "type": "integer",
                         "description": "Credit Request ID",
                         "name": "id",
@@ -1250,14 +1644,18 @@ const docTemplate = `{
         "/credit-requests/{id}/reject": {
             "put": {
                 "description": "Rejects a pending credit request.",
-                "produces": [
-                    "application/json"
-                ],
                 "tags": [
                     "CreditRequests"
                 ],
                 "summary": "Reject credit request",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
                     {
                         "type": "integer",
                         "description": "Credit Request ID",
@@ -1301,6 +1699,15 @@ const docTemplate = `{
                     "Establishments"
                 ],
                 "summary": "Get all establishments",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -1331,6 +1738,13 @@ const docTemplate = `{
                 ],
                 "summary": "Get credit accounts by establishment ID",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
                     {
                         "type": "integer",
                         "description": "Establishment ID",
@@ -1376,6 +1790,13 @@ const docTemplate = `{
                 "summary": "Apply interest to all accounts",
                 "parameters": [
                     {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
                         "type": "integer",
                         "description": "Establishment ID",
                         "name": "establishmentID",
@@ -1414,6 +1835,13 @@ const docTemplate = `{
                 "summary": "Apply late fees to all accounts",
                 "parameters": [
                     {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
                         "type": "integer",
                         "description": "Establishment ID",
                         "name": "establishmentID",
@@ -1451,6 +1879,13 @@ const docTemplate = `{
                 ],
                 "summary": "Get admin debt summary",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
                     {
                         "type": "integer",
                         "description": "Establishment ID",
@@ -1496,6 +1931,13 @@ const docTemplate = `{
                 "summary": "Get pending credit requests",
                 "parameters": [
                     {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
                         "type": "integer",
                         "description": "Establishment ID",
                         "name": "establishmentID",
@@ -1539,6 +1981,13 @@ const docTemplate = `{
                 ],
                 "summary": "Get late fee rules by establishment ID",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
                     {
                         "type": "integer",
                         "description": "Establishment ID",
@@ -1584,6 +2033,13 @@ const docTemplate = `{
                 "summary": "Get products by establishment ID",
                 "parameters": [
                     {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
                         "type": "integer",
                         "description": "Establishment ID",
                         "name": "establishment_id",
@@ -1628,6 +2084,13 @@ const docTemplate = `{
                 "summary": "Get an establishment by ID",
                 "parameters": [
                     {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
                         "type": "integer",
                         "description": "Establishment ID",
                         "name": "id",
@@ -1669,6 +2132,13 @@ const docTemplate = `{
                 ],
                 "summary": "Update an existing establishment",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
                     {
                         "type": "integer",
                         "description": "Establishment ID",
@@ -1724,6 +2194,13 @@ const docTemplate = `{
                 "summary": "Delete an establishment",
                 "parameters": [
                     {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
                         "type": "integer",
                         "description": "Establishment ID",
                         "name": "id",
@@ -1761,6 +2238,13 @@ const docTemplate = `{
                 ],
                 "summary": "Add a client to an establishment",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
                     {
                         "type": "integer",
                         "description": "Establishment ID",
@@ -1815,6 +2299,13 @@ const docTemplate = `{
                 ],
                 "summary": "Register products for an establishment",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
                     {
                         "type": "integer",
                         "description": "Establishment ID",
@@ -1875,6 +2366,13 @@ const docTemplate = `{
                 "summary": "Create a new installment",
                 "parameters": [
                     {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
                         "description": "Installment details",
                         "name": "installment",
                         "in": "body",
@@ -1917,6 +2415,13 @@ const docTemplate = `{
                 ],
                 "summary": "Get installment by ID",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
                     {
                         "type": "integer",
                         "description": "Installment ID",
@@ -1965,6 +2470,13 @@ const docTemplate = `{
                 ],
                 "summary": "Update an installment",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
                     {
                         "type": "integer",
                         "description": "Installment ID",
@@ -2020,6 +2532,13 @@ const docTemplate = `{
                 "summary": "Delete an installment",
                 "parameters": [
                     {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
                         "type": "integer",
                         "description": "Installment ID",
                         "name": "id",
@@ -2062,6 +2581,15 @@ const docTemplate = `{
                     "LateFeeRules"
                 ],
                 "summary": "Get all late fee rules",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -2093,6 +2621,13 @@ const docTemplate = `{
                 ],
                 "summary": "Create a late fee rule",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
                     {
                         "description": "Late fee rule details",
                         "name": "lateFeeRule",
@@ -2136,6 +2671,13 @@ const docTemplate = `{
                 ],
                 "summary": "Get late fee rule by ID",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
                     {
                         "type": "integer",
                         "description": "Late Fee Rule ID",
@@ -2184,6 +2726,13 @@ const docTemplate = `{
                 ],
                 "summary": "Update a late fee rule",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
                     {
                         "type": "integer",
                         "description": "Late Fee Rule ID",
@@ -2239,6 +2788,13 @@ const docTemplate = `{
                 "summary": "Delete a late fee rule",
                 "parameters": [
                     {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
                         "type": "integer",
                         "description": "Late Fee Rule ID",
                         "name": "id",
@@ -2286,6 +2842,13 @@ const docTemplate = `{
                 "summary": "Create a late fee",
                 "parameters": [
                     {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
                         "description": "Late fee details",
                         "name": "lateFee",
                         "in": "body",
@@ -2328,6 +2891,13 @@ const docTemplate = `{
                 ],
                 "summary": "Get late fee by ID",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
                     {
                         "type": "integer",
                         "description": "Late Fee ID",
@@ -2376,6 +2946,13 @@ const docTemplate = `{
                 ],
                 "summary": "Update a late fee",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
                     {
                         "type": "integer",
                         "description": "Late Fee ID",
@@ -2430,6 +3007,13 @@ const docTemplate = `{
                 ],
                 "summary": "Delete a late fee",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
                     {
                         "type": "integer",
                         "description": "Late Fee ID",
@@ -2497,10 +3081,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     }
                 }
@@ -2516,6 +3097,15 @@ const docTemplate = `{
                     "Products"
                 ],
                 "summary": "Get all products",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -2547,6 +3137,13 @@ const docTemplate = `{
                 ],
                 "summary": "Create a new product",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
                     {
                         "description": "Product details",
                         "name": "product",
@@ -2591,6 +3188,13 @@ const docTemplate = `{
                 "summary": "Get a product by ID",
                 "parameters": [
                     {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
                         "type": "integer",
                         "description": "Product ID",
                         "name": "id",
@@ -2632,6 +3236,13 @@ const docTemplate = `{
                 ],
                 "summary": "Update an existing product",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
                     {
                         "type": "integer",
                         "description": "Product ID",
@@ -2687,6 +3298,13 @@ const docTemplate = `{
                 "summary": "Delete a product",
                 "parameters": [
                     {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
                         "type": "integer",
                         "description": "Product ID",
                         "name": "id",
@@ -2713,6 +3331,77 @@ const docTemplate = `{
                 }
             }
         },
+        "/purchases": {
+            "post": {
+                "description": "Processes a product purchase by a user.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Purchases"
+                ],
+                "summary": "Create a Purchase",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "Purchase Data",
+                        "name": "purchase",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.CreatePurchaseRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/refresh": {
             "post": {
                 "description": "Gets a new access token if the current access token has expired less than 5 minutes ago.\nIf the access token is invalid or expired for more than 5 minutes, the user must log in again.\nThe access token must be sent in the Authorization header as a Bearer token.",
@@ -2729,7 +3418,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Bearer {accessToken}",
+                        "description": "Bearer {token}",
                         "name": "Authorization",
                         "in": "header",
                         "required": true
@@ -2743,12 +3432,9 @@ const docTemplate = `{
                         }
                     },
                     "401": {
-                        "description": "Token expired or invalid",
+                        "description": "Unauthorized",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     }
                 }
@@ -2791,10 +3477,7 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     }
                 }
@@ -2816,7 +3499,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Bearer {accessToken}",
+                        "description": "Bearer {token}",
                         "name": "Authorization",
                         "in": "header",
                         "required": true
@@ -2839,30 +3522,21 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Invalid request",
+                        "description": "Bad Request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     },
                     "500": {
-                        "description": "Internal server error",
+                        "description": "Internal Server Error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     }
                 }
@@ -2884,7 +3558,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Bearer {accessToken}",
+                        "description": "Bearer {token}",
                         "name": "Authorization",
                         "in": "header",
                         "required": true
@@ -2912,19 +3586,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     }
                 }
@@ -2944,6 +3612,13 @@ const docTemplate = `{
                 ],
                 "summary": "Create Transaction",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
                     {
                         "description": "Transaction Data",
                         "name": "transaction",
@@ -2990,6 +3665,13 @@ const docTemplate = `{
                 ],
                 "summary": "Get Transaction by ID",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
                     {
                         "type": "integer",
                         "description": "Transaction ID",
@@ -3038,6 +3720,13 @@ const docTemplate = `{
                 ],
                 "summary": "Update Transaction",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
                     {
                         "type": "integer",
                         "description": "Transaction ID",
@@ -3095,6 +3784,13 @@ const docTemplate = `{
                 ],
                 "summary": "Delete Transaction",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
                     {
                         "type": "integer",
                         "description": "Transaction ID",
@@ -3228,6 +3924,19 @@ const docTemplate = `{
                 "RolAdmin"
             ]
         },
+        "enums.Role": {
+            "type": "string",
+            "enum": [
+                "ADMIN",
+                "CLIENT",
+                "USER"
+            ],
+            "x-enum-varnames": [
+                "ADMIN",
+                "CLIENT",
+                "USER"
+            ]
+        },
         "enums.TransactionType": {
             "type": "string",
             "enum": [
@@ -3252,33 +3961,6 @@ const docTemplate = `{
                 "AccountBlocked",
                 "AccountUnblocked"
             ]
-        },
-        "request.CreateClientRequest": {
-            "type": "object",
-            "required": [
-                "credit_limit",
-                "email",
-                "phone",
-                "user_id"
-            ],
-            "properties": {
-                "credit_limit": {
-                    "type": "number",
-                    "minimum": 0
-                },
-                "email": {
-                    "type": "string"
-                },
-                "is_active": {
-                    "type": "boolean"
-                },
-                "phone": {
-                    "type": "string"
-                },
-                "user_id": {
-                    "type": "integer"
-                }
-            }
         },
         "request.CreateCreditAccountRequest": {
             "type": "object",
@@ -3496,6 +4178,32 @@ const docTemplate = `{
                 }
             }
         },
+        "request.CreatePurchaseRequest": {
+            "type": "object",
+            "required": [
+                "amount",
+                "credit_type",
+                "establishment_id",
+                "product_ids"
+            ],
+            "properties": {
+                "amount": {
+                    "type": "number"
+                },
+                "credit_type": {
+                    "$ref": "#/definitions/enums.CreditType"
+                },
+                "establishment_id": {
+                    "type": "integer"
+                },
+                "product_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                }
+            }
+        },
         "request.CreateTransactionRequest": {
             "type": "object",
             "required": [
@@ -3605,24 +4313,9 @@ const docTemplate = `{
         },
         "request.UpdateClientRequest": {
             "type": "object",
-            "required": [
-                "credit_limit",
-                "email",
-                "phone"
-            ],
             "properties": {
-                "credit_limit": {
-                    "type": "number",
-                    "minimum": 0
-                },
-                "email": {
-                    "type": "string"
-                },
                 "is_active": {
                     "type": "boolean"
-                },
-                "phone": {
-                    "type": "string"
                 }
             }
         },
@@ -3842,16 +4535,21 @@ const docTemplate = `{
                 }
             }
         },
+        "response.ClientBalanceResponse": {
+            "type": "object",
+            "properties": {
+                "client_id": {
+                    "type": "integer"
+                },
+                "current_balance": {
+                    "type": "number"
+                }
+            }
+        },
         "response.ClientResponse": {
             "type": "object",
             "properties": {
                 "created_at": {
-                    "type": "string"
-                },
-                "credit_limit": {
-                    "type": "number"
-                },
-                "email": {
                     "type": "string"
                 },
                 "id": {
@@ -3860,14 +4558,11 @@ const docTemplate = `{
                 "is_active": {
                     "type": "boolean"
                 },
-                "phone": {
-                    "type": "string"
-                },
                 "updated_at": {
                     "type": "string"
                 },
-                "user_id": {
-                    "type": "integer"
+                "user": {
+                    "$ref": "#/definitions/response.UserResponse"
                 }
             }
         },
@@ -4135,6 +4830,38 @@ const docTemplate = `{
                 },
                 "transaction_type": {
                     "$ref": "#/definitions/enums.TransactionType"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.UserResponse": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "dni": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "rol": {
+                    "$ref": "#/definitions/enums.Role"
                 },
                 "updated_at": {
                     "type": "string"

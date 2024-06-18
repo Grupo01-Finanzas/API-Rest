@@ -1,6 +1,7 @@
 package service
 
 import (
+	"ApiRestFinance/internal/model/dto/response"
 	"ApiRestFinance/internal/model/entities"
 	"errors"
 
@@ -13,6 +14,7 @@ type ClientService interface {
 	GetClientByID(clientID uint) (*entities.Client, error)
 	UpdateClient(client *entities.Client) error
 	DeleteClient(clientID uint) error
+	NewUserResponse(user *entities.User) *response.UserResponse
 }
 
 type clientService struct {
@@ -47,4 +49,21 @@ func (s *clientService) UpdateClient(client *entities.Client) error {
 
 func (s *clientService) DeleteClient(clientID uint) error {
 	return s.clientRepo.DeleteClient(clientID)
+}
+
+func (s *clientService) NewUserResponse(user *entities.User) *response.UserResponse {
+	if user == nil {
+		return nil
+	}
+	return &response.UserResponse{
+		ID:        user.ID,
+		DNI:       user.DNI,
+		Name:      user.Name,
+		Email:     user.Email,
+		Address:   user.Address,
+		Phone:     user.Phone,
+		Rol:       user.Rol,
+		CreatedAt: user.CreatedAt,
+		UpdatedAt: user.UpdatedAt,
+	}
 }

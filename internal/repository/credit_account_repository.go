@@ -372,6 +372,7 @@ func calculateLateFee(creditAccount entities.CreditAccount, rule entities.LateFe
 }
 
 func getCreditAccountResponse(creditAccount *entities.CreditAccount) *response.CreditAccountResponse {
+	clientResponse := clientToResponse(creditAccount.Client)
 	return &response.CreditAccountResponse{
 		ID:              creditAccount.ID,
 		EstablishmentID: creditAccount.EstablishmentID,
@@ -386,7 +387,7 @@ func getCreditAccountResponse(creditAccount *entities.CreditAccount) *response.C
 		IsBlocked:       creditAccount.IsBlocked,
 		CreatedAt:       creditAccount.CreatedAt,
 		UpdatedAt:       creditAccount.UpdatedAt,
-		Client:          creditAccount.Client,
+		Client:          clientResponse,
 	}
 }
 
@@ -657,4 +658,32 @@ func (r *creditAccountRepository) GetCreditAccountByUserID(userID uint) (*entiti
 	}
 
 	return &creditAccount, nil
+}
+
+func clientToResponse(client *entities.Client) *response.ClientResponse {
+	userResponse := NewUserResponse(client.User)
+	return &response.ClientResponse{
+		ID:        client.ID,
+		User:      userResponse,
+		IsActive:  client.IsActive,
+		CreatedAt: client.CreatedAt,
+		UpdatedAt: client.UpdatedAt,
+	}
+}
+
+func NewUserResponse(user *entities.User) *response.UserResponse {
+	if user == nil {
+		return nil
+	}
+	return &response.UserResponse{
+		ID:        user.ID,
+		DNI:       user.DNI,
+		Name:      user.Name,
+		Email:     user.Email,
+		Address:   user.Address,
+		Phone:     user.Phone,
+		Rol:       user.Rol,
+		CreatedAt: user.CreatedAt,
+		UpdatedAt: user.UpdatedAt,
+	}
 }
