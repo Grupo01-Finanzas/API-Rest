@@ -41,10 +41,10 @@ func main() {
 	}
 
 	// Get host from environment or use default
-	host := os.Getenv("HOST")
+	/*host := os.Getenv("HOST")
 	if host == "" {
 		host = cfg.ServerHost
-	}
+	}*/
 
 	// Get port from environment or use default
 	port := os.Getenv("PORT")
@@ -169,6 +169,8 @@ func main() {
 		protectedRoutes.POST("/credit-accounts/:id/purchases", creditAccountController.ProcessPurchase)
 		protectedRoutes.POST("/credit-accounts/:id/payments", creditAccountController.ProcessPayment)
 		protectedRoutes.PUT("/credit-accounts/:id/clients/:id", creditAccountController.AssignCreditAccountToClient)
+		protectedRoutes.GET("/credit-accounts/clients/:id/history", creditAccountController.GetClientAccountHistory)
+		protectedRoutes.GET("/credit-accounts/clients/:id/statement", creditAccountController.GetClientAccountStatement)
 
 		// Credit Request Routes
 		protectedRoutes.POST("/credit-requests", creditAccountController.CreateCreditRequest)

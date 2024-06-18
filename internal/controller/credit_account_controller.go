@@ -4,11 +4,13 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
+	"time"
 
 	"ApiRestFinance/internal/middleware"
 	"ApiRestFinance/internal/model/dto/request"
 	"ApiRestFinance/internal/model/dto/response"
 	"ApiRestFinance/internal/service"
+
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
@@ -555,4 +557,81 @@ func (c *CreditAccountController) AssignCreditAccountToClient(ctx *gin.Context) 
 	}
 
 	ctx.JSON(http.StatusOK, updatedCreditAccount)
+}
+
+
+// GetClientAccountStatement godoc
+// @Summary      Get Client Account Statement
+// @Description  Retrieves a client's account statement within a specified date range.
+// @Tags         CreditAccounts
+// @Produce      json
+// @Param        Authorization  header      string  true  "Bearer {token}"
+// @Param        clientID       path        int     true  "Client ID"
+// @Param        startDate      query       string  false "Start date (YYYY-MM-DD)"
+// @Param        endDate        query       string  false "End date (YYYY-MM-DD)"
+// @Success      200  {object}  response.AccountStatementResponse
+// @Failure      400  {object}  response.ErrorResponse
+// @Failure      500  {object}  response.ErrorResponse
+// @Router       /credit-accounts/clients/{clientID}/statement [get]
+func (c *CreditAccountController) GetClientAccountStatement(ctx *gin.Context) {
+    clientID, err := strconv.Atoi(ctx.Param("clientID"))
+    if err != nil {
+        ctx.JSON(http.StatusBadRequest, response.ErrorResponse{Error: "Invalid client ID"})
+        return
+    }
+
+    startDateStr := ctx.Query("startDate") 
+    endDateStr := ctx.Query("endDate")   
+
+    var startDate, endDate time.Time
+    if startDateStr != "" {
+        startDate, err = time.Parse("2006-01-02", startDateStr) // Adjust date format as needed
+        if err != nil {
+            ctx.JSON(http.StatusBadRequest, response.ErrorResponse{Error: "Invalid start date format"})
+            return
+        }
+    }
+
+    if endDateStr != "" {
+        endDate, err = time.Parse("2006-01-02", endDateStr) 
+        if err != nil {
+            ctx.JSON(http.StatusBadRequest, response.ErrorResponse{Error: "Invalid end date format"})
+            return
+        }
+    }
+
+    statement, err := c.creditAccountService.GetClientAccountStatement(uint(clientID), startDate, endDate)
+    if err != nil {
+        ctx.JSON(http.StatusInternalServerError, response.ErrorResponse{Error: err.Error()})
+        return
+    }
+
+    ctx.JSON(http.StatusOK, statement)
+}
+
+// GetClientAccountHistory godoc
+// @Summary      Get Client Account History
+// @Description  Retrieves the complete transaction history for a client's credit account.
+// @Tags         CreditAccounts
+// @Produce      json
+// @Param        Authorization  header      string  true  "Bearer {token}"
+// @Param        clientID       path        int     true  "Client ID"
+// @Success      200  {object}  response.AccountStatementResponse
+// @Failure      400  {object}  response.ErrorResponse
+// @Failure      500  {object}  response.ErrorResponse
+// @Router       /credit-accounts/clients/{clientID}/history [get]
+func (c *CreditAccountController) GetClientAccountHistory(ctx *gin.Context) {
+    clientID, err := strconv.Atoi(ctx.Param("clientID"))
+    if err != nil {
+        ctx.JSON(http.StatusBadRequest, response.ErrorResponse{Error: "Invalid client ID"})
+        return
+    }
+
+    history, err := c.creditAccountService.GetClientAccountHistory(uint(clientID))
+    if err != nil {
+        ctx.JSON(http.StatusInternalServerError, response.ErrorResponse{Error: err.Error()})
+        return
+    }
+
+    ctx.JSON(http.StatusOK, history)
 }

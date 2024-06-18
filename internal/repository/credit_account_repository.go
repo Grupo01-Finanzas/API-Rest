@@ -37,6 +37,7 @@ type CreditAccountRepository interface {
 	GetOverdueBalance(userID uint) (float64, error)
 	CalculateInterest(creditAccount entities.CreditAccount) float64
 	GetCreditAccountByUserID(userID uint) (*entities.CreditAccount, error)
+	GetStartingBalance(creditAccountID uint) (float64, error)
 }
 
 type creditAccountRepository struct {
@@ -664,6 +665,7 @@ func clientToResponse(client *entities.Client) *response.ClientResponse {
 	userResponse := NewUserResponse(client.User)
 	return &response.ClientResponse{
 		ID:        client.ID,
+
 		User:      userResponse,
 		IsActive:  client.IsActive,
 		CreatedAt: client.CreatedAt,
@@ -686,4 +688,16 @@ func NewUserResponse(user *entities.User) *response.UserResponse {
 		CreatedAt: user.CreatedAt,
 		UpdatedAt: user.UpdatedAt,
 	}
+}
+
+func (r *creditAccountRepository) GetStartingBalance(creditAccountID uint) (float64, error) {
+    var balance float64
+    err := r.db.Model(&entities.Transaction{}).
+        Select("SUM(CASE WHEN transaction_type = 'Payment' THEN amount ELSE -amount END) as balance").
+        Where("credit_account_id = ?", creditAccountID).
+        Scan(&balance).Error
+    if err != nil {
+        return 0, fmt.Errorf("error getting starting balance: %w", err)
+    }
+    return balance, nil
 }

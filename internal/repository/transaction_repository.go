@@ -17,6 +17,9 @@ type TransactionRepository interface {
 	Delete(id uint) error
 	GetByCreditAccountID(creditAccountID uint) ([]response.TransactionResponse, error)
 	GetTransactionsByDateRange(creditAccountID uint, startDate, endDate time.Time) ([]entities.Transaction, error)
+	GetTransactionsByCreditAccountIDAndDateRange(creditAccountID uint, startDate, endDate time.Time) ([]entities.Transaction, error)
+	GetBalanceBeforeDate(creditAccountID uint, beforeDate time.Time) (float64, error)
+	GetTransactionsByCreditAccountID(creditAccountID uint) ([]entities.Transaction, error)
 }
 
 type transactionRepository struct {
@@ -131,4 +134,51 @@ func getTransactionResponse(transaction *entities.Transaction) *response.Transac
 		CreatedAt:       transaction.CreatedAt,
 		UpdatedAt:       transaction.UpdatedAt,
 	}
+}
+
+func (r *transactionRepository) GetTransactionsByCreditAccountIDAndDateRange(creditAccountID uint, startDate, endDate time.Time) ([]entities.Transaction, error) {
+    var transactions []entities.Transaction
+    db := r.db
+
+    // Build the query
+    query := db.Where("credit_account_id = ?", creditAccountID)
+
+    // Add date range filters if provided
+    if !startDate.IsZero() {
+        query = query.Where("created_at >= ?", startDate)
+    }
+    if !endDate.IsZero() {
+        query = query.Where("created_at <= ?", endDate)
+    }
+
+    err := query.Find(&transactions).Error
+    if err != nil {
+        return nil, err
+    }
+
+    return transactions, nil
+}
+
+func (r *transactionRepository) GetBalanceBeforeDate(creditAccountID uint, beforeDate time.Time) (float64, error) {
+    var balance float64
+    err := r.db.Model(&entities.Transaction{}).
+        Select("SUM(CASE WHEN transaction_type = 'Payment' THEN amount ELSE -amount END) as balance"). // Adjust 'Payment' and transaction types as needed
+        Where("credit_account_id = ? AND created_at < ?", creditAccountID, beforeDate).
+        Scan(&balance).Error
+
+    if err != nil {
+        return 0, err
+    }
+
+    return balance, nil
+}
+
+// GetTransactionsByCreditAccountID retrieves all transactions for a given credit account ID.
+func (r *transactionRepository) GetTransactionsByCreditAccountID(creditAccountID uint) ([]entities.Transaction, error) {
+    var transactions []entities.Transaction
+    err := r.db.Where("credit_account_id = ?", creditAccountID).Find(&transactions).Error
+    if err != nil {
+        return nil, err
+    }
+    return transactions, nil
 }

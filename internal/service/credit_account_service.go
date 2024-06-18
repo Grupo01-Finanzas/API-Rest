@@ -34,9 +34,12 @@ type CreditAccountService interface {
 	RejectCreditRequest(creditRequestID uint, adminID uint) error
 	GetPendingCreditRequests(establishmentID uint) ([]response.CreditRequestResponse, error)
 	AssignCreditAccountToClient(creditAccountID, clientID uint) (*response.CreditAccountResponse, error)
-	CalculateDueDate(account entities.CreditAccount) time.Time
 	GetNumberOfDues(account entities.CreditAccount) int
 	CalculateInterest(creditAccount entities.CreditAccount) float64
+
+	GetClientAccountStatement(clientID uint, startDate, endDate time.Time) ([]*response.AccountStatementResponse, error)
+	CalculateDueDate(account entities.CreditAccount) (time.Time, error)
+	GetClientAccountHistory(clientID uint) (*response.AccountStatementResponse, error)
 }
 
 type creditAccountService struct {
@@ -173,40 +176,53 @@ func (s *creditAccountService) ApplyLateFeesToAllAccounts(establishmentID uint) 
 
 // GetAdminDebtSummary retrieves a summary of debts owed to an establishment.
 func (s *creditAccountService) GetAdminDebtSummary(establishmentID uint) ([]response.AdminDebtSummary, error) {
-	creditAccounts, err := s.creditAccountRepo.GetByEstablishmentID(establishmentID)
-	if err != nil {
-		return nil, fmt.Errorf("error retrieving credit accounts: %w", err)
-	}
+    creditAccounts, err := s.creditAccountRepo.GetByEstablishmentID(establishmentID)
+    if err != nil {
+        return nil, fmt.Errorf("error retrieving credit accounts: %w", err)
+    }
 
-	summary := make([]response.AdminDebtSummary, 0, len(creditAccounts))
-	for _, account := range creditAccounts {
-		client, err := s.clientRepo.GetClientByID(account.ClientID)
-		if err != nil {
-			return nil, fmt.Errorf("error retrieving client: %w", err)
-		}
+    summary := make([]response.AdminDebtSummary, 0, len(creditAccounts))
+    for _, account := range creditAccounts {
+        client, err := s.clientRepo.GetClientByID(account.ClientID)
+        if err != nil {
+            return nil, fmt.Errorf("error retrieving client: %w", err)
+        }
 
-		dueDate := s.CalculateDueDate(*responseToCreditAccount(&account)) // Implement due date calculation
+        dueDate, err := s.CalculateDueDate(*responseToCreditAccount(&account)) // Get both return values
+        if err != nil {
+            return nil, fmt.Errorf("error calculating due date: %w", err)  // Handle the error
+        }
 
-		summaryItem := response.AdminDebtSummary{
-			ClientID:       account.ClientID,
-			ClientName:     client.User.Name,
-			CreditType:     string(account.CreditType),
-			InterestRate:   account.InterestRate,
-			NumberOfDues:   s.GetNumberOfDues(*responseToCreditAccount(&account)), // Calculate if LongTerm
-			CurrentBalance: account.CurrentBalance,
-			DueDate:        dueDate,
-		}
+        summaryItem := response.AdminDebtSummary{
+            ClientID:       account.ClientID,
+            ClientName:     client.User.Name,
+            CreditType:     string(account.CreditType),
+            InterestRate:   account.InterestRate,
+            NumberOfDues:   s.GetNumberOfDues(*responseToCreditAccount(&account)), 
+            CurrentBalance: account.CurrentBalance,
+            DueDate:        dueDate, 
+        }
 
-		summary = append(summary, summaryItem)
-	}
+        summary = append(summary, summaryItem)
+    }
 
-	return summary, nil
+    return summary, nil 
 }
 
 // ProcessPurchase processes a purchase on a credit account.
 func (s *creditAccountService) ProcessPurchase(creditAccountID uint, amount float64, description string) error {
-	// The service method now simply calls the repository method
-	return s.creditAccountRepo.ProcessPurchase(creditAccountID, amount, description)
+    // Check for overdue balance
+    overdueBalance, err := s.creditAccountRepo.GetOverdueBalance(creditAccountID)
+    if err != nil {
+        return fmt.Errorf("error checking overdue balance: %w", err)
+    }
+
+    if overdueBalance > 0 {
+        return fmt.Errorf("cannot process purchase: client has an overdue balance of %.2f", overdueBalance) // Include balance in error message
+    }
+
+    // Proceed with purchase if no overdue balance
+    return s.creditAccountRepo.ProcessPurchase(creditAccountID, amount, description) 
 }
 
 // ProcessPayment processes a payment towards a credit account.
@@ -216,45 +232,6 @@ func (s *creditAccountService) ProcessPayment(creditAccountID uint, amount float
 }
 
 // Helper functions for calculations
-
-func (s *creditAccountService) CalculateDueDate(account entities.CreditAccount) time.Time {
-	today := time.Now()
-
-	if account.CreditType == enums.ShortTerm {
-		// If short-term, due date is the next month's due date
-		return time.Date(today.Year(), today.Month()+1, account.MonthlyDueDate, 0, 0, 0, 0, time.UTC) // Use +1 to add a month
-	} else { // LongTerm
-		// 1. Retrieve installments for the credit account
-		installments, err := s.installmentRepo.GetByCreditAccountID(account.ID)
-		if err != nil {
-			// Handle error - you might want to log the error and return a zero time or today's date
-			return time.Time{} // Or time.Now()
-		}
-
-		// 2. Find the next pending installment
-		var nextDueDate time.Time
-		for _, installment := range installments {
-			if installment.Status == enums.Pending && installment.DueDate.After(today) {
-				nextDueDate = installment.DueDate
-				break
-			}
-		}
-
-		// 3. If no pending installments, calculate next due date based on MonthlyDueDate
-		if nextDueDate.IsZero() {
-			// Calculate the next due date based on the MonthlyDueDate
-			nextMonth := today.Month() + 1
-			nextYear := today.Year()
-			if nextMonth > time.December {
-				nextMonth = time.January
-				nextYear++
-			}
-			nextDueDate = time.Date(nextYear, nextMonth, account.MonthlyDueDate, 0, 0, 0, 0, time.UTC)
-		}
-
-		return nextDueDate
-	}
-}
 
 func (s *creditAccountService) GetNumberOfDues(account entities.CreditAccount) int {
 	if account.CreditType != enums.LongTerm {
@@ -299,7 +276,7 @@ func (s *creditAccountService) CalculateInterest(creditAccount entities.CreditAc
 		// Long-Term (Installment) Interest Calculation
 		installments, err := s.installmentRepo.GetByCreditAccountID(creditAccount.ID)
 		if err != nil {
-			// Handle error appropriately (e.g., log the error and return 0)
+			
 			return 0
 		}
 
@@ -585,4 +562,161 @@ func responseToClient(res *response.ClientResponse) *entities.Client {
 		},
 		IsActive: res.IsActive,
 	}
+}
+
+
+func (s *creditAccountService) GetClientAccountStatement(clientID uint, startDate, endDate time.Time) ([]*response.AccountStatementResponse, error) {
+    // 1. Get the client's credit account
+    creditAccounts, err := s.creditAccountRepo.GetByClientID(clientID)
+    if err != nil {
+        return nil, fmt.Errorf("error retrieving credit account: %w", err)
+    }
+    if creditAccounts == nil {
+        return nil, fmt.Errorf("credit account for client %d not found", clientID)
+    }
+
+   
+    var statements []*response.AccountStatementResponse // Array to hold statements
+    for _, creditAccount := range creditAccounts { // Iterate through credit accounts
+        // 2. Get transactions within the date range
+        transactions, err := s.transactionRepo.GetTransactionsByCreditAccountIDAndDateRange(creditAccount.ID, startDate, endDate)
+        if err != nil {
+            return nil, fmt.Errorf("error retrieving transactions: %w", err)
+        }
+
+        // 3. Calculate balance at the beginning of the statement period
+        var startingBalance float64
+        if !startDate.IsZero() {
+            startingBalance, err = s.transactionRepo.GetBalanceBeforeDate(creditAccount.ID, startDate)
+            if err != nil {
+                return nil, fmt.Errorf("error calculating starting balance: %w", err)
+            }
+        } else {
+            startingBalance = 0.0 
+        }
+
+        // 4. Create AccountStatementResponse
+        statement := &response.AccountStatementResponse{
+            ClientID:        clientID,
+            StartDate:       startDate,
+            EndDate:         endDate,
+            StartingBalance: startingBalance,
+            Transactions:    make([]response.TransactionResponse, len(transactions)),
+        }
+
+       	// 5. Populate transactions in the statement
+		for i, transaction := range transactions {
+    		statement.Transactions[i] = response.TransactionResponse {
+        		ID:               transaction.ID,
+        		CreditAccountID:  transaction.CreditAccountID,
+        		TransactionType:  transaction.TransactionType, 
+        		Amount:           transaction.Amount,
+        		Description:      transaction.Description,
+        		CreatedAt:        transaction.CreatedAt,
+    		}
+		}
+
+        statements = append(statements, statement)
+    }
+
+    return statements, nil
+}
+
+func (s *creditAccountService) CalculateDueDate(account entities.CreditAccount) (time.Time, error) {
+    today := time.Now()
+
+    if account.CreditType == enums.ShortTerm {
+        // Short-term credit: Due date is the next month's due date
+        nextMonth := today.Month() + 1
+        nextYear := today.Year()
+        if nextMonth > time.December {
+            nextMonth = time.January
+            nextYear++
+        }
+        return time.Date(nextYear, nextMonth, account.MonthlyDueDate, 0, 0, 0, 0, time.UTC), nil
+    } else if account.CreditType == enums.LongTerm {
+        // Long-term credit: Due date depends on installment schedule
+
+        // 1. Retrieve installments for the credit account
+        installments, err := s.installmentRepo.GetByCreditAccountID(account.ID) 
+        if err != nil {
+            return time.Time{}, fmt.Errorf("error retrieving installments: %w", err)
+        }
+
+        // 2. Find the next pending installment
+        var nextDueDate time.Time
+        for _, installment := range installments {
+            if installment.Status == enums.Pending && installment.DueDate.After(today) {
+                nextDueDate = installment.DueDate
+                break
+            }
+        }
+
+        // 3. If no pending installments, calculate next due date based on MonthlyDueDate
+        if nextDueDate.IsZero() {
+            nextMonth := today.Month() + 1
+            nextYear := today.Year()
+            if nextMonth > time.December {
+                nextMonth = time.January
+                nextYear++
+            }
+            nextDueDate = time.Date(nextYear, nextMonth, account.MonthlyDueDate, 0, 0, 0, 0, time.UTC)
+        }
+
+        return nextDueDate, nil 
+    }
+
+    // Handle invalid credit type (consider adding error logging)
+    return time.Time{}, fmt.Errorf("invalid credit type: %s", account.CreditType)
+}
+
+// GetClientAccountHistory retrieves the complete transaction history for a client's credit account.
+func (s *creditAccountService) GetClientAccountHistory(clientID uint) (*response.AccountStatementResponse, error) {
+    // Get the client's credit account
+    creditAccounts, err := s.creditAccountRepo.GetByClientID(clientID)
+    if err != nil {
+        return nil, fmt.Errorf("error retrieving credit account: %w", err)
+    }
+    if creditAccounts == nil {
+        return nil, fmt.Errorf("credit account for client %d not found", clientID)
+    }
+
+    var allTransactions []entities.Transaction
+    var startingBalance float64
+    for _, creditAccount := range creditAccounts {
+        // 1. Get all transactions for the credit account (no date filter)
+        transactions, err := s.transactionRepo.GetTransactionsByCreditAccountID(creditAccount.ID)
+        if err != nil {
+            return nil, fmt.Errorf("error retrieving transactions: %w", err)
+        }
+        allTransactions = append(allTransactions, transactions...)
+
+        // 2. Update Starting Balance
+        balance, err := s.creditAccountRepo.GetStartingBalance(creditAccount.ID)
+        if err != nil {
+            return nil, fmt.Errorf("error getting starting balance: %w", err)
+        }
+        startingBalance += balance
+    }
+
+    // 3. Create AccountStatementResponse (start and end dates are empty)
+    statement := &response.AccountStatementResponse{
+        ClientID:        clientID,
+        StartingBalance: startingBalance,
+        Transactions:    make([]response.TransactionResponse, len(allTransactions)),
+    }
+
+    // 4. Populate transactions in the statement
+    for i, transaction := range allTransactions {
+        statement.Transactions[i] = response.TransactionResponse{
+            ID:                transaction.ID,
+            CreditAccountID:  transaction.CreditAccountID,
+            TransactionType:   transaction.TransactionType,
+            Amount:            transaction.Amount,
+            Description:       transaction.Description,
+            CreatedAt:         transaction.CreatedAt,
+        }
+    }
+
+    return statement, nil
 }

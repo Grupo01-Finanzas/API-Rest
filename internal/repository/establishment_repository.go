@@ -169,9 +169,7 @@ func (r *establishmentRepository) RegisterProducts(establishmentID uint, product
 		return errors.New("products not found")
 	}
 
-	for _, product := range products {
-		establishment.Products = append(establishment.Products, product)
-	}
+	establishment.Products = append(establishment.Products, products...)
 
 	return r.db.Save(&establishment).Error
 }
