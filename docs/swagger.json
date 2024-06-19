@@ -4163,6 +4163,9 @@
                 "address": {
                     "type": "string"
                 },
+                "image_url": {
+                    "type": "string"
+                },
                 "name": {
                     "type": "string"
                 },
@@ -4263,6 +4266,9 @@
                 },
                 "establishment_id": {
                     "type": "integer"
+                },
+                "image_url": {
+                    "type": "string"
                 },
                 "is_active": {
                     "type": "boolean"
@@ -4813,6 +4819,9 @@
                 "id": {
                     "type": "integer"
                 },
+                "image_url": {
+                    "type": "string"
+                },
                 "is_active": {
                     "type": "boolean"
                 },
@@ -4917,6 +4926,9 @@
                 "id": {
                     "type": "integer"
                 },
+                "image_url": {
+                    "type": "string"
+                },
                 "is_active": {
                     "type": "boolean"
                 },
@@ -4982,6 +4994,9 @@
                     "type": "string"
                 },
                 "phone": {
+                    "type": "string"
+                },
+                "photo_url": {
                     "type": "string"
                 },
                 "rol": {

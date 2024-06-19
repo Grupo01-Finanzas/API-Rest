@@ -12,6 +12,7 @@ type ProductResponse struct {
 	Price         float64                  `json:"price"`
 	Category      entities.ProductCategory `json:"category"`
 	Stock         int                      `json:"stock"`
+	ImageUrl	  string				   `json:"image_url"`
 	IsActive      bool                     `json:"is_active"`
 	CreatedAt     time.Time                `json:"created_at"`
 	UpdatedAt     time.Time                `json:"updated_at"`

@@ -175,6 +175,8 @@ definitions:
     properties:
       address:
         type: string
+      image_url:
+        type: string
       name:
         type: string
       phone:
@@ -244,6 +246,8 @@ definitions:
         type: string
       establishment_id:
         type: integer
+      image_url:
+        type: string
       is_active:
         type: boolean
       name:
@@ -622,6 +626,8 @@ definitions:
         type: string
       id:
         type: integer
+      image_url:
+        type: string
       is_active:
         type: boolean
       name:
@@ -690,6 +696,8 @@ definitions:
         $ref: '#/definitions/response.EstablishmentResponse'
       id:
         type: integer
+      image_url:
+        type: string
       is_active:
         type: boolean
       name:
@@ -733,6 +741,8 @@ definitions:
       name:
         type: string
       phone:
+        type: string
+      photo_url:
         type: string
       rol:
         $ref: '#/definitions/enums.Role'

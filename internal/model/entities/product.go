@@ -13,6 +13,7 @@ type Product struct {
 	Price           float64         `gorm:"not null"`
 	Category        ProductCategory `gorm:"not null"`
 	Stock           int             `gorm:"not null"`
+	ImageUrl  		string     		`gorm:"default:'https://rahulindesign.websites.co.in/twenty-nineteen/img/defaults/product-default.png'"`
 	IsActive        bool            `gorm:"not null"`
 	CreatedAt       time.Time       `gorm:"not null"`
 	UpdatedAt       time.Time       `gorm:"not null"`

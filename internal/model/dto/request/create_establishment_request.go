@@ -5,4 +5,5 @@ type CreateEstablishmentRequest struct {
 	Name    string `json:"name" binding:"required"`
 	Phone   string `json:"phone" binding:"required"`
 	Address string `json:"address" binding:"required"`
+	ImageUrl string `json:"image_url"`
 }

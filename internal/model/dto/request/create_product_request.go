@@ -8,6 +8,7 @@ type CreateProductRequest struct {
 	Price           float64                  `json:"price" binding:"required,gt=0"`
 	Category        entities.ProductCategory `json:"category" binding:"required"`
 	Stock           int                      `json:"stock" binding:"required,gte=0"`
+	ImageUrl		string                   `json:"image_url"`
 	IsActive        bool                     `json:"is_active"`
 	EstablishmentID uint                     `json:"establishment_id" binding:"required"`
 }

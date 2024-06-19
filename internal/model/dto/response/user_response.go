@@ -12,6 +12,7 @@ type UserResponse struct {
 	Name      string     `json:"name"`
 	Address   string     `json:"address"`
 	Phone     string     `json:"phone"`
+	PhotoUrl  string     `json:"photo_url"`
 	Rol       enums.Role `json:"rol"`
 	CreatedAt time.Time  `json:"created_at"`
 	UpdatedAt time.Time  `json:"updated_at"`

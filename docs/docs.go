@@ -4170,6 +4170,9 @@ const docTemplate = `{
                 "address": {
                     "type": "string"
                 },
+                "image_url": {
+                    "type": "string"
+                },
                 "name": {
                     "type": "string"
                 },
@@ -4270,6 +4273,9 @@ const docTemplate = `{
                 },
                 "establishment_id": {
                     "type": "integer"
+                },
+                "image_url": {
+                    "type": "string"
                 },
                 "is_active": {
                     "type": "boolean"
@@ -4820,6 +4826,9 @@ const docTemplate = `{
                 "id": {
                     "type": "integer"
                 },
+                "image_url": {
+                    "type": "string"
+                },
                 "is_active": {
                     "type": "boolean"
                 },
@@ -4924,6 +4933,9 @@ const docTemplate = `{
                 "id": {
                     "type": "integer"
                 },
+                "image_url": {
+                    "type": "string"
+                },
                 "is_active": {
                     "type": "boolean"
                 },
@@ -4989,6 +5001,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "phone": {
+                    "type": "string"
+                },
+                "photo_url": {
                     "type": "string"
                 },
                 "rol": {
