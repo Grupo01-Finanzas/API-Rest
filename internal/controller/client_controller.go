@@ -162,3 +162,44 @@ func (c *ClientController) DeleteClient(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, gin.H{"message": "Client deleted successfully"})
 }
+
+// GetClientsByEstablishmentID godoc
+// @Summary      Get clients by establishment ID
+// @Description  Gets a list of clients associated with a specific establishment.
+// @Tags         Clients
+// @Accept       json
+// @Produce      json
+// @Param        Authorization header string true "Bearer {token}"
+// @Param        establishment_id path int true "Establishment ID"
+// @Success      200 {array}   response.ClientResponse
+// @Failure      400 {object}  response.ErrorResponse
+// @Failure      500 {object}  response.ErrorResponse
+// @Router       /establishments/{establishment_id}/clients [get]
+func (c *ClientController) GetClientsByEstablishmentID(ctx *gin.Context) {
+    establishmentID, err := strconv.Atoi(ctx.Param("establishment_id"))
+    if err != nil {
+        ctx.JSON(http.StatusBadRequest, response.ErrorResponse{Error: "Invalid establishment ID"})
+        return
+    }
+
+    clients, err := c.clientService.GetClientsByEstablishmentID(uint(establishmentID))
+    if err != nil {
+        ctx.JSON(http.StatusInternalServerError, response.ErrorResponse{Error: err.Error()})
+        return
+    }
+
+    var resp []response.ClientResponse
+    for _, client := range clients {
+        userResponse := c.clientService.NewUserResponse(client.User)
+        resp = append(resp, response.ClientResponse{
+            ID:        client.ID,
+            User:      userResponse,
+            IsActive:  client.IsActive,
+            CreatedAt: client.CreatedAt,
+            UpdatedAt: client.UpdatedAt,
+        })
+    }
+
+    ctx.JSON(http.StatusOK, resp)
+}
+

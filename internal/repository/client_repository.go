@@ -12,6 +12,7 @@ type ClientRepository interface {
 	GetClientByID(clientID uint) (*entities.Client, error)
 	UpdateClient(client *entities.Client) error
 	DeleteClient(clientID uint) error
+	GetClientsByEstablishmentID(establishmentID uint, clients *[]entities.Client) error
 }
 
 type clientRepository struct {
@@ -59,4 +60,12 @@ func (r *clientRepository) UpdateClient(client *entities.Client) error {
 
 func (r *clientRepository) DeleteClient(clientID uint) error {
 	return r.db.Delete(&entities.Client{}, clientID).Error
+}
+
+func (r *clientRepository) GetClientsByEstablishmentID(establishmentID uint, clients *[]entities.Client) error {
+    result := r.db.Joins("JOIN users ON users.id = clients.user_id").
+        Joins("JOIN credit_accounts ON credit_accounts.client_id = clients.id").
+        Where("credit_accounts.establishment_id = ?", establishmentID).Find(clients)
+
+    return result.Error
 }

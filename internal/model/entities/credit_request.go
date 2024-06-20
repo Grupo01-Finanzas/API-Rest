@@ -11,7 +11,8 @@ type CreditRequest struct {
 	ClientID             uint                `gorm:"index;not null"`
 	EstablishmentID      uint                `gorm:"index;not null"`
 	RequestedCreditLimit float64             `gorm:"not null"`
-	MonthlyDueDate       int                 `gorm:"not null"` // Day of the month (1-31)
+	MonthlyDueDate       int                 `gorm:"not null"`
+	DueDate              time.Time          `gorm:"not null"`
 	InterestType         enums.InterestType  `gorm:"not null"`
 	InterestRate         float64             `gorm:"not null"`
 	CreditType           enums.CreditType    `gorm:"not null"`

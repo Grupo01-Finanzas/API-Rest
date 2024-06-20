@@ -354,8 +354,7 @@ func (c *CreditAccountController) ProcessPayment(ctx *gin.Context) {
 		return
 	}
 
-	// You may want to add additional validation here,
-	// such as checking if the transaction type is Payment.
+	
 
 	if err := c.creditAccountService.ProcessPayment(uint(creditAccountID), req.Amount, req.Description); err != nil {
 		ctx.JSON(http.StatusInternalServerError, response.ErrorResponse{Error: err.Error()})
@@ -424,6 +423,66 @@ func (c *CreditAccountController) GetCreditRequestByID(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, creditRequest)
 }
+
+// GetCreditRequestsByClientID godoc
+// @Summary Get credit requests by Client ID
+// @Description Retrieves all credit requests belonging to a specific client.
+// @Tags CreditRequests
+// @Produce json
+// @Param Authorization header string true "Bearer {token}"
+// @Param client_id path int true "Client ID"
+// @Success 200 {array} response.CreditRequestResponse
+// @Failure 400 {object} response.ErrorResponse
+// @Failure 404 {object} response.ErrorResponse 
+// @Failure 500 {object} response.ErrorResponse
+// @Router /clients/{client_id}/credit-requests [get]
+func (c *CreditAccountController) GetCreditRequestsByClientID(ctx *gin.Context) {
+    clientID, err := strconv.Atoi(ctx.Param("client_id"))
+    if err != nil {
+        ctx.JSON(http.StatusBadRequest, response.ErrorResponse{Error: "Invalid client ID"})
+        return
+    }
+
+    creditRequests, err := c.creditAccountService.GetCreditRequestsByClientID(uint(clientID))
+    if err != nil {
+        if errors.Is(err, gorm.ErrRecordNotFound) {
+            ctx.JSON(http.StatusNotFound, response.ErrorResponse{Error: "No credit requests found for this client"}) 
+            return
+        }
+        ctx.JSON(http.StatusInternalServerError, response.ErrorResponse{Error: err.Error()})
+        return
+    }
+
+    ctx.JSON(http.StatusOK, creditRequests)
+}
+
+// GetCreditRequestsByEstablishmentID godoc
+// @Summary Get credit requests by Establishment ID
+// @Description Retrieves all credit requests associated with an establishment.
+// @Tags CreditRequests
+// @Produce json
+// @Param Authorization header string true "Bearer {token}"
+// @Param establishment_id path int true "Establishment ID"
+// @Success 200 {array} response.CreditRequestResponse
+// @Failure 400 {object} response.ErrorResponse
+// @Failure 500 {object} response.ErrorResponse
+// @Router /establishments/{establishment_id}/credit-requests [get]
+func (c *CreditAccountController) GetCreditRequestsByEstablishmentID(ctx *gin.Context) {
+    establishmentID, err := strconv.Atoi(ctx.Param("establishment_id"))
+    if err != nil {
+        ctx.JSON(http.StatusBadRequest, response.ErrorResponse{Error: "Invalid establishment ID"})
+        return
+    }
+
+    creditRequests, err := c.creditAccountService.GetCreditRequestsByEstablishmentID(uint(establishmentID))
+    if err != nil {
+        ctx.JSON(http.StatusInternalServerError, response.ErrorResponse{Error: err.Error()})
+        return
+    }
+
+    ctx.JSON(http.StatusOK, creditRequests)
+}
+
 
 // ApproveCreditRequest godoc
 // @Summary Approve credit request
@@ -519,6 +578,47 @@ func (c *CreditAccountController) GetPendingCreditRequests(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, creditRequests)
 }
+
+// UpdateCreditRequestDueDate godoc
+// @Summary Update credit request due date
+// @Description Updates the due date of a credit request.
+// @Tags CreditRequests
+// @Accept json
+// @Produce json
+// @Param Authorization header string true "Bearer {token}"
+// @Param id path int true "Credit Request ID"
+// @Param dueDate body request.UpdateCreditRequestDueDate true "New due date"
+// @Success 200 {object} response.CreditRequestResponse
+// @Failure 400 {object} response.ErrorResponse
+// @Failure 404 {object} response.ErrorResponse
+// @Failure 500 {object} response.ErrorResponse
+// @Router /credit-requests/{id}/due-date [put] 
+func (c *CreditAccountController) UpdateCreditRequestDueDate(ctx *gin.Context) {
+    id, err := strconv.Atoi(ctx.Param("id"))
+    if err != nil {
+        ctx.JSON(http.StatusBadRequest, response.ErrorResponse{Error: "Invalid credit request ID"})
+        return
+    }
+
+    var req request.UpdateCreditRequestDueDate
+    if err := ctx.ShouldBindJSON(&req); err != nil {
+        ctx.JSON(http.StatusBadRequest, response.ErrorResponse{Error: err.Error()})
+        return
+    }
+
+    creditRequest, err := c.creditAccountService.UpdateCreditRequestDueDate(uint(id), req.DueDate)
+    if err != nil {
+        if errors.Is(err, gorm.ErrRecordNotFound) {
+            ctx.JSON(http.StatusNotFound, response.ErrorResponse{Error: "Credit request not found"})
+            return
+        }
+        ctx.JSON(http.StatusInternalServerError, response.ErrorResponse{Error: err.Error()})
+        return
+    }
+
+    ctx.JSON(http.StatusOK, creditRequest)
+}
+
 
 // AssignCreditAccountToClient godoc
 // @Summary Assign credit account to client

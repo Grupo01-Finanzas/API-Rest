@@ -38,6 +38,9 @@ type CreditAccountRepository interface {
 	CalculateInterest(creditAccount entities.CreditAccount) float64
 	GetCreditAccountByUserID(userID uint) (*entities.CreditAccount, error)
 	GetStartingBalance(creditAccountID uint) (float64, error)
+	GetCreditRequestByClientID(clientID uint) ([]entities.CreditRequest, error)
+	UpdateCreditRequestDueDate(id uint, newDueDate time.Time) (*entities.CreditRequest, error)
+	GetCreditRequestsByEstablishmentID(establishmentID uint) ([]entities.CreditRequest, error)
 }
 
 type creditAccountRepository struct {
@@ -572,14 +575,14 @@ func (r *creditAccountRepository) ApproveCreditRequest(creditRequest *entities.C
 			return fmt.Errorf("error updating credit request status: %w", err)
 		}
 
-		return nil // Successful transaction
+		return nil
 	})
 
 	if err != nil {
-		return nil, err // Return the error from the transaction
+		return nil, err 
 	}
 
-	return creditAccountResponse, nil // Return the response object
+	return creditAccountResponse, nil
 }
 
 func (r *creditAccountRepository) GetCreditRequestByID(id uint) (*entities.CreditRequest, error) {
@@ -590,12 +593,43 @@ func (r *creditAccountRepository) GetCreditRequestByID(id uint) (*entities.Credi
 	return &creditRequest, nil
 }
 
+func (r *creditAccountRepository) GetCreditRequestByClientID(clientID uint) ([]entities.CreditRequest, error) {
+    var creditRequests []entities.CreditRequest
+    if err := r.db.Where("client_id = ?", clientID).Preload("Establishment.Admin.User").Preload("Establishment.LateFeeRule").Find(&creditRequests).Error; err != nil {
+        return nil, err
+    }
+    return creditRequests, nil
+}
+
+func (r *creditAccountRepository) GetCreditRequestsByEstablishmentID(establishmentID uint) ([]entities.CreditRequest, error) {
+    var creditRequests []entities.CreditRequest
+    if err := r.db.Where("establishment_id = ?", establishmentID).Preload("Establishment.Admin.User").Preload("Establishment.LateFeeRule").Find(&creditRequests).Error; err != nil {
+        return nil, err
+    }
+    return creditRequests, nil
+}
+
+
 func (r *creditAccountRepository) GetPendingCreditRequests(establishmentID uint) ([]entities.CreditRequest, error) {
 	var creditRequests []entities.CreditRequest
 	if err := r.db.Where("establishment_id = ? AND status = ?", establishmentID, enums.Pending).Find(&creditRequests).Error; err != nil {
 		return nil, fmt.Errorf("error retrieving credit requests: %w", err)
 	}
 	return creditRequests, nil
+}
+
+func (r *creditAccountRepository) UpdateCreditRequestDueDate(id uint, newDueDate time.Time) (*entities.CreditRequest, error) {
+    var creditRequest entities.CreditRequest
+    if err := r.db.First(&creditRequest, id).Error; err != nil {
+        return nil, err
+    }
+
+    creditRequest.DueDate = newDueDate
+    if err := r.db.Save(&creditRequest).Error; err != nil {
+        return nil, err
+    }
+
+    return &creditRequest, nil
 }
 
 func (r *creditAccountRepository) AssignCreditAccountToClient(creditAccountID, clientID uint) error {

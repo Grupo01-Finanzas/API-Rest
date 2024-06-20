@@ -15,6 +15,7 @@ type ClientService interface {
 	UpdateClient(client *entities.Client) error
 	DeleteClient(clientID uint) error
 	NewUserResponse(user *entities.User) *response.UserResponse
+	GetClientsByEstablishmentID(establishmentID uint) ([]entities.Client, error)
 }
 
 type clientService struct {
@@ -50,6 +51,15 @@ func (s *clientService) UpdateClient(client *entities.Client) error {
 func (s *clientService) DeleteClient(clientID uint) error {
 	return s.clientRepo.DeleteClient(clientID)
 }
+
+func (s *clientService) GetClientsByEstablishmentID(establishmentID uint) ([]entities.Client, error) {
+    var clients []entities.Client
+    if err := s.clientRepo.GetClientsByEstablishmentID(establishmentID, &clients); err != nil {
+        return nil, err
+    }
+    return clients, nil
+}
+
 
 func (s *clientService) NewUserResponse(user *entities.User) *response.UserResponse {
 	if user == nil {

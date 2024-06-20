@@ -129,7 +129,6 @@ func main() {
 		protectedRoutes.POST("/establishments", adminController.RegisterEstablishment)
 		protectedRoutes.PUT("/establishments/:id", establishmentController.UpdateEstablishment)
 		protectedRoutes.DELETE("/establishments/:id", establishmentController.DeleteEstablishment)
-		// Use a different parameter name for the client route
 		protectedRoutes.PUT("/establishments/:id/clients/:client_id", establishmentController.AddClientToEstablishment)
 
 		// Client routes
@@ -137,6 +136,7 @@ func main() {
 		protectedRoutes.GET("/clients/:id", clientController.GetClientByID)
 		protectedRoutes.PUT("/clients/:id", clientController.UpdateClient)
 		protectedRoutes.DELETE("/clients/:id", clientController.DeleteClient)
+		protectedRoutes.GET("/establishments/:establishment_id/clients", clientController.GetClientsByEstablishmentID)
 
 		// Admin routes
 		protectedRoutes.GET("/admins", adminController.GetAllAdmins)
@@ -175,9 +175,12 @@ func main() {
 		// Credit Request Routes
 		protectedRoutes.POST("/credit-requests", creditAccountController.CreateCreditRequest)
 		protectedRoutes.GET("/credit-requests/:id", creditAccountController.GetCreditRequestByID)
+		protectedRoutes.GET("/clients/:id/credit-requests", creditAccountController.GetCreditAccountsByClientID)
 		protectedRoutes.PUT("/credit-requests/:id/approve", creditAccountController.ApproveCreditRequest)
 		protectedRoutes.PUT("/credit-requests/:id/reject", creditAccountController.RejectCreditRequest)
+		protectedRoutes.PUT("/credit-requests/:id/due-date",creditAccountController.UpdateCreditRequestDueDate)
 		protectedRoutes.GET("/establishments/:establishment_id/credit-requests/pending", creditAccountController.GetPendingCreditRequests)
+		protectedRoutes.GET("/establishments/{establishment_id}/credit-requests", creditAccountController.GetCreditRequestsByEstablishmentID)
 
 		// Transaction Routes
 		protectedRoutes.POST("/transactions", transactionController.CreateTransaction)

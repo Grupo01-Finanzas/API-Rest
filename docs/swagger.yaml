@@ -390,6 +390,13 @@ definitions:
         minimum: 1
         type: integer
     type: object
+  request.UpdateCreditRequestDueDate:
+    properties:
+      due_date:
+        type: string
+    required:
+    - due_date
+    type: object
   request.UpdateEstablishmentRequest:
     properties:
       address:
@@ -938,6 +945,44 @@ paths:
       summary: Get all clients
       tags:
       - Clients
+  /clients/{client_id}/credit-requests:
+    get:
+      description: Retrieves all credit requests belonging to a specific client.
+      parameters:
+      - description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Client ID
+        in: path
+        name: client_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/response.CreditRequestResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Get credit requests by Client ID
+      tags:
+      - CreditRequests
   /clients/{clientID}/credit-accounts:
     get:
       description: Retrieves all credit accounts associated with a client.
@@ -1915,6 +1960,50 @@ paths:
       summary: Approve credit request
       tags:
       - CreditRequests
+  /credit-requests/{id}/due-date:
+    put:
+      consumes:
+      - application/json
+      description: Updates the due date of a credit request.
+      parameters:
+      - description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Credit Request ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: New due date
+        in: body
+        name: dueDate
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdateCreditRequestDueDate'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.CreditRequestResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Update credit request due date
+      tags:
+      - CreditRequests
   /credit-requests/{id}/reject:
     put:
       description: Rejects a pending credit request.
@@ -1972,6 +2061,76 @@ paths:
       summary: Get all establishments
       tags:
       - Establishments
+  /establishments/{establishment_id}/clients:
+    get:
+      consumes:
+      - application/json
+      description: Gets a list of clients associated with a specific establishment.
+      parameters:
+      - description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Establishment ID
+        in: path
+        name: establishment_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/response.ClientResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Get clients by establishment ID
+      tags:
+      - Clients
+  /establishments/{establishment_id}/credit-requests:
+    get:
+      description: Retrieves all credit requests associated with an establishment.
+      parameters:
+      - description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Establishment ID
+        in: path
+        name: establishment_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/response.CreditRequestResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Get credit requests by Establishment ID
+      tags:
+      - CreditRequests
   /establishments/{establishment_id}/products:
     get:
       description: Retrieve products associated with a specific establishment ID.

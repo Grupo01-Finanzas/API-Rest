@@ -40,6 +40,9 @@ type CreditAccountService interface {
 	GetClientAccountStatement(clientID uint, startDate, endDate time.Time) ([]*response.AccountStatementResponse, error)
 	CalculateDueDate(account entities.CreditAccount) (time.Time, error)
 	GetClientAccountHistory(clientID uint) (*response.AccountStatementResponse, error)
+	GetCreditRequestsByClientID(clientID uint) ([]response.CreditRequestResponse, error)
+	UpdateCreditRequestDueDate(id uint, newDueDate time.Time) (*response.CreditRequestResponse, error)
+	GetCreditRequestsByEstablishmentID(establishmentID uint) ([]response.CreditRequestResponse, error)
 }
 
 type creditAccountService struct {
@@ -347,6 +350,62 @@ func (s *creditAccountService) GetCreditRequestByID(id uint) (*response.CreditRe
 	return getCreditRequestResponse(creditRequest), nil
 }
 
+func (s *creditAccountService) GetCreditRequestsByClientID(clientID uint) ([]response.CreditRequestResponse, error) {
+    creditRequests, err := s.creditAccountRepo.GetCreditRequestByClientID(clientID)
+    if err != nil {
+        return nil, fmt.Errorf("error retrieving credit requests: %w", err)
+    }
+
+    // Convert credit requests to response format
+    var responses []response.CreditRequestResponse
+    for _, cr := range creditRequests {
+        responses = append(responses, *getCreditRequestResponse(&cr)) 
+    }
+
+    return responses, nil
+}
+
+func (s *creditAccountService) GetCreditRequestsByEstablishmentID(establishmentID uint) ([]response.CreditRequestResponse, error) {
+    creditRequests, err := s.creditAccountRepo.GetCreditRequestsByEstablishmentID(establishmentID)
+    if err != nil {
+        return nil, fmt.Errorf("error retrieving credit requests: %w", err)
+    }
+
+    responses := make([]response.CreditRequestResponse, len(creditRequests))
+    for i, cr := range creditRequests {
+        responses[i] = response.CreditRequestResponse{
+            ID:           cr.ID,
+            ClientID:     cr.ClientID,
+        	RequestedCreditLimit:       cr.RequestedCreditLimit,
+            MonthlyDueDate: cr.MonthlyDueDate,
+			EstablishmentID: cr.EstablishmentID,
+			InterestType: cr.InterestType,
+			CreditType: cr.CreditType,
+			Status: cr.Status,
+        }
+    }
+
+    return responses, nil
+}
+
+
+
+func (s *creditAccountService) GetPendingCreditRequests(establishmentID uint) ([]response.CreditRequestResponse, error) {
+	// 1. Retrieve credit requests using the repository method
+	creditRequests, err := s.creditAccountRepo.GetPendingCreditRequests(establishmentID)
+	if err != nil {
+		return nil, fmt.Errorf("error retrieving pending credit requests: %w", err)
+	}
+
+	// 2. Convert entities to responses
+	var creditRequestResponses []response.CreditRequestResponse
+	for _, creditRequest := range creditRequests {
+		creditRequestResponses = append(creditRequestResponses, *getCreditRequestResponse(&creditRequest))
+	}
+
+	return creditRequestResponses, nil
+}
+
 func (s *creditAccountService) ApproveCreditRequest(creditRequestID uint, adminID uint) (*response.CreditAccountResponse, error) {
 	// 1. Retrieve the credit request using the repository (now preloads data)
 	creditRequest, err := s.creditAccountRepo.GetCreditRequestByID(creditRequestID)
@@ -371,6 +430,14 @@ func (s *creditAccountService) ApproveCreditRequest(creditRequestID uint, adminI
 	}
 
 	return creditAccountResponse, nil
+}
+
+func (s *creditAccountService) UpdateCreditRequestDueDate(id uint, newDueDate time.Time) (*response.CreditRequestResponse, error) {
+    creditRequest, err := s.creditAccountRepo.UpdateCreditRequestDueDate(id, newDueDate)
+    if err != nil {
+        return nil, fmt.Errorf("error updating credit request due date: %w", err)
+    }
+    return getCreditRequestResponse(creditRequest), nil 
 }
 
 func (s *creditAccountService) RejectCreditRequest(creditRequestID uint, adminID uint) error {
@@ -403,21 +470,7 @@ func (s *creditAccountService) RejectCreditRequest(creditRequestID uint, adminID
 	return nil
 }
 
-func (s *creditAccountService) GetPendingCreditRequests(establishmentID uint) ([]response.CreditRequestResponse, error) {
-	// 1. Retrieve credit requests using the repository method
-	creditRequests, err := s.creditAccountRepo.GetPendingCreditRequests(establishmentID)
-	if err != nil {
-		return nil, fmt.Errorf("error retrieving pending credit requests: %w", err)
-	}
 
-	// 2. Convert entities to responses
-	var creditRequestResponses []response.CreditRequestResponse
-	for _, creditRequest := range creditRequests {
-		creditRequestResponses = append(creditRequestResponses, *getCreditRequestResponse(&creditRequest))
-	}
-
-	return creditRequestResponses, nil
-}
 
 func getCreditRequestResponse(creditRequest *entities.CreditRequest) *response.CreditRequestResponse {
 	return &response.CreditRequestResponse{
