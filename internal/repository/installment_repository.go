@@ -1,136 +1,73 @@
 package repository
 
 import (
-	"ApiRestFinance/internal/model/dto/request"
-	"ApiRestFinance/internal/model/dto/response"
 	"ApiRestFinance/internal/model/entities"
 	"ApiRestFinance/internal/model/entities/enums"
-	"gorm.io/gorm"
 	"time"
+
+	"gorm.io/gorm"
 )
 
-// InstallmentRepository defines the interface for installment repository operations.
+// InstallmentRepository defines operations for managing Installment entities.
 type InstallmentRepository interface {
-	Create(req request.CreateInstallmentRequest) (*response.InstallmentResponse, error)
-	GetByID(id uint) (*response.InstallmentResponse, error)
-	Update(id uint, req request.UpdateInstallmentRequest) (*response.InstallmentResponse, error)
-	Delete(id uint) error
-	GetByCreditAccountID(creditAccountID uint) ([]response.InstallmentResponse, error)
-	GetOverdueInstallments(creditAccountID uint) ([]response.InstallmentResponse, error)
+	CreateInstallments(installments []entities.Installment) error // Batch create for efficiency
+	GetInstallmentByID(installmentID uint) (*entities.Installment, error)
+	GetInstallmentsByCreditAccountID(creditAccountID uint) ([]entities.Installment, error)
+	UpdateInstallment(installment *entities.Installment) error
+	DeleteInstallment(installmentID uint) error
+	GetOverdueInstallments(creditAccountID uint) ([]entities.Installment, error)
 }
 
 type installmentRepository struct {
 	db *gorm.DB
 }
 
-// NewInstallmentRepository creates a new instance of installmentRepository.
+// NewInstallmentRepository creates a new InstallmentRepository instance.
 func NewInstallmentRepository(db *gorm.DB) InstallmentRepository {
 	return &installmentRepository{db: db}
 }
 
-// Create creates a new installment.
-func (r *installmentRepository) Create(req request.CreateInstallmentRequest) (*response.InstallmentResponse, error) {
-	installment := entities.Installment{
-		CreditAccountID: req.CreditAccountID,
-		DueDate:         req.DueDate,
-		Amount:          req.Amount,
-		Status:          req.Status,
-	}
-
-	err := r.db.Create(&installment).Error
-	if err != nil {
-		return nil, err
-	}
-
-	return getInstallmentResponse(&installment), nil
+// CreateInstallments creates multiple installments in a single database transaction.
+func (r *installmentRepository) CreateInstallments(installments []entities.Installment) error {
+	return r.db.Create(&installments).Error 
 }
 
-// GetByID retrieves an installment by ID.
-func (r *installmentRepository) GetByID(id uint) (*response.InstallmentResponse, error) {
+// GetInstallmentByID retrieves an installment by its ID.
+func (r *installmentRepository) GetInstallmentByID(installmentID uint) (*entities.Installment, error) {
 	var installment entities.Installment
-	err := r.db.First(&installment, id).Error
+	err := r.db.First(&installment, installmentID).Error
 	if err != nil {
 		return nil, err
 	}
-
-	return getInstallmentResponse(&installment), nil
+	return &installment, nil
 }
 
-// Update updates an existing installment.
-func (r *installmentRepository) Update(id uint, req request.UpdateInstallmentRequest) (*response.InstallmentResponse, error) {
-	var installment entities.Installment
-	err := r.db.First(&installment, id).Error
-	if err != nil {
-		return nil, err
-	}
-
-	if !req.DueDate.IsZero() {
-		installment.DueDate = req.DueDate
-	}
-	if req.Amount > 0 {
-		installment.Amount = req.Amount
-	}
-	if req.Status != "" {
-		installment.Status = req.Status
-	}
-
-	err = r.db.Save(&installment).Error
-	if err != nil {
-		return nil, err
-	}
-
-	return getInstallmentResponse(&installment), nil
-}
-
-// Delete deletes an installment.
-func (r *installmentRepository) Delete(id uint) error {
-	var installment entities.Installment
-	err := r.db.First(&installment, id).Error
-	if err != nil {
-		return err
-	}
-
-	return r.db.Delete(&installment).Error
-}
-
-// GetByCreditAccountID retrieves all installments for a specific credit account.
-func (r *installmentRepository) GetByCreditAccountID(creditAccountID uint) ([]response.InstallmentResponse, error) {
+// GetInstallmentsByCreditAccountID retrieves all installments for a specific credit account.
+func (r *installmentRepository) GetInstallmentsByCreditAccountID(creditAccountID uint) ([]entities.Installment, error) {
 	var installments []entities.Installment
 	err := r.db.Where("credit_account_id = ?", creditAccountID).Find(&installments).Error
 	if err != nil {
 		return nil, err
 	}
-
-	var installmentResponses []response.InstallmentResponse
-	for _, installment := range installments {
-		installmentResponses = append(installmentResponses, *getInstallmentResponse(&installment))
-	}
-
-	return installmentResponses, nil
+	return installments, nil
 }
 
-// GetOverdueInstallments retrieves all overdue installments for a specific credit account.
-func (r *installmentRepository) GetOverdueInstallments(creditAccountID uint) ([]response.InstallmentResponse, error) {
+// UpdateInstallment updates an existing installment in the database.
+func (r *installmentRepository) UpdateInstallment(installment *entities.Installment) error {
+	return r.db.Save(installment).Error
+}
+
+// DeleteInstallment deletes an installment from the database.
+func (r *installmentRepository) DeleteInstallment(installmentID uint) error {
+	return r.db.Delete(&entities.Installment{}, installmentID).Error
+}
+
+// GetOverdueInstallments retrieves overdue installments for a credit account.
+func (r *installmentRepository) GetOverdueInstallments(creditAccountID uint) ([]entities.Installment, error) {
 	var overdueInstallments []entities.Installment
 	err := r.db.Where("credit_account_id = ? AND due_date < ? AND status = ?", creditAccountID, time.Now(), enums.Overdue).Find(&overdueInstallments).Error
 	if err != nil {
 		return nil, err
 	}
-
-	var overdueInstallmentResponses []response.InstallmentResponse
-	for _, installment := range overdueInstallments {
-		overdueInstallmentResponses = append(overdueInstallmentResponses, *getInstallmentResponse(&installment))
-	}
-
-	return overdueInstallmentResponses, nil
-}
-
-func getInstallmentResponse(installment *entities.Installment) *response.InstallmentResponse {
-	return &response.InstallmentResponse{
-		ID:              installment.ID,
-		CreditAccountID: installment.CreditAccountID,
-		DueDate:         installment.DueDate,
-		Amount:          installment.Amount,
-		Status:          installment.Status,
-	}
+	return overdueInstallments, nil
 }

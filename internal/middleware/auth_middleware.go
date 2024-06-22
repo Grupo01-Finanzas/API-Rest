@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"ApiRestFinance/internal/model/entities/enums"
 	"fmt"
 	"net/http"
 	"strings"
@@ -66,10 +67,32 @@ func GetUserIDFromContext(ctx *gin.Context) uint {
 	return userIDUint
 }
 
-func extractTokenFromHeader(authHeader string) string {
-	parts := strings.Split(authHeader, " ")
-	if len(parts) == 2 && parts[0] == "Bearer" {
-		return parts[1]
-	}
-	return ""
+func GetUserRoleFromContext(c *gin.Context) enums.Role {
+    value, exists := c.Get("rol")
+    if !exists {
+        panic("User role not found in context") 
+    }
+
+    role, ok := value.(enums.Role)
+    if !ok {
+        panic("User role is not of the correct type") 
+    }
+
+    return role
 }
+
+func GetEstablishmentIDFromContext(c *gin.Context) uint {
+    value, exists := c.Get("establishment_id")
+    if !exists {
+        panic("Establishment ID not found in context")
+    }
+
+    establishmentID, ok := value.(uint)
+    if !ok {
+        panic("Establishment ID is not of the correct type") 
+    }
+
+    return establishmentID
+}
+
+

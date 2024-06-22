@@ -24,19 +24,16 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/admins": {
+        "/admins/me": {
             "get": {
-                "description": "Gets a list of all admins.",
-                "consumes": [
-                    "application/json"
-                ],
+                "description": "Retrieves the profile information of the authenticated admin.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "Admins"
+                    "Users"
                 ],
-                "summary": "Get all admins",
+                "summary": "Get Admin Profile",
                 "parameters": [
                     {
                         "type": "string",
@@ -50,10 +47,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/response.AdminResponse"
-                            }
+                            "$ref": "#/definitions/response.AdminResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     },
                     "500": {
@@ -63,11 +69,9 @@ const docTemplate = `{
                         }
                     }
                 }
-            }
-        },
-        "/admins/{id}": {
-            "get": {
-                "description": "Gets an admin by their ID.",
+            },
+            "put": {
+                "description": "Updates the profile information of the authenticated admin.",
                 "consumes": [
                     "application/json"
                 ],
@@ -75,9 +79,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Admins"
+                    "Users"
                 ],
-                "summary": "Get admin by ID",
+                "summary": "Update Admin Profile",
                 "parameters": [
                     {
                         "type": "string",
@@ -87,11 +91,13 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "type": "integer",
-                        "description": "Admin ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
+                        "description": "Updated admin data",
+                        "name": "admin",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.UpdateUserRequest"
+                        }
                     }
                 ],
                 "responses": {
@@ -107,133 +113,14 @@ const docTemplate = `{
                             "$ref": "#/definitions/response.ErrorResponse"
                         }
                     },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    }
-                }
-            },
-            "put": {
-                "description": "Updates an admin\\'s data.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Admins"
-                ],
-                "summary": "Update admin",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer {token}",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Admin ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Updated admin data",
-                        "name": "admin",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.UpdateAdminRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "description": "Deletes an admin by their ID.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Admins"
-                ],
-                "summary": "Delete admin",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer {token}",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Admin ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Admin deleted successfully",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    },
                     "401": {
                         "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
                         "schema": {
                             "$ref": "#/definitions/response.ErrorResponse"
                         }
@@ -248,8 +135,8 @@ const docTemplate = `{
             }
         },
         "/clients": {
-            "get": {
-                "description": "Gets a list of all clients.",
+            "post": {
+                "description": "Creates a new client user with an associated credit account. Only Admins can create clients.",
                 "consumes": [
                     "application/json"
                 ],
@@ -257,47 +144,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Clients"
+                    "Users"
                 ],
-                "summary": "Get all clients",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer {token}",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/response.ClientResponse"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/clients/{clientID}/credit-accounts": {
-            "get": {
-                "description": "Retrieves all credit accounts associated with a client.",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "CreditAccounts"
-                ],
-                "summary": "Get credit accounts by client ID",
+                "summary": "Create Client",
                 "parameters": [
                     {
                         "type": "string",
@@ -307,644 +156,12 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "type": "integer",
-                        "description": "Client ID",
-                        "name": "clientID",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/response.CreditAccountResponse"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/clients/{client_id}/credit-requests": {
-            "get": {
-                "description": "Retrieves all credit requests belonging to a specific client.",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "CreditRequests"
-                ],
-                "summary": "Get credit requests by Client ID",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer {token}",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Client ID",
-                        "name": "client_id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/response.CreditRequestResponse"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/clients/{id}": {
-            "get": {
-                "description": "Gets a client by its ID.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Clients"
-                ],
-                "summary": "Get client by ID",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer {token}",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Client ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/response.ClientResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    }
-                }
-            },
-            "put": {
-                "description": "Updates a client's data.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Clients"
-                ],
-                "summary": "Update client",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer {token}",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Client ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Updated client data",
+                        "description": "Client data",
                         "name": "client",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/request.UpdateClientRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "description": "Deletes a client by its ID.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Clients"
-                ],
-                "summary": "Delete client",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer {token}",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Client ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/clients/{id}/balance": {
-            "get": {
-                "description": "Gets the current balance of a client's credit account.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Clients"
-                ],
-                "summary": "Get Client Balance",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer {token}",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Client ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/response.ClientBalanceResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/clients/{id}/credit-account": {
-            "get": {
-                "description": "Gets the credit account details of a client.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Clients"
-                ],
-                "summary": "Get Client Credit Account",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer {token}",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Client ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/response.CreditAccountResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/clients/{id}/installments": {
-            "get": {
-                "description": "Gets the installments of a client's credit account.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Clients"
-                ],
-                "summary": "Get Client Installments",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer {token}",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Client ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/response.InstallmentResponse"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/clients/{id}/overdue-balance": {
-            "get": {
-                "description": "Gets the overdue balance of a client's credit account.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Clients"
-                ],
-                "summary": "Get Client Overdue Balance",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer {token}",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Client ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "number"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/clients/{id}/transactions": {
-            "get": {
-                "description": "Gets the transaction history of a client.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Clients"
-                ],
-                "summary": "Get Client Transactions",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer {token}",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Client ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/response.TransactionResponse"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/credit-accounts": {
-            "post": {
-                "description": "Creates a new credit account for a client.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "CreditAccounts"
-                ],
-                "summary": "Create a new credit account",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer {token}",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "description": "Credit account details",
-                        "name": "creditAccount",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.CreateCreditAccountRequest"
+                            "$ref": "#/definitions/request.CreateClientRequest"
                         }
                     }
                 ],
@@ -952,11 +169,17 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/response.CreditAccountResponse"
+                            "$ref": "#/definitions/response.UserResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
                         "schema": {
                             "$ref": "#/definitions/response.ErrorResponse"
                         }
@@ -970,62 +193,14 @@ const docTemplate = `{
                 }
             }
         },
-        "/credit-accounts/clients/{clientID}/history": {
+        "/clients/me/account-statement": {
             "get": {
-                "description": "Retrieves the complete transaction history for a client's credit account.",
+                "description": "Retrieves an account statement for the client within a specified date range.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "CreditAccounts"
-                ],
-                "summary": "Get Client Account History",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer {token}",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Client ID",
-                        "name": "clientID",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/response.AccountStatementResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/credit-accounts/clients/{clientID}/statement": {
-            "get": {
-                "description": "Retrieves a client's account statement within a specified date range.",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "CreditAccounts"
+                    "Clients"
                 ],
                 "summary": "Get Client Account Statement",
                 "parameters": [
@@ -1034,13 +209,6 @@ const docTemplate = `{
                         "description": "Bearer {token}",
                         "name": "Authorization",
                         "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Client ID",
-                        "name": "clientID",
-                        "in": "path",
                         "required": true
                     },
                     {
@@ -1069,6 +237,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/response.ErrorResponse"
                         }
                     },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
@@ -1078,16 +252,16 @@ const docTemplate = `{
                 }
             }
         },
-        "/credit-accounts/{creditAccountID}/clients/{clientID}": {
-            "put": {
-                "description": "Assigns an existing credit account to a client.",
+        "/clients/me/account-statement/pdf": {
+            "get": {
+                "description": "Generates and downloads a PDF account statement for the client within a specified date range.",
                 "produces": [
-                    "application/json"
+                    "application/pdf"
                 ],
                 "tags": [
-                    "CreditAccounts"
+                    "Clients"
                 ],
-                "summary": "Assign credit account to client",
+                "summary": "Get Client Account Statement (PDF)",
                 "parameters": [
                     {
                         "type": "string",
@@ -1097,10 +271,368 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "type": "integer",
-                        "description": "Credit Account ID",
-                        "name": "creditAccountID",
-                        "in": "path",
+                        "type": "string",
+                        "description": "Start date (YYYY-MM-DD)",
+                        "name": "startDate",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "End date (YYYY-MM-DD)",
+                        "name": "endDate",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "file"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/clients/me/account-summary": {
+            "get": {
+                "description": "Retrieves a summary of the client's account, including transactions, payments, debts, and interest.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Clients"
+                ],
+                "summary": "Get Client Account Summary",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.AccountSummaryResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/clients/me/balance": {
+            "get": {
+                "description": "Gets the current balance of the authenticated client's credit account.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Clients"
+                ],
+                "summary": "Get Client Balance",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.ClientBalanceResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/clients/me/credit-account": {
+            "get": {
+                "description": "Gets the credit account details of the authenticated client.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Clients"
+                ],
+                "summary": "Get Client Credit Account",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.CreditAccountResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/clients/me/installments": {
+            "get": {
+                "description": "Gets the installments of the authenticated client's credit account.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Clients"
+                ],
+                "summary": "Get Client Installments",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/response.InstallmentResponse"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/clients/me/overdue-balance": {
+            "get": {
+                "description": "Gets the overdue balance of the authenticated client's credit account.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Clients"
+                ],
+                "summary": "Get Client Overdue Balance",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "number"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/clients/me/transactions": {
+            "get": {
+                "description": "Gets the transaction history of the authenticated client.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Clients"
+                ],
+                "summary": "Get Client Transactions",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/response.TransactionResponse"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/clients/{clientID}/credit-account": {
+            "get": {
+                "description": "Retrieves a credit account associated with a specific client.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Credit Accounts"
+                ],
+                "summary": "Get Credit Account by Client ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
                         "required": true
                     },
                     {
@@ -1137,18 +669,397 @@ const docTemplate = `{
                         }
                     }
                 }
+            },
+            "put": {
+                "description": "Updates credit account details of a client. Only Admins can update credit accounts.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Credit Accounts"
+                ],
+                "summary": "Update Client Credit Account",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Client User ID",
+                        "name": "clientID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Updated credit account data",
+                        "name": "creditAccount",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.UpdateCreditAccountRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.CreditAccountResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/credit-accounts": {
+            "post": {
+                "description": "Creates a new credit account for a client.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Credit Accounts"
+                ],
+                "summary": "Create Credit Account",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "Credit account data",
+                        "name": "creditAccount",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.CreateCreditAccountRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/response.CreditAccountResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/credit-accounts/debt-summary": {
+            "get": {
+                "description": "Retrieves a summary of all client debts for an establishment. Only Admins can access this endpoint.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Credit Accounts"
+                ],
+                "summary": "Get Admin Debt Summary",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/response.AdminDebtSummary"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/credit-accounts/overdue": {
+            "get": {
+                "description": "Retrieves all overdue credit accounts for the authenticated admin\\'s establishment.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Credit Accounts"
+                ],
+                "summary": "Get Overdue Credit Accounts",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/response.CreditAccountResponse"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/credit-accounts/{creditAccountID}/apply-interest": {
+            "post": {
+                "description": "Applies interest to a specific credit account. Only Admins can apply interest.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Credit Accounts"
+                ],
+                "summary": "Apply Interest to Account",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Credit Account ID",
+                        "name": "creditAccountID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/credit-accounts/{creditAccountID}/apply-late-fee": {
+            "post": {
+                "description": "Applies a late fee to a specific credit account. Only Admins can apply late fees.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Credit Accounts"
+                ],
+                "summary": "Apply Late Fee to Account",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Credit Account ID",
+                        "name": "creditAccountID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
             }
         },
         "/credit-accounts/{creditAccountID}/installments": {
             "get": {
-                "description": "Retrieves all installments for a specific credit account.",
+                "description": "Retrieves installments associated with a specific credit account.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Installments"
                 ],
-                "summary": "Get installments by credit account ID",
+                "summary": "Get Installments by Credit Account ID",
                 "parameters": [
                     {
                         "type": "string",
@@ -1192,14 +1103,14 @@ const docTemplate = `{
         },
         "/credit-accounts/{creditAccountID}/installments/overdue": {
             "get": {
-                "description": "Retrieves all overdue installments for a specific credit account.",
+                "description": "Retrieves overdue installments for a specific credit account.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Installments"
                 ],
-                "summary": "Get overdue installments by credit account ID",
+                "summary": "Get Overdue Installments by Credit Account ID",
                 "parameters": [
                     {
                         "type": "string",
@@ -1241,60 +1152,9 @@ const docTemplate = `{
                 }
             }
         },
-        "/credit-accounts/{creditAccountID}/late-fees": {
-            "get": {
-                "description": "Retrieves all late fees for a specific credit account.",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "LateFees"
-                ],
-                "summary": "Get late fees by credit account ID",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer {token}",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Credit Account ID",
-                        "name": "creditAccountID",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/response.LateFeeResponse"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
         "/credit-accounts/{creditAccountID}/payments": {
             "post": {
-                "description": "Processes a payment transaction on a credit account.",
+                "description": "Processes a payment towards a client's credit account.",
                 "consumes": [
                     "application/json"
                 ],
@@ -1302,9 +1162,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "CreditAccounts"
+                    "Credit Accounts"
                 ],
-                "summary": "Process a payment",
+                "summary": "Process Payment",
                 "parameters": [
                     {
                         "type": "string",
@@ -1332,7 +1192,13 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "201": {
-                        "description": "Payment processed successfully"
+                        "description": "Created",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
                     },
                     "400": {
                         "description": "Bad Request",
@@ -1340,8 +1206,14 @@ const docTemplate = `{
                             "$ref": "#/definitions/response.ErrorResponse"
                         }
                     },
-                    "404": {
-                        "description": "Not Found",
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
                         "schema": {
                             "$ref": "#/definitions/response.ErrorResponse"
                         }
@@ -1357,7 +1229,7 @@ const docTemplate = `{
         },
         "/credit-accounts/{creditAccountID}/purchases": {
             "post": {
-                "description": "Processes a purchase transaction on a credit account.",
+                "description": "Processes a purchase on a client's credit account.",
                 "consumes": [
                     "application/json"
                 ],
@@ -1365,9 +1237,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "CreditAccounts"
+                    "Credit Accounts"
                 ],
-                "summary": "Process a purchase",
+                "summary": "Process Purchase",
                 "parameters": [
                     {
                         "type": "string",
@@ -1395,7 +1267,13 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "201": {
-                        "description": "Purchase processed successfully"
+                        "description": "Created",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
                     },
                     "400": {
                         "description": "Bad Request",
@@ -1403,8 +1281,14 @@ const docTemplate = `{
                             "$ref": "#/definitions/response.ErrorResponse"
                         }
                     },
-                    "404": {
-                        "description": "Not Found",
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
                         "schema": {
                             "$ref": "#/definitions/response.ErrorResponse"
                         }
@@ -1463,8 +1347,14 @@ const docTemplate = `{
                             "$ref": "#/definitions/response.ErrorResponse"
                         }
                     },
-                    "404": {
-                        "description": "Not Found",
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
                         "schema": {
                             "$ref": "#/definitions/response.ErrorResponse"
                         }
@@ -1480,14 +1370,17 @@ const docTemplate = `{
         },
         "/credit-accounts/{id}": {
             "get": {
-                "description": "Retrieves a credit account by its ID.",
+                "description": "Gets a credit account by its ID.",
+                "consumes": [
+                    "application/json"
+                ],
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "CreditAccounts"
+                    "Credit Accounts"
                 ],
-                "summary": "Get credit account by ID",
+                "summary": "Get Credit Account by ID",
                 "parameters": [
                     {
                         "type": "string",
@@ -1532,7 +1425,7 @@ const docTemplate = `{
                 }
             },
             "put": {
-                "description": "Updates an existing credit account by its ID.",
+                "description": "Updates a credit account by its ID. Only Admins can update credit accounts.",
                 "consumes": [
                     "application/json"
                 ],
@@ -1540,9 +1433,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "CreditAccounts"
+                    "Credit Accounts"
                 ],
-                "summary": "Update a credit account",
+                "summary": "Update Credit Account",
                 "parameters": [
                     {
                         "type": "string",
@@ -1559,7 +1452,7 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "Updated credit account details",
+                        "description": "Updated credit account data",
                         "name": "creditAccount",
                         "in": "body",
                         "required": true,
@@ -1581,6 +1474,18 @@ const docTemplate = `{
                             "$ref": "#/definitions/response.ErrorResponse"
                         }
                     },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
                     "404": {
                         "description": "Not Found",
                         "schema": {
@@ -1596,14 +1501,14 @@ const docTemplate = `{
                 }
             },
             "delete": {
-                "description": "Deletes a credit account by its ID.",
+                "description": "Deletes a credit account by its ID. Only Admins can delete credit accounts.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "CreditAccounts"
+                    "Credit Accounts"
                 ],
-                "summary": "Delete a credit account",
+                "summary": "Delete Credit Account",
                 "parameters": [
                     {
                         "type": "string",
@@ -1630,277 +1535,14 @@ const docTemplate = `{
                             "$ref": "#/definitions/response.ErrorResponse"
                         }
                     },
-                    "404": {
-                        "description": "Not Found",
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/response.ErrorResponse"
                         }
                     },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/credit-requests": {
-            "post": {
-                "description": "Creates a new credit request for a client.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "CreditRequests"
-                ],
-                "summary": "Create a credit request",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer {token}",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "description": "Credit request details",
-                        "name": "creditRequest",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.CreateCreditRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created",
-                        "schema": {
-                            "$ref": "#/definitions/response.CreditRequestResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/credit-requests/{id}": {
-            "get": {
-                "description": "Retrieves a credit request by its ID.",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "CreditRequests"
-                ],
-                "summary": "Get credit request by ID",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer {token}",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Credit Request ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/response.CreditRequestResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/credit-requests/{id}/approve": {
-            "put": {
-                "description": "Approves a pending credit request and creates a credit account.",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "CreditRequests"
-                ],
-                "summary": "Approve credit request",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer {token}",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Credit Request ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/response.CreditAccountResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/credit-requests/{id}/due-date": {
-            "put": {
-                "description": "Updates the due date of a credit request.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "CreditRequests"
-                ],
-                "summary": "Update credit request due date",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer {token}",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Credit Request ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "New due date",
-                        "name": "dueDate",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.UpdateCreditRequestDueDate"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/response.CreditRequestResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/credit-requests/{id}/reject": {
-            "put": {
-                "description": "Rejects a pending credit request.",
-                "tags": [
-                    "CreditRequests"
-                ],
-                "summary": "Reject credit request",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer {token}",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Credit Request ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Credit request rejected successfully"
-                    },
-                    "400": {
-                        "description": "Bad Request",
+                    "403": {
+                        "description": "Forbidden",
                         "schema": {
                             "$ref": "#/definitions/response.ErrorResponse"
                         }
@@ -1921,15 +1563,74 @@ const docTemplate = `{
             }
         },
         "/establishments": {
-            "get": {
-                "description": "Retrieve a list of all establishments.",
+            "post": {
+                "description": "Creates a new establishment for the authenticated admin.",
+                "consumes": [
+                    "application/json"
+                ],
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Establishments"
                 ],
-                "summary": "Get all establishments",
+                "summary": "Create Establishment",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "Establishment data",
+                        "name": "establishment",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.CreateEstablishmentRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/response.EstablishmentResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/establishments/me": {
+            "get": {
+                "description": "Gets the establishment details for the authenticated admin.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Establishments"
+                ],
+                "summary": "Get Establishment",
                 "parameters": [
                     {
                         "type": "string",
@@ -1943,10 +1644,148 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
+                            "$ref": "#/definitions/response.EstablishmentResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Updates the establishment details for the authenticated admin.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Establishments"
+                ],
+                "summary": "Update Establishment",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "Updated establishment data",
+                        "name": "establishment",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.UpdateEstablishmentRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.EstablishmentResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/establishments/{establishmentID}/clients": {
+            "get": {
+                "description": "Gets all clients associated with an establishment. Only Admins can access this endpoint.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Get Clients by Establishment ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Establishment ID",
+                        "name": "establishmentID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/response.EstablishmentResponse"
+                                "$ref": "#/definitions/response.UserResponse"
                             }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     },
                     "500": {
@@ -1960,14 +1799,14 @@ const docTemplate = `{
         },
         "/establishments/{establishmentID}/credit-accounts": {
             "get": {
-                "description": "Retrieves all credit accounts associated with an establishment.",
+                "description": "Retrieves all credit accounts associated with an establishment. Only Admins can access this endpoint.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "CreditAccounts"
+                    "Credit Accounts"
                 ],
-                "summary": "Get credit accounts by establishment ID",
+                "summary": "Get Credit Accounts by Establishment ID",
                 "parameters": [
                     {
                         "type": "string",
@@ -2000,47 +1839,14 @@ const docTemplate = `{
                             "$ref": "#/definitions/response.ErrorResponse"
                         }
                     },
-                    "500": {
-                        "description": "Internal Server Error",
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/response.ErrorResponse"
                         }
-                    }
-                }
-            }
-        },
-        "/establishments/{establishmentID}/credit-accounts/apply-interest": {
-            "post": {
-                "description": "Applies interest to all eligible credit accounts within an establishment.",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "CreditAccounts"
-                ],
-                "summary": "Apply interest to all accounts",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer {token}",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
                     },
-                    {
-                        "type": "integer",
-                        "description": "Establishment ID",
-                        "name": "establishmentID",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Interest applied successfully"
-                    },
-                    "400": {
-                        "description": "Bad Request",
+                    "403": {
+                        "description": "Forbidden",
                         "schema": {
                             "$ref": "#/definitions/response.ErrorResponse"
                         }
@@ -2054,207 +1860,9 @@ const docTemplate = `{
                 }
             }
         },
-        "/establishments/{establishmentID}/credit-accounts/apply-late-fees": {
-            "post": {
-                "description": "Applies late fees to all eligible credit accounts within an establishment.",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "CreditAccounts"
-                ],
-                "summary": "Apply late fees to all accounts",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer {token}",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Establishment ID",
-                        "name": "establishmentID",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Late fees applied successfully"
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/establishments/{establishmentID}/credit-accounts/debt-summary": {
+        "/establishments/{establishmentID}/products": {
             "get": {
-                "description": "Retrieves a summary of debts owed to an establishment.",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "CreditAccounts"
-                ],
-                "summary": "Get admin debt summary",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer {token}",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Establishment ID",
-                        "name": "establishmentID",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/response.AdminDebtSummary"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/establishments/{establishmentID}/credit-requests/pending": {
-            "get": {
-                "description": "Retrieves all pending credit requests for an establishment.",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "CreditRequests"
-                ],
-                "summary": "Get pending credit requests",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer {token}",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Establishment ID",
-                        "name": "establishmentID",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/response.CreditRequestResponse"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/establishments/{establishmentID}/late-fee-rules": {
-            "get": {
-                "description": "Retrieves all late fee rules for a specific establishment.",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "LateFeeRules"
-                ],
-                "summary": "Get late fee rules by establishment ID",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer {token}",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Establishment ID",
-                        "name": "establishmentID",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/response.LateFeeRuleResponse"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/establishments/{establishment_id}/clients": {
-            "get": {
-                "description": "Gets a list of clients associated with a specific establishment.",
+                "description": "Gets all products associated with an establishment.",
                 "consumes": [
                     "application/json"
                 ],
@@ -2262,111 +1870,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Clients"
-                ],
-                "summary": "Get clients by establishment ID",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer {token}",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Establishment ID",
-                        "name": "establishment_id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/response.ClientResponse"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/establishments/{establishment_id}/credit-requests": {
-            "get": {
-                "description": "Retrieves all credit requests associated with an establishment.",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "CreditRequests"
-                ],
-                "summary": "Get credit requests by Establishment ID",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer {token}",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Establishment ID",
-                        "name": "establishment_id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/response.CreditRequestResponse"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/establishments/{establishment_id}/products": {
-            "get": {
-                "description": "Retrieve products associated with a specific establishment ID.",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
                     "Products"
                 ],
-                "summary": "Get products by establishment ID",
+                "summary": "Get Products by Establishment ID",
                 "parameters": [
                     {
                         "type": "string",
@@ -2378,7 +1884,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Establishment ID",
-                        "name": "establishment_id",
+                        "name": "establishmentID",
                         "in": "path",
                         "required": true
                     }
@@ -2410,22 +1916,15 @@ const docTemplate = `{
         },
         "/establishments/{id}": {
             "get": {
-                "description": "Retrieve an establishment by its ID.",
+                "description": "Gets an establishment by its ID.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Establishments"
                 ],
-                "summary": "Get an establishment by ID",
+                "summary": "Get Establishment by ID",
                 "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer {token}",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
                     {
                         "type": "integer",
                         "description": "Establishment ID",
@@ -2440,231 +1939,6 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/response.EstablishmentResponse"
                         }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    }
-                }
-            },
-            "put": {
-                "description": "Update an existing establishment by ID.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Establishments"
-                ],
-                "summary": "Update an existing establishment",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer {token}",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Establishment ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Establishment details",
-                        "name": "establishment",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.UpdateEstablishmentRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/response.EstablishmentResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "description": "Delete an establishment by ID.",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Establishments"
-                ],
-                "summary": "Delete an establishment",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer {token}",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Establishment ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "204": {
-                        "description": "No Content"
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/establishments/{id}/clients/{client_id}": {
-            "put": {
-                "description": "Associate a client with an establishment.",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Establishments"
-                ],
-                "summary": "Add a client to an establishment",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer {token}",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Establishment ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Client ID",
-                        "name": "client_id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "204": {
-                        "description": "No Content"
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/establishments/{id}/products": {
-            "post": {
-                "description": "Associate a list of products with an establishment.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Establishments"
-                ],
-                "summary": "Register products for an establishment",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer {token}",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Establishment ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "List of product IDs",
-                        "name": "products",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "type": "integer"
-                            }
-                        }
-                    }
-                ],
-                "responses": {
-                    "204": {
-                        "description": "No Content"
                     },
                     "400": {
                         "description": "Bad Request",
@@ -2689,7 +1963,7 @@ const docTemplate = `{
         },
         "/installments": {
             "post": {
-                "description": "Creates a new installment for a credit account.",
+                "description": "Creates a new installment for a credit account. Only Admins can create installments.",
                 "consumes": [
                     "application/json"
                 ],
@@ -2699,7 +1973,7 @@ const docTemplate = `{
                 "tags": [
                     "Installments"
                 ],
-                "summary": "Create a new installment",
+                "summary": "Create Installment",
                 "parameters": [
                     {
                         "type": "string",
@@ -2709,7 +1983,7 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "Installment details",
+                        "description": "Installment data",
                         "name": "installment",
                         "in": "body",
                         "required": true,
@@ -2731,6 +2005,18 @@ const docTemplate = `{
                             "$ref": "#/definitions/response.ErrorResponse"
                         }
                     },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
@@ -2742,14 +2028,14 @@ const docTemplate = `{
         },
         "/installments/{id}": {
             "get": {
-                "description": "Retrieves an installment by its ID.",
+                "description": "Gets an installment by its ID.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Installments"
                 ],
-                "summary": "Get installment by ID",
+                "summary": "Get Installment by ID",
                 "parameters": [
                     {
                         "type": "string",
@@ -2794,7 +2080,7 @@ const docTemplate = `{
                 }
             },
             "put": {
-                "description": "Updates an existing installment by its ID.",
+                "description": "Updates an existing installment. Only Admins can update installments.",
                 "consumes": [
                     "application/json"
                 ],
@@ -2804,7 +2090,7 @@ const docTemplate = `{
                 "tags": [
                     "Installments"
                 ],
-                "summary": "Update an installment",
+                "summary": "Update Installment",
                 "parameters": [
                     {
                         "type": "string",
@@ -2843,6 +2129,18 @@ const docTemplate = `{
                             "$ref": "#/definitions/response.ErrorResponse"
                         }
                     },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
                     "404": {
                         "description": "Not Found",
                         "schema": {
@@ -2858,14 +2156,17 @@ const docTemplate = `{
                 }
             },
             "delete": {
-                "description": "Deletes an installment by its ID.",
+                "description": "Deletes an installment by its ID. Only Admins can delete installments.",
+                "consumes": [
+                    "application/json"
+                ],
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Installments"
                 ],
-                "summary": "Delete an installment",
+                "summary": "Delete Installment",
                 "parameters": [
                     {
                         "type": "string",
@@ -2892,478 +2193,14 @@ const docTemplate = `{
                             "$ref": "#/definitions/response.ErrorResponse"
                         }
                     },
-                    "404": {
-                        "description": "Not Found",
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/response.ErrorResponse"
                         }
                     },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/late-fee-rules": {
-            "get": {
-                "description": "Retrieves all late fee rules.",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "LateFeeRules"
-                ],
-                "summary": "Get all late fee rules",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer {token}",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/response.LateFeeRuleResponse"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    }
-                }
-            },
-            "post": {
-                "description": "Creates a new late fee rule for an establishment (or globally).",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "LateFeeRules"
-                ],
-                "summary": "Create a late fee rule",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer {token}",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "description": "Late fee rule details",
-                        "name": "lateFeeRule",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.CreateLateFeeRuleRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created",
-                        "schema": {
-                            "$ref": "#/definitions/response.LateFeeRuleResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/late-fee-rules/{id}": {
-            "get": {
-                "description": "Retrieves a late fee rule by its ID.",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "LateFeeRules"
-                ],
-                "summary": "Get late fee rule by ID",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer {token}",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Late Fee Rule ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/response.LateFeeRuleResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    }
-                }
-            },
-            "put": {
-                "description": "Updates an existing late fee rule by its ID.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "LateFeeRules"
-                ],
-                "summary": "Update a late fee rule",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer {token}",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Late Fee Rule ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Updated late fee rule details",
-                        "name": "lateFeeRule",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.UpdateLateFeeRuleRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/response.LateFeeRuleResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "description": "Deletes a late fee rule by its ID.",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "LateFeeRules"
-                ],
-                "summary": "Delete a late fee rule",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer {token}",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Late Fee Rule ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "204": {
-                        "description": "No Content"
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/late-fees": {
-            "post": {
-                "description": "Creates a new late fee for a credit account.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "LateFees"
-                ],
-                "summary": "Create a late fee",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer {token}",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "description": "Late fee details",
-                        "name": "lateFee",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.CreateLateFeeRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created",
-                        "schema": {
-                            "$ref": "#/definitions/response.LateFeeResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/late-fees/{id}": {
-            "get": {
-                "description": "Retrieves a late fee by its ID.",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "LateFees"
-                ],
-                "summary": "Get late fee by ID",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer {token}",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Late Fee ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/response.LateFeeResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    }
-                }
-            },
-            "put": {
-                "description": "Updates an existing late fee by its ID.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "LateFees"
-                ],
-                "summary": "Update a late fee",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer {token}",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Late Fee ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Updated late fee details",
-                        "name": "lateFee",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.UpdateLateFeeRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/response.LateFeeResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "description": "Deletes a late fee by its ID.",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "LateFees"
-                ],
-                "summary": "Delete a late fee",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer {token}",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Late Fee ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "204": {
-                        "description": "No Content"
-                    },
-                    "400": {
-                        "description": "Bad Request",
+                    "403": {
+                        "description": "Forbidden",
                         "schema": {
                             "$ref": "#/definitions/response.ErrorResponse"
                         }
@@ -3385,7 +2222,7 @@ const docTemplate = `{
         },
         "/login": {
             "post": {
-                "description": "Logs in with user credentials",
+                "description": "Logs in a user with their email and password.",
                 "consumes": [
                     "application/json"
                 ],
@@ -3398,8 +2235,8 @@ const docTemplate = `{
                 "summary": "Login",
                 "parameters": [
                     {
-                        "description": "User credentials",
-                        "name": "user",
+                        "description": "User login credentials",
+                        "name": "credentials",
                         "in": "body",
                         "required": true,
                         "schema": {
@@ -3424,44 +2261,8 @@ const docTemplate = `{
             }
         },
         "/products": {
-            "get": {
-                "description": "Retrieve a list of all products.",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Products"
-                ],
-                "summary": "Get all products",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer {token}",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/response.ProductResponse"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    }
-                }
-            },
             "post": {
-                "description": "Create a new product associated with an establishment.",
+                "description": "Creates a new product for the authenticated admin\\'s establishment.",
                 "consumes": [
                     "application/json"
                 ],
@@ -3471,7 +2272,7 @@ const docTemplate = `{
                 "tags": [
                     "Products"
                 ],
-                "summary": "Create a new product",
+                "summary": "Create Product",
                 "parameters": [
                     {
                         "type": "string",
@@ -3481,7 +2282,7 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "Product details",
+                        "description": "Product data",
                         "name": "product",
                         "in": "body",
                         "required": true,
@@ -3503,6 +2304,18 @@ const docTemplate = `{
                             "$ref": "#/definitions/response.ErrorResponse"
                         }
                     },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
@@ -3514,53 +2327,7 @@ const docTemplate = `{
         },
         "/products/{id}": {
             "get": {
-                "description": "Retrieve a product by its ID.",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Products"
-                ],
-                "summary": "Get a product by ID",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer {token}",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Product ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/response.ProductResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    }
-                }
-            },
-            "put": {
-                "description": "Update an existing product by ID.",
+                "description": "Gets a product by its ID.",
                 "consumes": [
                     "application/json"
                 ],
@@ -3570,7 +2337,7 @@ const docTemplate = `{
                 "tags": [
                     "Products"
                 ],
-                "summary": "Update an existing product",
+                "summary": "Get Product by ID",
                 "parameters": [
                     {
                         "type": "string",
@@ -3585,15 +2352,6 @@ const docTemplate = `{
                         "name": "id",
                         "in": "path",
                         "required": true
-                    },
-                    {
-                        "description": "Product details",
-                        "name": "product",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.UpdateProductRequest"
-                        }
                     }
                 ],
                 "responses": {
@@ -3623,15 +2381,94 @@ const docTemplate = `{
                     }
                 }
             },
-            "delete": {
-                "description": "Delete a product by ID.",
+            "put": {
+                "description": "Updates an existing product. Only admins can update products.",
+                "consumes": [
+                    "application/json"
+                ],
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Products"
                 ],
-                "summary": "Delete a product",
+                "summary": "Update Product",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Product ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Updated product data",
+                        "name": "product",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.UpdateProductRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.ProductResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Deletes a product by its ID. Only Admins can delete products.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Products"
+                ],
+                "summary": "Delete Product",
                 "parameters": [
                     {
                         "type": "string",
@@ -3651,6 +2488,24 @@ const docTemplate = `{
                 "responses": {
                     "204": {
                         "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
                     },
                     "404": {
                         "description": "Not Found",
@@ -3711,28 +2566,25 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     }
                 }
@@ -3740,7 +2592,7 @@ const docTemplate = `{
         },
         "/refresh": {
             "post": {
-                "description": "Gets a new access token if the current access token has expired less than 5 minutes ago.\nIf the access token is invalid or expired for more than 5 minutes, the user must log in again.\nThe access token must be sent in the Authorization header as a Bearer token.",
+                "description": "Refreshes the access token using a valid refresh token.",
                 "consumes": [
                     "application/json"
                 ],
@@ -3750,11 +2602,11 @@ const docTemplate = `{
                 "tags": [
                     "Authentication"
                 ],
-                "summary": "Refresh access token",
+                "summary": "Refresh Token",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Bearer {token}",
+                        "description": "Bearer {refreshToken}",
                         "name": "Authorization",
                         "in": "header",
                         "required": true
@@ -3778,7 +2630,7 @@ const docTemplate = `{
         },
         "/register": {
             "post": {
-                "description": "Registers a new user with the provided data",
+                "description": "Registers a new admin user along with their establishment.",
                 "consumes": [
                     "application/json"
                 ],
@@ -3788,15 +2640,15 @@ const docTemplate = `{
                 "tags": [
                     "Authentication"
                 ],
-                "summary": "Register a new user",
+                "summary": "Register Admin",
                 "parameters": [
                     {
-                        "description": "User data",
-                        "name": "user",
+                        "description": "Admin and establishment registration data",
+                        "name": "registration",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/request.CreateUserRequest"
+                            "$ref": "#/definitions/request.CreateAdminAndEstablishmentRequest"
                         }
                     }
                 ],
@@ -3819,68 +2671,9 @@ const docTemplate = `{
                 }
             }
         },
-        "/register-establishments": {
-            "post": {
-                "description": "Registers a new establishment associated with the admin.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Admins"
-                ],
-                "summary": "Register establishment",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer {token}",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "description": "Establishment data",
-                        "name": "establishment",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.CreateEstablishmentRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created",
-                        "schema": {
-                            "$ref": "#/definitions/response.EstablishmentResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
         "/reset-password": {
             "post": {
-                "description": "Resets the password for the authenticated user, requiring the current password",
+                "description": "Resets the password for the authenticated user.",
                 "consumes": [
                     "application/json"
                 ],
@@ -3890,7 +2683,7 @@ const docTemplate = `{
                 "tags": [
                     "Authentication"
                 ],
-                "summary": "Reset password",
+                "summary": "Reset Password",
                 "parameters": [
                     {
                         "type": "string",
@@ -3900,7 +2693,7 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "Reset password request",
+                        "description": "Reset password request data",
                         "name": "reset",
                         "in": "body",
                         "required": true,
@@ -3936,7 +2729,7 @@ const docTemplate = `{
         },
         "/transactions": {
             "post": {
-                "description": "Create a new transaction for a credit account.",
+                "description": "Create a new transaction (purchase or payment).",
                 "consumes": [
                     "application/json"
                 ],
@@ -3974,6 +2767,18 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
                         "schema": {
                             "$ref": "#/definitions/response.ErrorResponse"
                         }
@@ -4044,7 +2849,7 @@ const docTemplate = `{
                 }
             },
             "put": {
-                "description": "Update a transaction by its ID.",
+                "description": "Update a transaction by its ID. Only admins can update transactions.",
                 "consumes": [
                     "application/json"
                 ],
@@ -4093,6 +2898,18 @@ const docTemplate = `{
                             "$ref": "#/definitions/response.ErrorResponse"
                         }
                     },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
                     "404": {
                         "description": "Not Found",
                         "schema": {
@@ -4108,7 +2925,7 @@ const docTemplate = `{
                 }
             },
             "delete": {
-                "description": "Delete a transaction by its ID.",
+                "description": "Delete a transaction by its ID. Only admins can delete transactions.",
                 "consumes": [
                     "application/json"
                 ],
@@ -4148,8 +2965,389 @@ const docTemplate = `{
                             "$ref": "#/definitions/response.ErrorResponse"
                         }
                     },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
                     "404": {
                         "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/transactions/{id}/confirm": {
+            "post": {
+                "description": "Confirms a pending payment using a confirmation code. Only admins can confirm payments.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Transactions"
+                ],
+                "summary": "Confirm Payment",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Transaction ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Confirmation code",
+                        "name": "confirmation",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/{id}": {
+            "get": {
+                "description": "Retrieves a user by their ID. Admins can retrieve any user, Clients can only retrieve themselves.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Get User by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "User ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.UserResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Updates user details, including the URL of the profile photo.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Update User",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "User ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Updated user data (including photo_url)",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.UpdateUserRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.UserResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Deletes a user by their ID. Only Admins can delete users.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Delete User",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "User ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/{id}/photo": {
+            "post": {
+                "description": "Uploads a profile photo for a user.",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Upload User PhotoUrl",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "User ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "User profile photo",
+                        "name": "photo",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
                         "schema": {
                             "$ref": "#/definitions/response.ErrorResponse"
                         }
@@ -4165,42 +3363,6 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "entities.CreditRequestStatus": {
-            "type": "string",
-            "enum": [
-                "PENDING",
-                "APPROVED",
-                "REJECTED"
-            ],
-            "x-enum-varnames": [
-                "Pending",
-                "Approved",
-                "Rejected"
-            ]
-        },
-        "entities.ProductCategory": {
-            "type": "string",
-            "enum": [
-                "Grocery",
-                "FruitAndVeg",
-                "Meat",
-                "Poultry",
-                "Seafood",
-                "Bakery",
-                "Liquor",
-                "GeneralStore"
-            ],
-            "x-enum-varnames": [
-                "ProductCategoryGrocery",
-                "ProductCategoryFruitAndVeg",
-                "ProductCategoryMeat",
-                "ProductCategoryPoultry",
-                "ProductCategorySeafood",
-                "ProductCategoryBakery",
-                "ProductCategoryLiquor",
-                "ProductCategoryGeneralStore"
-            ]
-        },
         "enums.CreditType": {
             "type": "string",
             "enum": [
@@ -4210,17 +3372,6 @@ const docTemplate = `{
             "x-enum-varnames": [
                 "ShortTerm",
                 "LongTerm"
-            ]
-        },
-        "enums.FeeType": {
-            "type": "string",
-            "enum": [
-                "PERCENTAGE",
-                "FIXED_AMOUNT"
-            ],
-            "x-enum-varnames": [
-                "Percentage",
-                "FixedAmount"
             ]
         },
         "enums.InstallmentStatus": {
@@ -4247,17 +3398,53 @@ const docTemplate = `{
                 "Effective"
             ]
         },
-        "enums.RecipientType": {
+        "enums.PaymentMethod": {
             "type": "string",
             "enum": [
-                "CLIENT",
-                "ESTABLISHMENT",
-                "ADMIN"
+                "YAPE",
+                "PLIN",
+                "CASH"
             ],
             "x-enum-varnames": [
-                "RolClient",
-                "RolEstablishment",
-                "RolAdmin"
+                "YAPE",
+                "PLIN",
+                "CASH"
+            ]
+        },
+        "enums.PaymentStatus": {
+            "type": "string",
+            "enum": [
+                "PENDING",
+                "SUCCESS",
+                "FAILED"
+            ],
+            "x-enum-varnames": [
+                "PENDING",
+                "SUCCESS",
+                "FAILED"
+            ]
+        },
+        "enums.ProductCategory": {
+            "type": "string",
+            "enum": [
+                "Grocery",
+                "FruitAndVeg",
+                "Meat",
+                "Poultry",
+                "Seafood",
+                "Bakery",
+                "Liquor",
+                "GeneralStore"
+            ],
+            "x-enum-varnames": [
+                "ProductCategoryGrocery",
+                "ProductCategoryFruitAndVeg",
+                "ProductCategoryMeat",
+                "ProductCategoryPoultry",
+                "ProductCategorySeafood",
+                "ProductCategoryBakery",
+                "ProductCategoryLiquor",
+                "ProductCategoryGeneralStore"
             ]
         },
         "enums.Role": {
@@ -4277,26 +3464,138 @@ const docTemplate = `{
             "type": "string",
             "enum": [
                 "PURCHASE",
-                "PAYMENT",
-                "INTEREST_ACCRUAL",
-                "LATE_FEE_APPLIED",
-                "CREDIT_LIMIT_INCREASE",
-                "CREDIT_LIMIT_DECREASE",
-                "EARLY_PAYMENT",
-                "ACCOUNT_BLOCKED",
-                "ACCOUNT_UNBLOCKED"
+                "PAYMENT"
             ],
             "x-enum-varnames": [
                 "Purchase",
-                "Payment",
-                "InterestAccrual",
-                "LateFeeApplied",
-                "CreditLimitIncrease",
-                "CreditLimitDecrease",
-                "EarlyPayment",
-                "AccountBlocked",
-                "AccountUnblocked"
+                "Payment"
             ]
+        },
+        "request.CreateAdminAndEstablishmentRequest": {
+            "type": "object",
+            "required": [
+                "address",
+                "dni",
+                "email",
+                "establishment_address",
+                "establishment_name",
+                "establishment_phone",
+                "establishment_ruc",
+                "name",
+                "password",
+                "phone"
+            ],
+            "properties": {
+                "address": {
+                    "type": "string",
+                    "minLength": 5
+                },
+                "dni": {
+                    "description": "User fields",
+                    "type": "string",
+                    "maxLength": 8,
+                    "minLength": 8
+                },
+                "email": {
+                    "type": "string"
+                },
+                "establishment_address": {
+                    "type": "string"
+                },
+                "establishment_name": {
+                    "type": "string"
+                },
+                "establishment_phone": {
+                    "type": "string"
+                },
+                "establishment_ruc": {
+                    "description": "Establishment fields",
+                    "type": "string"
+                },
+                "late_fee_percentage": {
+                    "description": "Optional, can be set later",
+                    "type": "number",
+                    "minimum": 0
+                },
+                "name": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string",
+                    "minLength": 8
+                },
+                "phone": {
+                    "type": "string",
+                    "maxLength": 9,
+                    "minLength": 9
+                }
+            }
+        },
+        "request.CreateClientRequest": {
+            "type": "object",
+            "required": [
+                "address",
+                "credit_limit",
+                "credit_type",
+                "dni",
+                "establishment_id",
+                "interest_rate",
+                "interest_type",
+                "monthly_due_date",
+                "name",
+                "phone"
+            ],
+            "properties": {
+                "address": {
+                    "type": "string",
+                    "minLength": 5
+                },
+                "credit_limit": {
+                    "type": "number"
+                },
+                "credit_type": {
+                    "$ref": "#/definitions/enums.CreditType"
+                },
+                "dni": {
+                    "type": "string",
+                    "maxLength": 8,
+                    "minLength": 8
+                },
+                "email": {
+                    "description": "Optional email",
+                    "type": "string"
+                },
+                "establishment_id": {
+                    "type": "integer"
+                },
+                "grace_period": {
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "interest_rate": {
+                    "type": "number"
+                },
+                "interest_type": {
+                    "$ref": "#/definitions/enums.InterestType"
+                },
+                "late_fee_percentage": {
+                    "type": "number",
+                    "minimum": 0
+                },
+                "monthly_due_date": {
+                    "type": "integer",
+                    "maximum": 31,
+                    "minimum": 1
+                },
+                "name": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string",
+                    "maxLength": 9,
+                    "minLength": 9
+                }
+            }
         },
         "request.CreateCreditAccountRequest": {
             "type": "object",
@@ -4304,7 +3603,6 @@ const docTemplate = `{
                 "client_id",
                 "credit_limit",
                 "credit_type",
-                "establishment_id",
                 "interest_rate",
                 "interest_type",
                 "monthly_due_date"
@@ -4319,54 +3617,8 @@ const docTemplate = `{
                 "credit_type": {
                     "$ref": "#/definitions/enums.CreditType"
                 },
-                "establishment_id": {
-                    "type": "integer"
-                },
                 "grace_period": {
-                    "description": "Optional",
-                    "type": "integer",
-                    "minimum": 0
-                },
-                "interest_rate": {
-                    "type": "number"
-                },
-                "interest_type": {
-                    "$ref": "#/definitions/enums.InterestType"
-                },
-                "late_fee_rule_id": {
-                    "description": "Optional",
-                    "type": "integer"
-                },
-                "monthly_due_date": {
-                    "type": "integer",
-                    "maximum": 31,
-                    "minimum": 1
-                }
-            }
-        },
-        "request.CreateCreditRequest": {
-            "type": "object",
-            "required": [
-                "client_id",
-                "credit_type",
-                "establishment_id",
-                "interest_rate",
-                "interest_type",
-                "monthly_due_date",
-                "requested_credit_limit"
-            ],
-            "properties": {
-                "client_id": {
-                    "type": "integer"
-                },
-                "credit_type": {
-                    "$ref": "#/definitions/enums.CreditType"
-                },
-                "establishment_id": {
-                    "type": "integer"
-                },
-                "grace_period": {
-                    "description": "Optional",
+                    "description": "Optional, for long-term credit",
                     "type": "integer",
                     "minimum": 0
                 },
@@ -4380,9 +3632,6 @@ const docTemplate = `{
                     "type": "integer",
                     "maximum": 31,
                     "minimum": 1
-                },
-                "requested_credit_limit": {
-                    "type": "number"
                 }
             }
         },
@@ -4401,6 +3650,11 @@ const docTemplate = `{
                 "image_url": {
                     "type": "string"
                 },
+                "late_fee_percentage": {
+                    "description": "Optional, can be set later",
+                    "type": "number",
+                    "minimum": 0
+                },
                 "name": {
                     "type": "string"
                 },
@@ -4417,8 +3671,7 @@ const docTemplate = `{
             "required": [
                 "amount",
                 "credit_account_id",
-                "due_date",
-                "status"
+                "due_date"
             ],
             "properties": {
                 "amount": {
@@ -4428,56 +3681,6 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "due_date": {
-                    "type": "string"
-                },
-                "status": {
-                    "$ref": "#/definitions/enums.InstallmentStatus"
-                }
-            }
-        },
-        "request.CreateLateFeeRequest": {
-            "type": "object",
-            "required": [
-                "amount",
-                "credit_account_id"
-            ],
-            "properties": {
-                "amount": {
-                    "type": "number"
-                },
-                "credit_account_id": {
-                    "type": "integer"
-                }
-            }
-        },
-        "request.CreateLateFeeRuleRequest": {
-            "type": "object",
-            "required": [
-                "days_overdue_max",
-                "days_overdue_min",
-                "fee_type",
-                "fee_value",
-                "name"
-            ],
-            "properties": {
-                "days_overdue_max": {
-                    "type": "integer"
-                },
-                "days_overdue_min": {
-                    "type": "integer",
-                    "minimum": 1
-                },
-                "establishment_id": {
-                    "description": "Optional, if rule is for specific establishment",
-                    "type": "integer"
-                },
-                "fee_type": {
-                    "$ref": "#/definitions/enums.FeeType"
-                },
-                "fee_value": {
-                    "type": "number"
-                },
-                "name": {
                     "type": "string"
                 }
             }
@@ -4494,7 +3697,7 @@ const docTemplate = `{
             ],
             "properties": {
                 "category": {
-                    "$ref": "#/definitions/entities.ProductCategory"
+                    "$ref": "#/definitions/enums.ProductCategory"
                 },
                 "description": {
                     "type": "string"
@@ -4551,8 +3754,7 @@ const docTemplate = `{
             "required": [
                 "amount",
                 "credit_account_id",
-                "recipient_id",
-                "recipient_type",
+                "payment_method",
                 "transaction_type"
             ],
             "properties": {
@@ -4563,54 +3765,18 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "description": {
-                    "description": "Optional",
                     "type": "string"
                 },
-                "recipient_id": {
-                    "type": "integer"
-                },
-                "recipient_type": {
-                    "$ref": "#/definitions/enums.RecipientType"
+                "payment_method": {
+                    "description": "Add PaymentMethod",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/enums.PaymentMethod"
+                        }
+                    ]
                 },
                 "transaction_type": {
                     "$ref": "#/definitions/enums.TransactionType"
-                }
-            }
-        },
-        "request.CreateUserRequest": {
-            "type": "object",
-            "required": [
-                "address",
-                "dni",
-                "email",
-                "name",
-                "password",
-                "phone"
-            ],
-            "properties": {
-                "address": {
-                    "type": "string",
-                    "minLength": 5
-                },
-                "dni": {
-                    "type": "string",
-                    "maxLength": 8,
-                    "minLength": 8
-                },
-                "email": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "password": {
-                    "type": "string",
-                    "minLength": 8
-                },
-                "phone": {
-                    "type": "string",
-                    "maxLength": 9,
-                    "minLength": 9
                 }
             }
         },
@@ -4645,22 +3811,6 @@ const docTemplate = `{
                 }
             }
         },
-        "request.UpdateAdminRequest": {
-            "type": "object",
-            "properties": {
-                "is_active": {
-                    "type": "boolean"
-                }
-            }
-        },
-        "request.UpdateClientRequest": {
-            "type": "object",
-            "properties": {
-                "is_active": {
-                    "type": "boolean"
-                }
-            }
-        },
         "request.UpdateCreditAccountRequest": {
             "type": "object",
             "properties": {
@@ -4669,10 +3819,6 @@ const docTemplate = `{
                 },
                 "credit_type": {
                     "$ref": "#/definitions/enums.CreditType"
-                },
-                "current_balance": {
-                    "description": "Added CurrentBalance field",
-                    "type": "number"
                 },
                 "grace_period": {
                     "type": "integer",
@@ -4687,25 +3833,14 @@ const docTemplate = `{
                 "is_blocked": {
                     "type": "boolean"
                 },
-                "late_fee_rule_id": {
-                    "description": "Optional",
-                    "type": "integer"
+                "late_fee_percentage": {
+                    "type": "number",
+                    "minimum": 0
                 },
                 "monthly_due_date": {
                     "type": "integer",
                     "maximum": 31,
                     "minimum": 1
-                }
-            }
-        },
-        "request.UpdateCreditRequestDueDate": {
-            "type": "object",
-            "required": [
-                "due_date"
-            ],
-            "properties": {
-                "due_date": {
-                    "type": "string"
                 }
             }
         },
@@ -4721,8 +3856,16 @@ const docTemplate = `{
                 "address": {
                     "type": "string"
                 },
+                "image_url": {
+                    "type": "string"
+                },
                 "is_active": {
                     "type": "boolean"
+                },
+                "late_fee_percentage": {
+                    "description": "Optional",
+                    "type": "number",
+                    "minimum": 0
                 },
                 "name": {
                     "type": "string"
@@ -4749,49 +3892,19 @@ const docTemplate = `{
                 }
             }
         },
-        "request.UpdateLateFeeRequest": {
-            "type": "object",
-            "properties": {
-                "amount": {
-                    "type": "number"
-                }
-            }
-        },
-        "request.UpdateLateFeeRuleRequest": {
-            "type": "object",
-            "properties": {
-                "days_overdue_max": {
-                    "type": "integer"
-                },
-                "days_overdue_min": {
-                    "type": "integer",
-                    "minimum": 1
-                },
-                "fee_type": {
-                    "$ref": "#/definitions/enums.FeeType"
-                },
-                "fee_value": {
-                    "type": "number"
-                },
-                "name": {
-                    "type": "string"
-                }
-            }
-        },
         "request.UpdateProductRequest": {
             "type": "object",
             "required": [
-                "category",
-                "description",
-                "name",
-                "price",
-                "stock"
+                "category"
             ],
             "properties": {
                 "category": {
-                    "$ref": "#/definitions/entities.ProductCategory"
+                    "$ref": "#/definitions/enums.ProductCategory"
                 },
                 "description": {
+                    "type": "string"
+                },
+                "image_url": {
                     "type": "string"
                 },
                 "is_active": {
@@ -4823,6 +3936,27 @@ const docTemplate = `{
                 }
             }
         },
+        "request.UpdateUserRequest": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "description": "Optional",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "Optional",
+                    "type": "string"
+                },
+                "phone": {
+                    "description": "Optional",
+                    "type": "string"
+                },
+                "photo_url": {
+                    "description": "Optional",
+                    "type": "string"
+                }
+            }
+        },
         "response.AccountStatementResponse": {
             "type": "object",
             "properties": {
@@ -4836,6 +3970,26 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "starting_balance": {
+                    "type": "number"
+                },
+                "transactions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.TransactionResponse"
+                    }
+                }
+            }
+        },
+        "response.AccountSummaryResponse": {
+            "type": "object",
+            "properties": {
+                "current_balance": {
+                    "type": "number"
+                },
+                "due_date": {
+                    "type": "string"
+                },
+                "total_interest": {
                     "type": "number"
                 },
                 "transactions": {
@@ -4877,26 +4031,11 @@ const docTemplate = `{
         "response.AdminResponse": {
             "type": "object",
             "properties": {
-                "created_at": {
-                    "type": "string"
-                },
                 "establishment": {
                     "$ref": "#/definitions/response.EstablishmentResponse"
                 },
-                "establishment_id": {
-                    "type": "integer"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "is_active": {
-                    "type": "boolean"
-                },
-                "updated_at": {
-                    "type": "string"
-                },
-                "user_id": {
-                    "type": "integer"
+                "user": {
+                    "$ref": "#/definitions/response.UserResponse"
                 }
             }
         },
@@ -4922,31 +4061,11 @@ const docTemplate = `{
                 }
             }
         },
-        "response.ClientResponse": {
-            "type": "object",
-            "properties": {
-                "created_at": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "is_active": {
-                    "type": "boolean"
-                },
-                "updated_at": {
-                    "type": "string"
-                },
-                "user": {
-                    "$ref": "#/definitions/response.UserResponse"
-                }
-            }
-        },
         "response.CreditAccountResponse": {
             "type": "object",
             "properties": {
                 "client": {
-                    "$ref": "#/definitions/response.ClientResponse"
+                    "$ref": "#/definitions/response.UserResponse"
                 },
                 "client_id": {
                     "type": "integer"
@@ -4962,6 +4081,9 @@ const docTemplate = `{
                 },
                 "current_balance": {
                     "type": "number"
+                },
+                "establishment": {
+                    "$ref": "#/definitions/response.EstablishmentResponse"
                 },
                 "establishment_id": {
                     "type": "integer"
@@ -4984,58 +4106,11 @@ const docTemplate = `{
                 "last_interest_accrual_date": {
                     "type": "string"
                 },
-                "late_fee_rule": {
-                    "$ref": "#/definitions/response.LateFeeRuleResponse"
-                },
-                "late_fee_rule_id": {
-                    "type": "integer"
-                },
-                "monthly_due_date": {
-                    "type": "integer"
-                },
-                "updated_at": {
-                    "type": "string"
-                }
-            }
-        },
-        "response.CreditRequestResponse": {
-            "type": "object",
-            "properties": {
-                "approved_at": {
-                    "type": "string"
-                },
-                "client_id": {
-                    "type": "integer"
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "credit_type": {
-                    "$ref": "#/definitions/enums.CreditType"
-                },
-                "establishment_id": {
-                    "type": "integer"
-                },
-                "grace_period": {
-                    "type": "integer"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "interest_type": {
-                    "$ref": "#/definitions/enums.InterestType"
-                },
-                "monthly_due_date": {
-                    "type": "integer"
-                },
-                "rejected_at": {
-                    "type": "string"
-                },
-                "requested_credit_limit": {
+                "late_fee_percentage": {
                     "type": "number"
                 },
-                "status": {
-                    "$ref": "#/definitions/entities.CreditRequestStatus"
+                "monthly_due_date": {
+                    "type": "integer"
                 },
                 "updated_at": {
                     "type": "string"
@@ -5057,7 +4132,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "admin": {
-                    "$ref": "#/definitions/response.AdminResponse"
+                    "$ref": "#/definitions/response.UserResponse"
                 },
                 "created_at": {
                     "type": "string"
@@ -5071,17 +4146,14 @@ const docTemplate = `{
                 "is_active": {
                     "type": "boolean"
                 },
+                "late_fee_percentage": {
+                    "type": "number"
+                },
                 "name": {
                     "type": "string"
                 },
                 "phone": {
                     "type": "string"
-                },
-                "products": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/response.ProductResponse"
-                    }
                 },
                 "ruc": {
                     "type": "string"
@@ -5097,6 +4169,9 @@ const docTemplate = `{
                 "amount": {
                     "type": "number"
                 },
+                "created_at": {
+                    "type": "string"
+                },
                 "credit_account_id": {
                     "type": "integer"
                 },
@@ -5108,48 +4183,8 @@ const docTemplate = `{
                 },
                 "status": {
                     "$ref": "#/definitions/enums.InstallmentStatus"
-                }
-            }
-        },
-        "response.LateFeeResponse": {
-            "type": "object",
-            "properties": {
-                "amount": {
-                    "type": "number"
                 },
-                "applied_date": {
-                    "type": "string"
-                },
-                "credit_account_id": {
-                    "type": "integer"
-                },
-                "id": {
-                    "type": "integer"
-                }
-            }
-        },
-        "response.LateFeeRuleResponse": {
-            "type": "object",
-            "properties": {
-                "days_overdue_max": {
-                    "type": "integer"
-                },
-                "days_overdue_min": {
-                    "type": "integer"
-                },
-                "establishment_id": {
-                    "type": "integer"
-                },
-                "fee_type": {
-                    "$ref": "#/definitions/enums.FeeType"
-                },
-                "fee_value": {
-                    "type": "number"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "name": {
+                "updated_at": {
                     "type": "string"
                 }
             }
@@ -5158,7 +4193,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "category": {
-                    "$ref": "#/definitions/entities.ProductCategory"
+                    "$ref": "#/definitions/enums.ProductCategory"
                 },
                 "created_at": {
                     "type": "string"
@@ -5168,6 +4203,9 @@ const docTemplate = `{
                 },
                 "establishment": {
                     "$ref": "#/definitions/response.EstablishmentResponse"
+                },
+                "establishment_id": {
+                    "type": "integer"
                 },
                 "id": {
                     "type": "integer"
@@ -5209,6 +4247,29 @@ const docTemplate = `{
                 },
                 "id": {
                     "type": "integer"
+                },
+                "payment_code": {
+                    "description": "Add PaymentCode (if generated)",
+                    "type": "string"
+                },
+                "payment_method": {
+                    "description": "Add PaymentMethod",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/enums.PaymentMethod"
+                        }
+                    ]
+                },
+                "payment_status": {
+                    "description": "Add PaymentStatus",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/enums.PaymentStatus"
+                        }
+                    ]
+                },
+                "transaction_date": {
+                    "type": "string"
                 },
                 "transaction_type": {
                     "$ref": "#/definitions/enums.TransactionType"

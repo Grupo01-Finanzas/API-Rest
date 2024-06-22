@@ -1,12 +1,13 @@
 package request
 
-import "ApiRestFinance/internal/model/entities"
+import "ApiRestFinance/internal/model/entities/enums"
 
 type UpdateProductRequest struct {
-	Name        string                   `json:"name" binding:"required"`
-	Description string                   `json:"description" binding:"required"`
-	Price       float64                  `json:"price" binding:"required,gt=0"`
-	Category    entities.ProductCategory `json:"category" binding:"required"`
-	Stock       int                      `json:"stock" binding:"required,gte=0"`
-	IsActive    bool                     `json:"is_active"`
+	Name        string  `json:"name" binding:"omitempty"`
+	Category        enums.ProductCategory `json:"category" binding:"required"`
+	Description string  `json:"description" binding:"omitempty"`
+	Price       float64 `json:"price" binding:"omitempty,gt=0"`
+	Stock       int     `json:"stock" binding:"omitempty,gte=0"`
+	ImageUrl    string  `json:"image_url" binding:"omitempty"`
+	IsActive    bool    `json:"is_active"`
 }

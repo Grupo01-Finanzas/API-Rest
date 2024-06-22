@@ -8,12 +8,14 @@ import (
 
 type Transaction struct {
 	gorm.Model
-	CreditAccountID uint                  `gorm:"index"`    // Now optional
-	RecipientType   enums.RecipientType   `gorm:"not null"` // New field to indicate recipient type
-	RecipientID     uint                  `gorm:"not null"` // ID of the recipient
-	TransactionType enums.TransactionType `gorm:"not null"`
-	Amount          float64               `gorm:"not null"`
-	Description     string                `gorm:"type:text"` // Optional description
-	TransactionDate time.Time             `gorm:"not null"`  // Date of the transaction
-	CreditAccount   CreditAccount         `gorm:"foreignKey:CreditAccountID;references:ID"`
+	CreditAccountID  uint                   `gorm:"index;not null"`
+	CreditAccount    *CreditAccount         `gorm:"foreignKey:CreditAccountID;references:ID"`
+	TransactionType  enums.TransactionType `gorm:"not null"` // PURCHASE or PAYMENT
+	Amount           float64               `gorm:"not null"`
+	Description      string                `gorm:"type:text"`      // Optional description
+	TransactionDate  time.Time             `gorm:"not null"`      // Date of the transaction
+	PaymentMethod    enums.PaymentMethod   `gorm:"not null"`      // YAP, PLIN, CASH
+	PaymentCode      string                `gorm:"default:null"`  // Code generated for client confirmation
+	ConfirmationCode string                `gorm:"default:null"`  // Code provided by admin for confirmation
+	PaymentStatus    enums.PaymentStatus   `gorm:"default:PENDING"` // PENDING, SUCCESS, FAILED
 }

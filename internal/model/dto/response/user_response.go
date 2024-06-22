@@ -3,6 +3,7 @@ package response
 import (
 	"ApiRestFinance/internal/model/entities/enums"
 	"time"
+	// ... other imports
 )
 
 type UserResponse struct {

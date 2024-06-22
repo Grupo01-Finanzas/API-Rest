@@ -1,8 +1,6 @@
 package request
 
-import (
-	"ApiRestFinance/internal/model/entities/enums"
-)
+import "ApiRestFinance/internal/model/entities/enums"
 
 type UpdateTransactionRequest struct {
 	Amount          float64               `json:"amount" binding:"omitempty,gt=0"`

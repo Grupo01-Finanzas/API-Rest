@@ -9,8 +9,8 @@ import (
 type Installment struct {
 	gorm.Model
 	CreditAccountID uint                    `gorm:"index;not null"`
-	DueDate         time.Time               `gorm:"not null"`
+	CreditAccount   *CreditAccount           `gorm:"foreignKey:CreditAccountID;references:ID"`
+	DueDate         time.Time               `gorm:"not null"` // Due date of the installment
 	Amount          float64                 `gorm:"not null"`
-	Status          enums.InstallmentStatus `gorm:"not null"`
-	CreditAccount   CreditAccount           `gorm:"foreignKey:CreditAccountID;references:ID"`
+	Status          enums.InstallmentStatus `gorm:"not null;default:PENDING"` // PENDING, PAID, OVERDUE
 }

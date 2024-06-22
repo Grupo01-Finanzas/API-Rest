@@ -1,8 +1,9 @@
 package request
 
 import (
-	"ApiRestFinance/internal/model/entities/enums"
 	"time"
+
+	"ApiRestFinance/internal/model/entities/enums"
 )
 
 type UpdateInstallmentRequest struct {

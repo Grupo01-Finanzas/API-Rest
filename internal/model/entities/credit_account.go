@@ -1,30 +1,27 @@
 package entities
 
 import (
-	"ApiRestFinance/internal/model/entities/enums"
-	"gorm.io/gorm"
-	"time"
+    "ApiRestFinance/internal/model/entities/enums"
+    "gorm.io/gorm"
+    "time"
 )
 
-// CreditAccount represents a client's credit account.
 type CreditAccount struct {
 	gorm.Model
-	EstablishmentID         uint               `gorm:"index;not null"`
 	ClientID                uint               `gorm:"index;not null"`
-	CreditLimit             float64            `gorm:"not null"`
-	MonthlyDueDate          int                `gorm:"not null"` // Day of the month (1-31)
-	InterestRate            float64            `gorm:"not null"`
-	InterestType            enums.InterestType `gorm:"not null"`
-	CreditType              enums.CreditType   `gorm:"not null"`
-	GracePeriod             int                `gorm:"default:0"` // In months
-	IsBlocked               bool               `gorm:"default:false"`
-	LastInterestAccrualDate time.Time          `gorm:"not null"`
-	CurrentBalance          float64            `gorm:"not null"`
+	Client                  *User            `gorm:"foreignKey:ClientID;references:ID"` // Client this account belongs to
+	EstablishmentID         uint               `gorm:"index;not null"`
 	Establishment           *Establishment     `gorm:"foreignKey:EstablishmentID;references:ID"`
-	Client                  *Client            `gorm:"foreignKey:ClientID;references:ID"`
-	Transactions            []*Transaction     `gorm:"foreignKey:CreditAccountID;references:ID"`
-	LateFees                []*LateFee         `gorm:"foreignKey:CreditAccountID;references:ID"` // New relationship
-	Installments            []*Installment     `gorm:"foreignKey:CreditAccountID;references:ID"` // New relationship (for long-term credit)
-	LateFeeRuleID           uint               `gorm:"index"`                                    // Foreign key to LateFeeRule
-	LateFeeRule             *LateFeeRule       `gorm:"foreignKey:LateFeeRuleID;references:ID"`   // Relationship with LateFeeRule
+	CreditLimit             float64            `gorm:"not null"`
+	CurrentBalance          float64            `gorm:"not null"` // Current balance owed
+	MonthlyDueDate          int                `gorm:"not null"` // Day of the month (1-31) when payment is due
+	InterestRate            float64            `gorm:"not null"` // Annual interest rate
+	InterestType            enums.InterestType `gorm:"not null"` // NOMINAL or EFFECTIVE
+	CreditType              enums.CreditType   `gorm:"not null"` // SHORT_TERM or LONG_TERM
+	GracePeriod             int                `gorm:"default:0"` // Grace period in months (for LONG_TERM credit)
+	IsBlocked               bool               `gorm:"default:false"`
+	LastInterestAccrualDate time.Time          `gorm:"not null"` // Date when interest was last applied
+	LateFeePercentage       float64            `gorm:"not null"` // Percentage for late fee calculation
+	CreatedAt               time.Time          `gorm:"not null"`
+	UpdatedAt               time.Time          `gorm:"not null"`
 }

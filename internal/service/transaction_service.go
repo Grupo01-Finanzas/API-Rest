@@ -1,21 +1,25 @@
 package service
 
 import (
-	"ApiRestFinance/internal/model/entities/enums"
-	"fmt"
-
 	"ApiRestFinance/internal/model/dto/request"
 	"ApiRestFinance/internal/model/dto/response"
+	"ApiRestFinance/internal/model/entities"
+	"ApiRestFinance/internal/model/entities/enums"
 	"ApiRestFinance/internal/repository"
+	"ApiRestFinance/internal/util"
+	"errors"
+	"fmt"
+	"time"
 )
 
-// TransactionService defines the interface for transaction service operations.
+// TransactionService handles transaction-related operations.
 type TransactionService interface {
 	CreateTransaction(req request.CreateTransactionRequest) (*response.TransactionResponse, error)
 	GetTransactionByID(id uint) (*response.TransactionResponse, error)
+	GetTransactionsByCreditAccountID(creditAccountID uint) ([]response.TransactionResponse, error)
 	UpdateTransaction(id uint, req request.UpdateTransactionRequest) (*response.TransactionResponse, error)
 	DeleteTransaction(id uint) error
-	GetTransactionsByCreditAccountID(creditAccountID uint) ([]response.TransactionResponse, error)
+	ConfirmPayment(transactionID uint, confirmationCode string) error
 }
 
 type transactionService struct {
@@ -23,7 +27,7 @@ type transactionService struct {
 	creditAccountRepo repository.CreditAccountRepository
 }
 
-// NewTransactionService creates a new instance of TransactionService.
+// NewTransactionService creates a new TransactionService instance.
 func NewTransactionService(transactionRepo repository.TransactionRepository, creditAccountRepo repository.CreditAccountRepository) TransactionService {
 	return &transactionService{
 		transactionRepo:   transactionRepo,
@@ -31,140 +35,176 @@ func NewTransactionService(transactionRepo repository.TransactionRepository, cre
 	}
 }
 
-// CreateTransaction creates a new transaction, updating the credit account balance.
 func (s *transactionService) CreateTransaction(req request.CreateTransactionRequest) (*response.TransactionResponse, error) {
-	// Retrieve the credit account to update the balance
-	creditAccount, err := s.creditAccountRepo.GetByID(req.CreditAccountID)
+	creditAccount, err := s.creditAccountRepo.GetCreditAccountByID(req.CreditAccountID)
 	if err != nil {
 		return nil, fmt.Errorf("error retrieving credit account: %w", err)
 	}
-
-	// Create the transaction record
-	transaction, err := s.transactionRepo.Create(req)
-	if err != nil {
-		return nil, fmt.Errorf("error creating transaction: %w", err)
+	if creditAccount == nil {
+		return nil, errors.New("credit account not found")
 	}
 
-	// Update the credit account balance based on transaction type
-	switch req.TransactionType {
-	case enums.Purchase, enums.InterestAccrual, enums.LateFeeApplied: // Use enums.TransactionType
-		creditAccount.CurrentBalance += req.Amount
-	case enums.Payment, enums.EarlyPayment: // Use enums.TransactionType
-		creditAccount.CurrentBalance -= req.Amount
-	// Add other transaction types as needed
-	default:
-		return nil, fmt.Errorf("invalid transaction type: %s", req.TransactionType)
+	if req.Amount <= 0 {
+		return nil, errors.New("transaction amount must be greater than zero")
 	}
 
-	// Update the credit account in the database
-	_, err = s.creditAccountRepo.Update(creditAccount.ID, request.UpdateCreditAccountRequest{
-		CurrentBalance: creditAccount.CurrentBalance, // Assign to correct field
-	})
-	if err != nil {
-		return nil, fmt.Errorf("error updating credit account balance: %w", err)
+	var paymentCode string
+	if req.PaymentMethod != enums.CASH {
+		paymentCode = util.GeneratePaymentCode()
 	}
 
-	return transaction, nil
+	transaction := entities.Transaction{
+		CreditAccountID: creditAccount.ID,
+		TransactionType: req.TransactionType,
+		Amount:          req.Amount,
+		Description:     req.Description,
+		TransactionDate: time.Now(),
+		PaymentMethod:   req.PaymentMethod,
+		PaymentCode:     paymentCode,
+		PaymentStatus:   enums.PENDING,
+	}
+
+	if err := s.transactionRepo.CreateTransaction(&transaction, creditAccount); err != nil {
+		return nil, fmt.Errorf("error processing transaction: %w", err)
+	}
+	return transactionToResponse(&transaction), nil
 }
 
-// GetTransactionByID retrieves a transaction by its ID.
-func (s *transactionService) GetTransactionByID(id uint) (*response.TransactionResponse, error) {
-	return s.transactionRepo.GetByID(id)
-}
-
-// UpdateTransaction updates an existing transaction and adjusts the credit account balance.
-func (s *transactionService) UpdateTransaction(id uint, req request.UpdateTransactionRequest) (*response.TransactionResponse, error) {
-	// Retrieve the original transaction
-	originalTransaction, err := s.transactionRepo.GetByID(id)
-	if err != nil {
-		return nil, fmt.Errorf("error retrieving transaction: %w", err)
-	}
-
-	// Retrieve the credit account to update the balance
-	creditAccount, err := s.creditAccountRepo.GetByID(originalTransaction.CreditAccountID)
-	if err != nil {
-		return nil, fmt.Errorf("error retrieving credit account: %w", err)
-	}
-
-	// Adjust the credit account balance based on the original and new transaction amounts
-	switch originalTransaction.TransactionType {
-	case enums.Purchase, enums.InterestAccrual, enums.LateFeeApplied:
-		creditAccount.CurrentBalance -= originalTransaction.Amount
-	case enums.Payment, enums.EarlyPayment:
-		creditAccount.CurrentBalance += originalTransaction.Amount
-		// Add other transaction types as needed
-	}
-
-	if req.Amount > 0 { // Only adjust if a new amount is provided
-		switch req.TransactionType {
-		case enums.Purchase, enums.InterestAccrual, enums.LateFeeApplied:
-			creditAccount.CurrentBalance += req.Amount
-		case enums.Payment, enums.EarlyPayment:
-			creditAccount.CurrentBalance -= req.Amount
-			// Add other transaction types as needed
-		}
-	}
-
-	// Update the transaction
-	updatedTransaction, err := s.transactionRepo.Update(id, req)
-	if err != nil {
-		return nil, fmt.Errorf("error updating transaction: %w", err)
-	}
-
-	// Update the credit account balance in the database
-	_, err = s.creditAccountRepo.Update(creditAccount.ID, request.UpdateCreditAccountRequest{
-		CurrentBalance: creditAccount.CurrentBalance,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("error updating credit account balance: %w", err)
-	}
-
-	return updatedTransaction, nil
-}
-
-// DeleteTransaction deletes a transaction and adjusts the credit account balance.
-func (s *transactionService) DeleteTransaction(id uint) error {
-	// Retrieve the transaction to be deleted
-	transaction, err := s.transactionRepo.GetByID(id)
+func (s *transactionService) ConfirmPayment(transactionID uint, confirmationCode string) error {
+	transaction, err := s.transactionRepo.GetTransactionByID(transactionID)
 	if err != nil {
 		return fmt.Errorf("error retrieving transaction: %w", err)
 	}
+	if transaction == nil {
+		return errors.New("transaction not found")
+	}
 
-	// Retrieve the credit account to update the balance
-	creditAccount, err := s.creditAccountRepo.GetByID(transaction.CreditAccountID)
+	// Check if the transaction is pending and the payment method is not cash
+	if transaction.PaymentStatus != enums.PENDING || transaction.PaymentMethod == enums.CASH {
+		return errors.New("transaction cannot be confirmed")
+	}
+
+	// Validate the confirmation code against the generated PaymentCode
+	if transaction.PaymentCode != confirmationCode {
+		transaction.PaymentStatus = enums.FAILED
+		if err := s.transactionRepo.UpdateTransaction(transaction, nil); err != nil {
+			return fmt.Errorf("error updating transaction: %w", err)
+		}
+
+		if transaction.PaymentCode == "" {
+			transaction.PaymentCode = util.GeneratePaymentCode()
+		}
+		return errors.New("invalid confirmation code")
+	}
+
+	// Update the transaction status to SUCCESS
+	transaction.PaymentStatus = enums.SUCCESS
+	transaction.ConfirmationCode = confirmationCode
+
+	return s.transactionRepo.UpdateTransaction(transaction, nil)
+}
+
+func (s *transactionService) GetTransactionByID(id uint) (*response.TransactionResponse, error) {
+	transaction, err := s.transactionRepo.GetTransactionByID(id)
+	if err != nil {
+		return nil, fmt.Errorf("error retrieving transaction: %w", err)
+	}
+	if transaction == nil {
+		return nil, errors.New("transaction not found")
+	}
+
+	return transactionToResponse(transaction), nil
+}
+
+func (s *transactionService) GetTransactionsByCreditAccountID(creditAccountID uint) ([]response.TransactionResponse, error) {
+	transactions, err := s.transactionRepo.GetTransactionsByCreditAccountID(creditAccountID)
+	if err != nil {
+		return nil, fmt.Errorf("error retrieving transactions: %w", err)
+	}
+
+	var transactionResponses []response.TransactionResponse
+	for _, transaction := range transactions {
+		transactionResponses = append(transactionResponses, *transactionToResponse(&transaction))
+	}
+
+	return transactionResponses, nil
+}
+
+func (s *transactionService) UpdateTransaction(id uint, req request.UpdateTransactionRequest) (*response.TransactionResponse, error) {
+	transaction, err := s.transactionRepo.GetTransactionByID(id)
+	if err != nil {
+		return nil, fmt.Errorf("error retrieving transaction: %w", err)
+	}
+	if transaction == nil {
+		return nil, errors.New("transaction not found")
+	}
+
+	// Retrieve the credit account
+	creditAccount, err := s.creditAccountRepo.GetCreditAccountByID(transaction.CreditAccountID)
+	if err != nil {
+		return nil, fmt.Errorf("error retrieving credit account: %w", err)
+	}
+	if creditAccount == nil {
+		return nil, errors.New("credit account not found")
+	}
+
+	// Update transaction details
+	if req.Amount > 0 {
+		transaction.Amount = req.Amount
+	}
+	if req.Description != "" {
+		transaction.Description = req.Description
+	}
+	if req.TransactionType != "" {
+		transaction.TransactionType = req.TransactionType
+	}
+
+	// Update the transaction and credit account balance in a transaction
+	if err := s.transactionRepo.UpdateTransaction(transaction, creditAccount); err != nil {
+		return nil, fmt.Errorf("error updating transaction: %w", err)
+	}
+
+	return transactionToResponse(transaction), nil
+}
+
+func (s *transactionService) DeleteTransaction(id uint) error {
+	transaction, err := s.transactionRepo.GetTransactionByID(id)
+	if err != nil {
+		return fmt.Errorf("error retrieving transaction: %w", err)
+	}
+	if transaction == nil {
+		return errors.New("transaction not found")
+	}
+
+	// Retrieve the credit account to adjust the balance
+	creditAccount, err := s.creditAccountRepo.GetCreditAccountByID(transaction.CreditAccountID)
 	if err != nil {
 		return fmt.Errorf("error retrieving credit account: %w", err)
 	}
-
-	// Adjust the credit account balance based on the deleted transaction
-	switch transaction.TransactionType {
-	case enums.Purchase, enums.InterestAccrual, enums.LateFeeApplied:
-		creditAccount.CurrentBalance -= transaction.Amount
-	case enums.Payment, enums.EarlyPayment:
-		creditAccount.CurrentBalance += transaction.Amount
-	// Add other transaction types as needed
-	default:
-		return fmt.Errorf("invalid transaction type: %s", transaction.TransactionType)
+	if creditAccount == nil {
+		return errors.New("credit account not found")
 	}
 
-	// Delete the transaction
-	err = s.transactionRepo.Delete(id)
-	if err != nil {
+	// Delete the transaction and update the credit account balance
+	if err := s.transactionRepo.DeleteTransaction(id, creditAccount); err != nil {
 		return fmt.Errorf("error deleting transaction: %w", err)
-	}
-
-	// Update the credit account balance in the database
-	_, err = s.creditAccountRepo.Update(creditAccount.ID, request.UpdateCreditAccountRequest{
-		CurrentBalance: creditAccount.CurrentBalance,
-	})
-	if err != nil {
-		return fmt.Errorf("error updating credit account balance: %w", err)
 	}
 
 	return nil
 }
 
-// GetTransactionsByCreditAccountID retrieves transactions for a specific credit account.
-func (s *transactionService) GetTransactionsByCreditAccountID(creditAccountID uint) ([]response.TransactionResponse, error) {
-	return s.transactionRepo.GetByCreditAccountID(creditAccountID)
+func transactionToResponse(transaction *entities.Transaction) *response.TransactionResponse {
+	return &response.TransactionResponse{
+		ID:              transaction.ID,
+		CreditAccountID: transaction.CreditAccountID,
+		TransactionType: transaction.TransactionType,
+		Amount:          transaction.Amount,
+		Description:     transaction.Description,
+		TransactionDate: transaction.TransactionDate,
+		PaymentMethod:   transaction.PaymentMethod,
+		PaymentCode:     transaction.PaymentCode,
+		PaymentStatus:   transaction.PaymentStatus,
+		CreatedAt:       transaction.CreatedAt,
+		UpdatedAt:       transaction.UpdatedAt,
+	}
 }

@@ -1,184 +1,209 @@
 package repository
 
 import (
+	"ApiRestFinance/internal/model/entities"
+	"ApiRestFinance/internal/model/entities/enums"
+	"errors"
+	"fmt"
 	"time"
 
-	"ApiRestFinance/internal/model/dto/request"
-	"ApiRestFinance/internal/model/dto/response"
-	"ApiRestFinance/internal/model/entities"
 	"gorm.io/gorm"
 )
 
-// TransactionRepository defines the interface for transaction repository operations.
+// TransactionRepository defines operations for managing Transaction entities.
 type TransactionRepository interface {
-	Create(req request.CreateTransactionRequest) (*response.TransactionResponse, error)
-	GetByID(id uint) (*response.TransactionResponse, error)
-	Update(id uint, req request.UpdateTransactionRequest) (*response.TransactionResponse, error)
-	Delete(id uint) error
-	GetByCreditAccountID(creditAccountID uint) ([]response.TransactionResponse, error)
-	GetTransactionsByDateRange(creditAccountID uint, startDate, endDate time.Time) ([]entities.Transaction, error)
+	CreateTransaction(transaction *entities.Transaction, creditAccount *entities.CreditAccount) error
+	GetTransactionByID(transactionID uint) (*entities.Transaction, error)
+	GetTransactionsByCreditAccountID(creditAccountID uint) ([]entities.Transaction, error)
+	UpdateTransaction(transaction *entities.Transaction, creditAccount *entities.CreditAccount) error
+	DeleteTransaction(transactionID uint, creditAccount *entities.CreditAccount) error
+	CreateTransactionInTx(tx *gorm.DB, transaction *entities.Transaction) error
+	UpdateTransactionInTx(tx *gorm.DB, transaction *entities.Transaction) error
+	DeleteTransactionInTx(tx *gorm.DB, transactionID uint) error
 	GetTransactionsByCreditAccountIDAndDateRange(creditAccountID uint, startDate, endDate time.Time) ([]entities.Transaction, error)
 	GetBalanceBeforeDate(creditAccountID uint, beforeDate time.Time) (float64, error)
-	GetTransactionsByCreditAccountID(creditAccountID uint) ([]entities.Transaction, error)
 }
 
 type transactionRepository struct {
 	db *gorm.DB
 }
 
-// NewTransactionRepository creates a new instance of transactionRepository.
+// NewTransactionRepository creates a new TransactionRepository instance.
 func NewTransactionRepository(db *gorm.DB) TransactionRepository {
 	return &transactionRepository{db: db}
 }
 
-// Create creates a new transaction.
-func (r *transactionRepository) Create(req request.CreateTransactionRequest) (*response.TransactionResponse, error) {
-	transaction := entities.Transaction{
-		CreditAccountID: req.CreditAccountID,
-		RecipientType:   req.RecipientType,
-		RecipientID:     req.RecipientID,
-		TransactionType: req.TransactionType,
-		Amount:          req.Amount,
-		Description:     req.Description,
-		TransactionDate: time.Now(),
-	}
+// CreateTransaction creates a new transaction and updates the credit account balance in a transaction.
+func (r *transactionRepository) CreateTransaction(transaction *entities.Transaction, creditAccount *entities.CreditAccount) error {
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Create(transaction).Error; err != nil {
+			return fmt.Errorf("error creating transaction: %w", err)
+		}
 
-	err := r.db.Create(&transaction).Error
-	if err != nil {
-		return nil, err
-	}
+		// Update the credit account balance based on the transaction type
+		switch transaction.TransactionType {
+		case enums.Purchase:
+			creditAccount.CurrentBalance += transaction.Amount
+		case enums.Payment:
+			if transaction.Amount > creditAccount.CurrentBalance {
+				return fmt.Errorf("payment amount exceeds current balance: %.2f", creditAccount.CurrentBalance)
+			}
+			creditAccount.CurrentBalance -= transaction.Amount
 
-	return getTransactionResponse(&transaction), nil
+			// Unblock the account if it was blocked and the balance is zero or less
+			if creditAccount.IsBlocked && creditAccount.CurrentBalance <= 0 {
+				creditAccount.IsBlocked = false
+			}
+		default:
+			return errors.New("invalid transaction type")
+		}
+
+		// Save the updated credit account
+		if err := tx.Save(creditAccount).Error; err != nil {
+			return fmt.Errorf("error updating credit account balance: %w", err)
+		}
+
+		return nil
+	})
 }
 
-// GetByID retrieves a transaction by ID.
-func (r *transactionRepository) GetByID(id uint) (*response.TransactionResponse, error) {
+// UpdateTransaction updates a transaction and adjusts the credit account balance in a transaction.
+func (r *transactionRepository) UpdateTransaction(transaction *entities.Transaction, creditAccount *entities.CreditAccount) error {
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		// Reverse the effect of the original transaction
+		switch transaction.TransactionType {
+		case enums.Purchase:
+			creditAccount.CurrentBalance -= transaction.Amount
+		case enums.Payment:
+			creditAccount.CurrentBalance += transaction.Amount
+		default:
+			return errors.New("invalid transaction type")
+		}
+
+		// Update transaction details (no changes here)
+		// ...
+
+		// Apply the effect of the updated transaction
+		switch transaction.TransactionType {
+		case enums.Purchase:
+			creditAccount.CurrentBalance += transaction.Amount
+		case enums.Payment:
+			if transaction.Amount > creditAccount.CurrentBalance {
+				return fmt.Errorf("payment amount exceeds current balance: %.2f", creditAccount.CurrentBalance)
+			}
+			creditAccount.CurrentBalance -= transaction.Amount
+
+			if creditAccount.IsBlocked && creditAccount.CurrentBalance <= 0 {
+				creditAccount.IsBlocked = false
+			}
+		default:
+			return errors.New("invalid transaction type")
+		}
+
+		// Save the updated transaction and credit account
+		if err := tx.Save(transaction).Error; err != nil {
+			return fmt.Errorf("error updating transaction: %w", err)
+		}
+		if err := tx.Save(creditAccount).Error; err != nil {
+			return fmt.Errorf("error updating credit account balance: %w", err)
+		}
+
+		return nil
+	})
+}
+
+// DeleteTransaction deletes a transaction and adjusts the credit account balance in a transaction.
+func (r *transactionRepository) DeleteTransaction(transactionID uint, creditAccount *entities.CreditAccount) error {
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		// Retrieve the transaction for deletion
+		var transaction entities.Transaction
+		if err := tx.First(&transaction, transactionID).Error; err != nil {
+			return fmt.Errorf("error retrieving transaction: %w", err)
+		}
+
+		// Reverse the effect of the transaction on the credit account balance
+		switch transaction.TransactionType {
+		case enums.Purchase:
+			creditAccount.CurrentBalance -= transaction.Amount
+		case enums.Payment:
+			creditAccount.CurrentBalance += transaction.Amount
+		default:
+			return errors.New("invalid transaction type")
+		}
+
+		// Delete the transaction
+		if err := tx.Delete(&transaction).Error; err != nil {
+			return fmt.Errorf("error deleting transaction: %w", err)
+		}
+
+		// Save the updated credit account balance
+		if err := tx.Save(creditAccount).Error; err != nil {
+			return fmt.Errorf("error updating credit account balance: %w", err)
+		}
+
+		return nil
+	})
+}
+
+// GetTransactionByID retrieves a transaction by its ID.
+func (r *transactionRepository) GetTransactionByID(transactionID uint) (*entities.Transaction, error) {
 	var transaction entities.Transaction
-	err := r.db.First(&transaction, id).Error
+	err := r.db.First(&transaction, transactionID).Error
 	if err != nil {
 		return nil, err
 	}
-
-	return getTransactionResponse(&transaction), nil
+	return &transaction, nil
 }
 
-// Update updates an existing transaction.
-func (r *transactionRepository) Update(id uint, req request.UpdateTransactionRequest) (*response.TransactionResponse, error) {
-	var transaction entities.Transaction
-	err := r.db.First(&transaction, id).Error
-	if err != nil {
-		return nil, err
-	}
-
-	// Only update fields if they are provided in the request
-	if req.Amount > 0 {
-		transaction.Amount = req.Amount
-	}
-	if req.Description != "" {
-		transaction.Description = req.Description
-	}
-
-	err = r.db.Save(&transaction).Error
-	if err != nil {
-		return nil, err
-	}
-
-	return getTransactionResponse(&transaction), nil
-}
-
-// Delete deletes a transaction.
-func (r *transactionRepository) Delete(id uint) error {
-	var transaction entities.Transaction
-	err := r.db.First(&transaction, id).Error
-	if err != nil {
-		return err
-	}
-
-	return r.db.Delete(&transaction).Error
-}
-
-// GetByCreditAccountID retrieves all transactions for a credit account.
-func (r *transactionRepository) GetByCreditAccountID(creditAccountID uint) ([]response.TransactionResponse, error) {
+// GetTransactionsByCreditAccountID retrieves all transactions for a specific credit account.
+func (r *transactionRepository) GetTransactionsByCreditAccountID(creditAccountID uint) ([]entities.Transaction, error) {
 	var transactions []entities.Transaction
 	err := r.db.Where("credit_account_id = ?", creditAccountID).Find(&transactions).Error
 	if err != nil {
 		return nil, err
 	}
-
-	var transactionResponses []response.TransactionResponse
-	for _, transaction := range transactions {
-		transactionResponses = append(transactionResponses, *getTransactionResponse(&transaction))
-	}
-
-	return transactionResponses, nil
-}
-
-// GetTransactionsByDateRange retrieves transactions for a credit account within a date range.
-func (r *transactionRepository) GetTransactionsByDateRange(creditAccountID uint, startDate, endDate time.Time) ([]entities.Transaction, error) {
-	var transactions []entities.Transaction
-	err := r.db.Where("credit_account_id = ? AND transaction_date BETWEEN ? AND ?", creditAccountID, startDate, endDate).Find(&transactions).Error
-	if err != nil {
-		return nil, err
-	}
-
 	return transactions, nil
 }
 
-func getTransactionResponse(transaction *entities.Transaction) *response.TransactionResponse {
-	return &response.TransactionResponse{
-		ID:              transaction.ID,
-		CreditAccountID: transaction.CreditAccountID,
-		TransactionType: transaction.TransactionType,
-		Amount:          transaction.Amount,
-		Description:     transaction.Description,
-		CreatedAt:       transaction.CreatedAt,
-		UpdatedAt:       transaction.UpdatedAt,
-	}
+func (r *transactionRepository) CreateTransactionInTx(tx *gorm.DB, transaction *entities.Transaction) error {
+	return tx.Create(transaction).Error
 }
 
+func (r *transactionRepository) UpdateTransactionInTx(tx *gorm.DB, transaction *entities.Transaction) error {
+	return tx.Save(transaction).Error
+}
+
+func (r *transactionRepository) DeleteTransactionInTx(tx *gorm.DB, transactionID uint) error {
+	return tx.Delete(&entities.Transaction{}, transactionID).Error
+}
+
+// GetTransactionsByCreditAccountIDAndDateRange retrieves transactions for a credit account within a given date range.
 func (r *transactionRepository) GetTransactionsByCreditAccountIDAndDateRange(creditAccountID uint, startDate, endDate time.Time) ([]entities.Transaction, error) {
-    var transactions []entities.Transaction
-    db := r.db
+	var transactions []entities.Transaction
+	db := r.db.Where("credit_account_id = ?", creditAccountID)
 
-    // Build the query
-    query := db.Where("credit_account_id = ?", creditAccountID)
+	if !startDate.IsZero() {
+		db = db.Where("transaction_date >= ?", startDate)
+	}
+	if !endDate.IsZero() {
+		db = db.Where("transaction_date <= ?", endDate)
+	}
 
-    // Add date range filters if provided
-    if !startDate.IsZero() {
-        query = query.Where("created_at >= ?", startDate)
-    }
-    if !endDate.IsZero() {
-        query = query.Where("created_at <= ?", endDate)
-    }
-
-    err := query.Find(&transactions).Error
-    if err != nil {
-        return nil, err
-    }
-
-    return transactions, nil
+	err := db.Find(&transactions).Error
+	return transactions, err
 }
 
+// GetBalanceBeforeDate retrieves the balance of a credit account before a specified date.
 func (r *transactionRepository) GetBalanceBeforeDate(creditAccountID uint, beforeDate time.Time) (float64, error) {
-    var balance float64
-    err := r.db.Model(&entities.Transaction{}).
-        Select("SUM(CASE WHEN transaction_type = 'Payment' THEN amount ELSE -amount END) as balance"). // Adjust 'Payment' and transaction types as needed
-        Where("credit_account_id = ? AND created_at < ?", creditAccountID, beforeDate).
-        Scan(&balance).Error
+	var balance float64
+	err := r.db.Model(&entities.Transaction{}).
+		Select("SUM(CASE WHEN transaction_type = ? THEN -amount ELSE amount END) as balance", enums.Payment).
+		Where("credit_account_id = ? AND transaction_date < ?", creditAccountID, beforeDate).
+		Scan(&balance).Error
 
-    if err != nil {
-        return 0, err
-    }
+	if err != nil {
+		return 0, fmt.Errorf("error getting balance before date: %w", err)
+	}
 
-    return balance, nil
-}
-
-// GetTransactionsByCreditAccountID retrieves all transactions for a given credit account ID.
-func (r *transactionRepository) GetTransactionsByCreditAccountID(creditAccountID uint) ([]entities.Transaction, error) {
-    var transactions []entities.Transaction
-    err := r.db.Where("credit_account_id = ?", creditAccountID).Find(&transactions).Error
-    if err != nil {
-        return nil, err
-    }
-    return transactions, nil
+	return balance, nil
 }

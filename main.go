@@ -7,6 +7,7 @@ import (
 	"ApiRestFinance/internal/model/entities"
 	"ApiRestFinance/internal/repository"
 	"ApiRestFinance/internal/service"
+
 	"fmt"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -40,19 +41,11 @@ func main() {
 		log.Fatal("Error loading configuration: ", err)
 	}
 
-	// Get host from environment or use default
-	/*host := os.Getenv("HOST")
-	if host == "" {
-		host = cfg.ServerHost
-	}*/
-
-	// Get port from environment or use default
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = cfg.ServerPort
 	}
 
-	// Initialize database connection
 	db := cfg.DB
 
 	// Migrate the database
@@ -62,52 +55,37 @@ func main() {
 
 	// Initialize repositories
 	userRepo := repository.NewUserRepository(db)
-	establishmentRepo := repository.NewEstablishmentRepository(db)
 	clientRepo := repository.NewClientRepository(db)
-	adminRepo := repository.NewAdminRepository(db)
+	establishmentRepo := repository.NewEstablishmentRepository(db)
 	productRepo := repository.NewProductRepository(db)
-	creditAccountRepo := repository.NewCreditAccountRepository(db)
+	creditAccountRepo := repository.NewCreditAccountRepository(db, userRepo)
 	transactionRepo := repository.NewTransactionRepository(db)
-	lateFeeRepo := repository.NewLateFeeRepository(db)
-	lateFeeRuleRepo := repository.NewLateFeeRuleRepository(db)
 	installmentRepo := repository.NewInstallmentRepository(db)
 
 	// Initialize services
 	authService := service.NewAuthService(userRepo, establishmentRepo, cfg.JwtSecret)
-	clientService := service.NewClientService(clientRepo, userRepo)
-	establishmentService := service.NewEstablishmentService(establishmentRepo)
-	adminService := service.NewAdminService(adminRepo, establishmentRepo, userRepo)
-	productService := service.NewProductService(productRepo)
-	creditAccountService := service.NewCreditAccountService(creditAccountRepo, transactionRepo, clientRepo, establishmentRepo, installmentRepo)
+	userService := service.NewUserService(userRepo, creditAccountRepo) // Initialize userService
+	adminService := service.NewAdminService(establishmentRepo, userRepo)
+	establishmentService := service.NewEstablishmentService(establishmentRepo, userRepo)
+	productService := service.NewProductService(productRepo, establishmentRepo)
+	creditAccountService := service.NewCreditAccountService(creditAccountRepo, transactionRepo, installmentRepo, clientRepo, establishmentRepo) // Update to use userRepo
 	transactionService := service.NewTransactionService(transactionRepo, creditAccountRepo)
-	lateFeeService := service.NewLateFeeService(lateFeeRepo)
-	lateFeeRuleService := service.NewLateFeeRuleService(lateFeeRuleRepo)
 	installmentService := service.NewInstallmentService(installmentRepo)
-	purchaseService := service.NewPurchaseService(userRepo, establishmentRepo, productRepo, creditAccountRepo, transactionRepo, installmentRepo, db)
+	purchaseService := service.NewPurchaseService(userRepo, establishmentRepo, productRepo, creditAccountRepo, transactionRepo, installmentRepo)
 
 	// Initialize controllers
 	authController := controller.NewAuthController(authService)
-	clientController := controller.NewClientController(clientService)
+	userController := controller.NewUserController(userService, adminService, creditAccountService) // Use the new UserController
 	establishmentController := controller.NewEstablishmentController(establishmentService)
-	adminController := controller.NewAdminController(adminService)
 	productController := controller.NewProductController(productService)
 	creditAccountController := controller.NewCreditAccountController(creditAccountService)
 	transactionController := controller.NewTransactionController(transactionService)
-	lateFeeController := controller.NewLateFeeController(lateFeeService)
-	lateFeeRuleController := controller.NewLateFeeRuleController(lateFeeRuleService)
 	installmentController := controller.NewInstallmentController(installmentService)
 	purchaseController := controller.NewPurchaseController(purchaseService)
 
-	// Initialize Gin router
 	router := gin.Default()
-
-	// Change to release mode for production
 	gin.SetMode(gin.ReleaseMode)
-
-	// Recovery middleware
 	router.Use(gin.Recovery())
-
-	// CORS middleware
 	router.Use(middleware.CorsMiddleware())
 
 	// Swagger documentation
@@ -117,7 +95,7 @@ func main() {
 	// Public routes
 	publicRoutes := router.Group("/api/v1")
 	{
-		publicRoutes.POST("/register", authController.Register)
+		publicRoutes.POST("/register", authController.RegisterAdmin)
 		publicRoutes.POST("/login", authController.Login)
 		publicRoutes.POST("/refresh", authController.RefreshToken)
 	}
@@ -125,62 +103,40 @@ func main() {
 	// Protected routes (require authentication)
 	protectedRoutes := router.Group("/api/v1", middleware.AuthMiddleware(cfg.JwtSecret))
 	{
+		// User routes
+		protectedRoutes.POST("/clients", userController.CreateClient)
+		protectedRoutes.GET("/users/:id", userController.GetUserByID)
+		protectedRoutes.PUT("/users/:id", userController.UpdateUser)
+		protectedRoutes.DELETE("/users/:id", userController.DeleteUser)
+		protectedRoutes.GET("/admins/me", userController.GetAdminProfile)
+		protectedRoutes.PUT("/admins/me", userController.UpdateAdminProfile)
+		protectedRoutes.GET("/establishments/:establishmentID/clients", userController.GetClientsByEstablishmentID)
+		protectedRoutes.POST("/users/:id/photo", userController.UploadUserPhoto)
+
 		// Establishment routes
-		protectedRoutes.POST("/establishments", adminController.RegisterEstablishment)
-		protectedRoutes.PUT("/establishments/:id", establishmentController.UpdateEstablishment)
-		protectedRoutes.DELETE("/establishments/:id", establishmentController.DeleteEstablishment)
-		protectedRoutes.PUT("/establishments/:id/clients/:client_id", establishmentController.AddClientToEstablishment)
-
-		// Client routes
-		protectedRoutes.GET("/clients", clientController.GetAllClients)
-		protectedRoutes.GET("/clients/:id", clientController.GetClientByID)
-		protectedRoutes.PUT("/clients/:id", clientController.UpdateClient)
-		protectedRoutes.DELETE("/clients/:id", clientController.DeleteClient)
-		protectedRoutes.GET("/establishments/:establishment_id/clients", clientController.GetClientsByEstablishmentID)
-
-		// Admin routes
-		protectedRoutes.GET("/admins", adminController.GetAllAdmins)
-		protectedRoutes.GET("/admins/:id", adminController.GetAdminByID)
-		protectedRoutes.PUT("/admins/:id", adminController.UpdateAdmin)
-		protectedRoutes.DELETE("/admins/:id", adminController.DeleteAdmin)
-		protectedRoutes.POST("/register-establishments", adminController.RegisterEstablishment)
-
-		// Authentication route (reset password)
-		protectedRoutes.POST("/reset-password", authController.ResetPassword)
+		protectedRoutes.GET("/establishments/me", establishmentController.GetEstablishment)
+		protectedRoutes.PUT("/establishments/me", establishmentController.UpdateEstablishment)
 
 		// Product routes
 		protectedRoutes.POST("/products", productController.CreateProduct)
-		protectedRoutes.GET("/products", productController.GetAllProducts)
 		protectedRoutes.GET("/products/:id", productController.GetProductByID)
-		protectedRoutes.GET("/establishments/:establishment_id/products", productController.GetProductsByEstablishmentID)
+		protectedRoutes.GET("/establishments/:establishmentID/products", productController.GetAllProductsByEstablishmentID)
 		protectedRoutes.PUT("/products/:id", productController.UpdateProduct)
 		protectedRoutes.DELETE("/products/:id", productController.DeleteProduct)
 
 		// Credit Account Routes
 		protectedRoutes.POST("/credit-accounts", creditAccountController.CreateCreditAccount)
 		protectedRoutes.GET("/credit-accounts/:id", creditAccountController.GetCreditAccountByID)
-		protectedRoutes.PUT("/credit-accounts/:id", creditAccountController.UpdateCreditAccount)
+		protectedRoutes.PUT("/clients/:clientID/credit-account", userController.UpdateClientCreditAccount)
 		protectedRoutes.DELETE("/credit-accounts/:id", creditAccountController.DeleteCreditAccount)
-		protectedRoutes.GET("/establishments/:establishment_id/credit-accounts", creditAccountController.GetCreditAccountsByEstablishmentID)
-		protectedRoutes.GET("/clients/:id/credit-accounts", creditAccountController.GetCreditAccountsByClientID)
-		protectedRoutes.POST("/establishments/:establishment_id/credit-accounts/apply-interest", creditAccountController.ApplyInterestToAllAccounts)
-		protectedRoutes.POST("/establishments/:establishment_id/credit-accounts/apply-late-fees", creditAccountController.ApplyLateFeesToAllAccounts)
-		protectedRoutes.GET("/establishments/:establishment_id/credit-accounts/debt-summary", creditAccountController.GetAdminDebtSummary)
+		protectedRoutes.GET("/establishments/:establishmentID/credit-accounts", creditAccountController.GetCreditAccountsByEstablishmentID)
+		protectedRoutes.GET("/clients/:clientID/credit-account", creditAccountController.GetCreditAccountByClientID)
+		protectedRoutes.POST("/credit-accounts/:id/apply-interest", creditAccountController.ApplyInterestToAccount)
+		protectedRoutes.POST("/credit-accounts/:id/apply-late-fee", creditAccountController.ApplyLateFeeToAccount)
+		protectedRoutes.GET("/credit-accounts/overdue", creditAccountController.GetOverdueCreditAccounts)
 		protectedRoutes.POST("/credit-accounts/:id/purchases", creditAccountController.ProcessPurchase)
 		protectedRoutes.POST("/credit-accounts/:id/payments", creditAccountController.ProcessPayment)
-		protectedRoutes.PUT("/credit-accounts/:id/clients/:id", creditAccountController.AssignCreditAccountToClient)
-		protectedRoutes.GET("/credit-accounts/clients/:id/history", creditAccountController.GetClientAccountHistory)
-		protectedRoutes.GET("/credit-accounts/clients/:id/statement", creditAccountController.GetClientAccountStatement)
-
-		// Credit Request Routes
-		protectedRoutes.POST("/credit-requests", creditAccountController.CreateCreditRequest)
-		protectedRoutes.GET("/credit-requests/:id", creditAccountController.GetCreditRequestByID)
-		protectedRoutes.GET("/clients/:id/credit-requests", creditAccountController.GetCreditAccountsByClientID)
-		protectedRoutes.PUT("/credit-requests/:id/approve", creditAccountController.ApproveCreditRequest)
-		protectedRoutes.PUT("/credit-requests/:id/reject", creditAccountController.RejectCreditRequest)
-		protectedRoutes.PUT("/credit-requests/:id/due-date",creditAccountController.UpdateCreditRequestDueDate)
-		protectedRoutes.GET("/establishments/:establishment_id/credit-requests/pending", creditAccountController.GetPendingCreditRequests)
-		protectedRoutes.GET("/establishments/{establishment_id}/credit-requests", creditAccountController.GetCreditRequestsByEstablishmentID)
+		protectedRoutes.GET("/credit-accounts/debt-summary", creditAccountController.GetAdminDebtSummary)
 
 		// Transaction Routes
 		protectedRoutes.POST("/transactions", transactionController.CreateTransaction)
@@ -188,28 +144,18 @@ func main() {
 		protectedRoutes.PUT("/transactions/:id", transactionController.UpdateTransaction)
 		protectedRoutes.DELETE("/transactions/:id", transactionController.DeleteTransaction)
 		protectedRoutes.GET("/credit-accounts/:id/transactions", transactionController.GetTransactionsByCreditAccountID)
+		protectedRoutes.POST("/transactions/:id/confirm", transactionController.ConfirmPayment)
 
 		// Purchase Routes
 		protectedRoutes.POST("/purchases", purchaseController.CreatePurchase)
-		protectedRoutes.GET("/clients/:id/balance", purchaseController.GetClientBalance)
-		protectedRoutes.GET("/clients/:id/transactions", purchaseController.GetClientTransactions)
-		protectedRoutes.GET("/clients/:id/overdue-balance", purchaseController.GetClientOverdueBalance)
-		//protectedRoutes.GET("/clients/:id/credit-accounts", purchaseController.GetClientCreditAccount)
-
-		// Late Fee Routes
-		protectedRoutes.POST("/late-fees", lateFeeController.CreateLateFee)
-		protectedRoutes.GET("/late-fees/:id", lateFeeController.GetLateFeeByID)
-		protectedRoutes.PUT("/late-fees/:id", lateFeeController.UpdateLateFee)
-		protectedRoutes.DELETE("/late-fees/:id", lateFeeController.DeleteLateFee)
-		protectedRoutes.GET("/credit-accounts/:id/late-fees", lateFeeController.GetLateFeesByCreditAccountID)
-
-		// Late Fee Rule Routes
-		protectedRoutes.POST("/late-fee-rules", lateFeeRuleController.CreateLateFeeRule)
-		protectedRoutes.GET("/late-fee-rules/:id", lateFeeRuleController.GetLateFeeRuleByID)
-		protectedRoutes.PUT("/late-fee-rules/:id", lateFeeRuleController.UpdateLateFeeRule)
-		protectedRoutes.DELETE("/late-fee-rules/:id", lateFeeRuleController.DeleteLateFeeRule)
-		protectedRoutes.GET("/late-fee-rules", lateFeeRuleController.GetAllLateFeeRules)
-		protectedRoutes.GET("/establishments/:establishment_id/late-fee-rules", lateFeeRuleController.GetLateFeeRulesByEstablishmentID)
+		protectedRoutes.GET("/clients/me/balance", purchaseController.GetClientBalance)
+		protectedRoutes.GET("/clients/me/transactions", purchaseController.GetClientTransactions)
+		protectedRoutes.GET("/clients/me/overdue-balance", purchaseController.GetClientOverdueBalance)
+		protectedRoutes.GET("/clients/me/installments", purchaseController.GetClientInstallments)
+		protectedRoutes.GET("/clients/me/credit-account", purchaseController.GetClientCreditAccount)
+		protectedRoutes.GET("/clients/me/account-summary", purchaseController.GetClientAccountSummary)     // New endpoint
+		protectedRoutes.GET("/clients/me/account-statement", purchaseController.GetClientAccountStatement) // New endpoint
+		protectedRoutes.GET("/clients/me/account-statement/pdf", purchaseController.GetClientAccountStatementPDF)
 
 		// Installment Routes
 		protectedRoutes.POST("/installments", installmentController.CreateInstallment)
@@ -219,9 +165,10 @@ func main() {
 		protectedRoutes.GET("/credit-accounts/:id/installments", installmentController.GetInstallmentsByCreditAccountID)
 		protectedRoutes.GET("/credit-accounts/:id/installments/overdue", installmentController.GetOverdueInstallments)
 
+		// Authentication route (reset password)
+		protectedRoutes.POST("/reset-password", authController.ResetPassword)
 	}
 
-	// Start the server
 	fmt.Printf("Starting server on port %s...\n", port)
 	if err := router.Run(":" + port); err != nil {
 		log.Fatal("Error starting server: ", err)
@@ -232,15 +179,10 @@ func main() {
 func migrateDB(db *gorm.DB) error {
 	return db.AutoMigrate(
 		&entities.User{},
-		&entities.Admin{},
-		&entities.Client{},
 		&entities.Establishment{},
 		&entities.Product{},
 		&entities.CreditAccount{},
 		&entities.Transaction{},
-		&entities.LateFee{},
-		&entities.LateFeeRule{},
 		&entities.Installment{},
-		&entities.CreditAccountHistory{},
 	)
 }
