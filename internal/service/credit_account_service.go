@@ -28,6 +28,7 @@ type CreditAccountService interface {
 	CalculateDueDate(account entities.CreditAccount) (time.Time, error)
 	GetNumberOfDues(account entities.CreditAccount) int
 	UpdateCreditAccountByClientID(clientID uint, req request.UpdateCreditAccountRequest) (*response.CreditAccountResponse, error)
+	NewEstablishmentResponse(establishment *entities.Establishment) *response.EstablishmentResponse
 }
 
 type creditAccountService struct {
@@ -79,8 +80,8 @@ func (s *creditAccountService) CreateCreditAccount(req request.CreateCreditAccou
 		GracePeriod:             req.GracePeriod,
 		IsBlocked:               false,
 		LastInterestAccrualDate: time.Now(),
-		CurrentBalance:          0,
-		LateFeePercentage:       establishment.LateFeePercentage, // Use the establishment's late fee percentage
+		CurrentBalance:          req.CreditLimit,
+		LateFeePercentage:       establishment.LateFeePercentage,
 	}
 
 	err = s.creditAccountRepo.CreateCreditAccount(&creditAccount)
@@ -88,7 +89,7 @@ func (s *creditAccountService) CreateCreditAccount(req request.CreateCreditAccou
 		return nil, fmt.Errorf("error creating credit account: %w", err)
 	}
 
-	return creditAccountToResponse(&creditAccount), nil
+	return s.creditAccountToResponse(&creditAccount), nil
 }
 
 // GetCreditAccountByID retrieves a credit account by ID.
@@ -98,7 +99,7 @@ func (s *creditAccountService) GetCreditAccountByID(id uint) (*response.CreditAc
 		return nil, err
 	}
 
-	return creditAccountToResponse(creditAccount), nil
+	return s.creditAccountToResponse(creditAccount), nil
 }
 
 // UpdateCreditAccount updates an existing credit account.
@@ -137,7 +138,7 @@ func (s *creditAccountService) UpdateCreditAccount(id uint, req request.UpdateCr
 		return nil, err
 	}
 
-	return creditAccountToResponse(creditAccount), nil
+	return s.creditAccountToResponse(creditAccount), nil
 }
 
 // DeleteCreditAccount deletes a credit account.
@@ -154,7 +155,7 @@ func (s *creditAccountService) GetCreditAccountsByEstablishmentID(establishmentI
 
 	var creditAccountResponses []response.CreditAccountResponse
 	for _, creditAccount := range creditAccounts {
-		creditAccountResponses = append(creditAccountResponses, *creditAccountToResponse(&creditAccount))
+		creditAccountResponses = append(creditAccountResponses, *s.creditAccountToResponse(&creditAccount))
 	}
 	return creditAccountResponses, nil
 }
@@ -165,7 +166,7 @@ func (s *creditAccountService) GetCreditAccountByClientID(clientID uint) (*respo
 	if err != nil {
 		return nil, fmt.Errorf("error retrieving credit account: %w", err)
 	}
-	return creditAccountToResponse(creditAccount), nil
+	return s.creditAccountToResponse(creditAccount), nil
 }
 
 // ApplyInterestToAccount calculates and applies interest to a credit account.
@@ -218,7 +219,7 @@ func (s *creditAccountService) GetOverdueCreditAccounts(establishmentID uint) ([
 
 	var overdueAccountResponses []response.CreditAccountResponse
 	for _, account := range overdueAccounts {
-		overdueAccountResponses = append(overdueAccountResponses, *creditAccountToResponse(&account))
+		overdueAccountResponses = append(overdueAccountResponses, *s.creditAccountToResponse(&account))
 	}
 
 	return overdueAccountResponses, nil
@@ -253,11 +254,16 @@ func (s *creditAccountService) GetAdminDebtSummary(establishmentID uint) ([]resp
 
 	summary := make([]response.AdminDebtSummary, 0, len(creditAccounts))
 	for _, account := range creditAccounts {
+
+		if account.Client == nil {
+			return nil, fmt.Errorf("error retrieving client: %w", err)
+		}
+
 		client, err := s.clientRepo.GetClientByID(account.ClientID)
 		if err != nil {
 			return nil, fmt.Errorf("error retrieving client: %w", err)
 		}
-		user := client.User
+		user := client
 
 		dueDate, err := s.CalculateDueDate(account)
 		if err != nil {
@@ -323,13 +329,51 @@ func (s *creditAccountService) GetNumberOfDues(account entities.CreditAccount) i
 	return len(installments)
 }
 
-func creditAccountToResponse(creditAccount *entities.CreditAccount) *response.CreditAccountResponse {
+func (s *creditAccountService) creditAccountToResponse(creditAccount *entities.CreditAccount) *response.CreditAccountResponse {
+	establishment, err := s.establishmentRepo.GetEstablishmentByID(creditAccount.EstablishmentID)
+	if err != nil {
+		return nil
+	}
+
+	admin, err := s.establishmentRepo.GetAdminByUserID(establishment.AdminID)
+
+	if err != nil {
+		return nil
+	}
+
+	adminResponse := &response.UserResponse{
+		ID:        admin.ID,
+		DNI:       admin.DNI,
+		Name:      admin.Name,
+		Email:     admin.Email,
+		Address:   admin.Address,
+		Phone:     admin.Phone,
+		PhotoUrl:  admin.PhotoUrl,
+		Rol:       admin.Rol,
+		CreatedAt: admin.CreatedAt,
+		UpdatedAt: admin.UpdatedAt,
+	}
+
+	establishmentResponse := &response.EstablishmentResponse{
+		ID:                establishment.ID,
+		RUC:               establishment.RUC,
+		Name:              establishment.Name,
+		Phone:             establishment.Phone,
+		Address:           establishment.Address,
+		ImageUrl:          establishment.ImageUrl,
+		LateFeePercentage: establishment.LateFeePercentage,
+		IsActive:          establishment.IsActive,
+		CreatedAt:         establishment.CreatedAt,
+		UpdatedAt:         establishment.UpdatedAt,
+		AdminID:           establishment.AdminID,
+		Admin:             adminResponse,
+	}
 	return &response.CreditAccountResponse{
 		ID:                      creditAccount.ID,
 		ClientID:                creditAccount.ClientID,
 		Client:                  NewUserResponse(creditAccount.Client),
 		EstablishmentID:         creditAccount.EstablishmentID,
-		Establishment:           _NewEstablishmentResponse(creditAccount.Establishment),
+		Establishment:           establishmentResponse,
 		CreditLimit:             creditAccount.CreditLimit,
 		CurrentBalance:          creditAccount.CurrentBalance,
 		MonthlyDueDate:          creditAccount.MonthlyDueDate,
@@ -345,10 +389,28 @@ func creditAccountToResponse(creditAccount *entities.CreditAccount) *response.Cr
 	}
 }
 
-func _NewEstablishmentResponse(establishment *entities.Establishment) *response.EstablishmentResponse {
-	if establishment == nil {
+func (s *creditAccountService) NewEstablishmentResponse(establishment *entities.Establishment) *response.EstablishmentResponse {
+	admin, err := s.establishmentRepo.GetAdminByUserID(establishment.AdminID)
+	if err != nil {
 		return nil
 	}
+	if admin == nil {
+		return nil
+	}
+
+	userResponse := &response.UserResponse{
+		ID:        admin.ID,
+		DNI:       admin.DNI,
+		Name:      admin.Name,
+		Email:     admin.Email,
+		Address:   admin.Address,
+		Phone:     admin.Phone,
+		PhotoUrl:  admin.PhotoUrl,
+		Rol:       admin.Rol,
+		CreatedAt: admin.CreatedAt,
+		UpdatedAt: admin.UpdatedAt,
+	}
+
 	return &response.EstablishmentResponse{
 		ID:                establishment.ID,
 		RUC:               establishment.RUC,
@@ -360,6 +422,8 @@ func _NewEstablishmentResponse(establishment *entities.Establishment) *response.
 		IsActive:          establishment.IsActive,
 		CreatedAt:         establishment.CreatedAt,
 		UpdatedAt:         establishment.UpdatedAt,
+		AdminID:           establishment.AdminID,
+		Admin:             userResponse,
 	}
 }
 
@@ -402,5 +466,5 @@ func (s *creditAccountService) UpdateCreditAccountByClientID(clientID uint, req 
 		return nil, fmt.Errorf("error updating credit account: %w", err)
 	}
 
-	return creditAccountToResponse(creditAccount), nil
+	return s.creditAccountToResponse(creditAccount), nil
 }

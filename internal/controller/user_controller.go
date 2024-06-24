@@ -6,6 +6,7 @@ import (
 	"gorm.io/gorm"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"ApiRestFinance/internal/middleware"
 	"ApiRestFinance/internal/model/dto/request"
@@ -21,11 +22,12 @@ type UserController struct {
 	userService          service.UserService
 	adminService         service.AdminService
 	creditAccountService service.CreditAccountService
+	establishmentService service.EstablishmentService
 }
 
 // NewUserController creates a new instance of UserController.
-func NewUserController(userService service.UserService, adminService service.AdminService, creditAccountService service.CreditAccountService) *UserController {
-	return &UserController{userService: userService, adminService: adminService, creditAccountService: creditAccountService}
+func NewUserController(userService service.UserService, adminService service.AdminService, creditAccountService service.CreditAccountService, establishmentService service.EstablishmentService) *UserController {
+	return &UserController{userService: userService, adminService: adminService, creditAccountService: creditAccountService, establishmentService: establishmentService}
 }
 
 // CreateClient godoc
@@ -54,8 +56,14 @@ func (c *UserController) CreateClient(ctx *gin.Context) {
 		return
 	}
 
-	establishmentID := middleware.GetEstablishmentIDFromContext(ctx)
-	req.EstablishmentID = establishmentID
+	userId := middleware.GetUserIDFromContext(ctx)
+
+	establishment, err := c.establishmentService.GetEstablishmentByAdminID(userId)
+	if err != nil {
+		ctx.JSON(http.StatusNotFound, response.ErrorResponse{Error: err.Error()})
+		return
+	}
+	req.EstablishmentID = establishment.ID
 
 	userResponse, err := c.userService.CreateClient(req)
 	if err != nil {
@@ -64,6 +72,43 @@ func (c *UserController) CreateClient(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusCreated, userResponse)
+}
+
+// UpdatePassword godoc
+// @Summary      Update Client Password
+// @Description  Updates the password for the authenticated client.
+// @Tags         Users
+// @Accept       json
+// @Produce      json
+// @Param        Authorization  header      string                      true  "Bearer {token}"
+// @Param        newPassword     body      request.ResetPasswordRequest  true  "New password data"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  response.ErrorResponse
+// @Failure      401  {object}  response.ErrorResponse
+// @Failure      403  {object}  response.ErrorResponse
+// @Router       /clients/me/password [put]
+func (c *UserController) UpdatePassword(ctx *gin.Context) {
+	var req request.ResetPasswordRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, response.ErrorResponse{Error: err.Error()})
+		return
+	}
+
+	// Ensure the authenticated user is a CLIENT
+	if middleware.GetUserRoleFromContext(ctx) != enums.CLIENT {
+		ctx.JSON(http.StatusForbidden, response.ErrorResponse{Error: "Only clients can update their password"})
+		return
+	}
+
+	userID := middleware.GetUserIDFromContext(ctx)
+
+	err := c.userService.UpdatePassword(userID, req.NewPassword)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, response.ErrorResponse{Error: err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"message": "Password updated successfully"})
 }
 
 // GetUserByID godoc
@@ -400,6 +445,53 @@ func (c *UserController) UpdateUser(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, userResponse)
+}
+
+// GetUserIDByEmail godoc
+// @Summary      Get User ID by Email
+// @Description  Retrieves the ID of a user by their email address. This endpoint is typically for internal use or admin purposes.
+// @Tags         Users
+// @Produce      json
+// @Param        Authorization  header      string  true  "Bearer {token}"
+// @Param        email          query       string  true  "User's email address"
+// @Success      200  {object}  map[string]uint
+// @Failure      400  {object}  response.ErrorResponse  "Invalid email format"
+// @Failure      401  {object}  response.ErrorResponse  "Unauthorized"
+// @Failure      403  {object}  response.ErrorResponse  "Forbidden (only for admins)"
+// @Failure      404  {object}  response.ErrorResponse  "User not found"
+// @Router       /users/email-to-id [get]
+func (c *UserController) GetUserIDByEmail(ctx *gin.Context) {
+	email := ctx.Query("email")
+
+	// Input Validation
+	if !isValidEmailFormat(email) {
+		ctx.JSON(http.StatusBadRequest, response.ErrorResponse{Error: "Invalid email format"})
+		return
+	}
+
+	// Authorization (Optional - If you want to restrict access to admins only)
+	if middleware.GetUserRoleFromContext(ctx) != enums.ADMIN {
+		ctx.JSON(http.StatusForbidden, response.ErrorResponse{Error: "Forbidden: Only admins can access this endpoint"})
+		return
+	}
+
+	userID, err := c.userService.GetUserIDByEmail(email)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			ctx.JSON(http.StatusNotFound, response.ErrorResponse{Error: "User not found"})
+		} else {
+			ctx.JSON(http.StatusInternalServerError, response.ErrorResponse{Error: err.Error()})
+		}
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"user_id": userID})
+}
+
+// Helper Function for Email Validation
+func isValidEmailFormat(email string) bool {
+	// You can use a more robust email validation library here if needed
+	return strings.Contains(email, "@")
 }
 
 func _NewUserResponse(user *entities.User) *response.UserResponse {

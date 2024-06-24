@@ -16,6 +16,7 @@ type EstablishmentRepository interface {
 	GetEstablishmentByAdminID(adminID uint) (*entities.Establishment, error)
 	CreateEstablishmentInTransaction(tx *gorm.DB, establishment *entities.Establishment) error
 	CreateAdminAndEstablishment(user *entities.User, establishment *entities.Establishment) error
+	GetAdminByUserID(userID uint) (*entities.User, error)
 }
 
 type establishmentRepository struct {
@@ -42,6 +43,15 @@ func (r *establishmentRepository) GetEstablishmentByID(establishmentID uint) (*e
 	return &establishment, nil
 }
 
+func (r *establishmentRepository) GetEstablishmentByUserID(userID uint) (*entities.Establishment, error) {
+	var establishment entities.Establishment
+	err := r.db.Where("admin_id = ?", userID).First(&establishment).Error
+	if err != nil {
+		return nil, err
+	}
+	return &establishment, nil
+}
+
 // UpdateEstablishment updates an existing establishment in the database.
 func (r *establishmentRepository) UpdateEstablishment(establishment *entities.Establishment) error {
 	return r.db.Save(establishment).Error
@@ -54,16 +64,16 @@ func (r *establishmentRepository) DeleteEstablishment(establishmentID uint) erro
 
 // GetEstablishmentByAdminID retrieves the establishment associated with a specific admin.
 func (r *establishmentRepository) GetEstablishmentByAdminID(adminID uint) (*entities.Establishment, error) {
-    var establishment entities.Establishment
-    err := r.db.Where("admin_id = ?", adminID).First(&establishment).Error
-    if err != nil {
-        return nil, err
-    }
-    return &establishment, nil
+	var establishment entities.Establishment
+	err := r.db.Where("admin_id = ?", adminID).First(&establishment).Error
+	if err != nil {
+		return nil, err
+	}
+	return &establishment, nil
 }
 
 func (r *establishmentRepository) CreateEstablishmentInTransaction(tx *gorm.DB, establishment *entities.Establishment) error {
-    return tx.Create(establishment).Error 
+	return tx.Create(establishment).Error
 }
 
 func (r *establishmentRepository) CreateAdminAndEstablishment(user *entities.User, establishment *entities.Establishment) error {
@@ -79,4 +89,13 @@ func (r *establishmentRepository) CreateAdminAndEstablishment(user *entities.Use
 
 		return nil
 	})
+}
+
+func (r *establishmentRepository) GetAdminByUserID(userID uint) (*entities.User, error) {
+	var admin entities.User
+	err := r.db.Where("id = ?", userID).First(&admin).Error
+	if err != nil {
+		return nil, err
+	}
+	return &admin, nil
 }

@@ -21,7 +21,8 @@ type UserRepository interface {
 	GetClientByID(clientID uint) (*entities.Client, error)
 	UpdateClient(client *entities.Client) error
 	GetClientsByEstablishmentID(establishmentID uint) ([]entities.User, error)
-
+	UpdatePassword(userID uint, newPassword string) error
+	GetUserIDByEmail(email string) (uint, error)
 }
 
 type userRepository struct {
@@ -36,6 +37,13 @@ func NewUserRepository(db *gorm.DB) UserRepository {
 // CreateUser creates a new user in the database.
 func (r *userRepository) CreateUser(user *entities.User) error {
 	return r.db.Create(user).Error
+}
+
+// GetUserIDByEmail implements the same method from the UserRepository interface.
+func (r *userRepository) GetUserIDByEmail(email string) (uint, error) {
+	var user entities.User
+	result := r.db.Select("id").Where("email = ?", email).First(&user)
+	return user.ID, result.Error
 }
 
 // GetUserByEmail retrieves a user by their email address.
@@ -69,32 +77,32 @@ func (r *userRepository) DeleteUser(userID uint) error {
 }
 
 func (r *userRepository) CreateUserInTransaction(tx *gorm.DB, user *entities.User) error {
-    return tx.Create(user).Error 
+	return tx.Create(user).Error
 }
 
 // CreateClientInTransaction creates a new client within a database transaction.
 func (r *userRepository) CreateClientInTransaction(tx *gorm.DB, client *entities.Client) error {
-    return tx.Create(client).Error
+	return tx.Create(client).Error
 }
 
 // DeleteClientInTransaction deletes a client within a database transaction.
 func (r *userRepository) DeleteClientInTransaction(tx *gorm.DB, clientID uint) error {
-    return tx.Delete(&entities.Client{}, clientID).Error
+	return tx.Delete(&entities.Client{}, clientID).Error
 }
 
 // GetClientByID retrieves a client by their ID.
 func (r *userRepository) GetClientByID(clientID uint) (*entities.Client, error) {
-    var client entities.Client
-    err := r.db.Where("user_id = ?", clientID).Preload("User").First(&client).Error 
-    if err != nil {
-        return nil, err
-    }
-    return &client, nil
+	var client entities.Client
+	err := r.db.Where("user_id = ?", clientID).Preload("User").First(&client).Error
+	if err != nil {
+		return nil, err
+	}
+	return &client, nil
 }
 
 // UpdateClient updates an existing client in the database.
 func (r *userRepository) UpdateClient(client *entities.Client) error {
-    return r.db.Save(client).Error
+	return r.db.Save(client).Error
 }
 
 // GetClientsByEstablishmentID retrieves users with the CLIENT role associated with a given establishment ID.
@@ -107,4 +115,9 @@ func (r *userRepository) GetClientsByEstablishmentID(establishmentID uint) ([]en
 		return nil, fmt.Errorf("error retrieving clients: %w", err)
 	}
 	return clients, nil
+}
+
+// UpdatePassword updates the user's password.
+func (r *userRepository) UpdatePassword(userID uint, newPassword string) error {
+	return r.db.Model(&entities.User{}).Where("id = ?", userID).Update("password", newPassword).Error
 }

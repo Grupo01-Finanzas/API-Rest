@@ -12,6 +12,7 @@ type EstablishmentResponse struct {
 	Address           string        `json:"address"`
 	ImageUrl          string        `json:"image_url"`
 	Admin             *UserResponse `json:"admin"`
+	AdminID           uint          `json:"admin_id"`
 	LateFeePercentage float64       `json:"late_fee_percentage"`
 	IsActive          bool          `json:"is_active"`
 	CreatedAt         time.Time     `json:"created_at"`

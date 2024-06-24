@@ -64,10 +64,10 @@ func main() {
 
 	// Initialize services
 	authService := service.NewAuthService(userRepo, establishmentRepo, cfg.JwtSecret)
-	userService := service.NewUserService(userRepo, creditAccountRepo) // Initialize userService
+	userService := service.NewUserService(userRepo, creditAccountRepo)
 	adminService := service.NewAdminService(establishmentRepo, userRepo)
 	establishmentService := service.NewEstablishmentService(establishmentRepo, userRepo)
-	productService := service.NewProductService(productRepo, establishmentRepo)
+	productService := service.NewProductService(productRepo, establishmentRepo, userRepo)
 	creditAccountService := service.NewCreditAccountService(creditAccountRepo, transactionRepo, installmentRepo, clientRepo, establishmentRepo) // Update to use userRepo
 	transactionService := service.NewTransactionService(transactionRepo, creditAccountRepo)
 	installmentService := service.NewInstallmentService(installmentRepo)
@@ -75,10 +75,10 @@ func main() {
 
 	// Initialize controllers
 	authController := controller.NewAuthController(authService)
-	userController := controller.NewUserController(userService, adminService, creditAccountService) // Use the new UserController
+	userController := controller.NewUserController(userService, adminService, creditAccountService, establishmentService) // Use the new UserController
 	establishmentController := controller.NewEstablishmentController(establishmentService)
-	productController := controller.NewProductController(productService)
-	creditAccountController := controller.NewCreditAccountController(creditAccountService)
+	productController := controller.NewProductController(productService, establishmentService)
+	creditAccountController := controller.NewCreditAccountController(creditAccountService, establishmentService)
 	transactionController := controller.NewTransactionController(transactionService)
 	installmentController := controller.NewInstallmentController(installmentService)
 	purchaseController := controller.NewPurchaseController(purchaseService)
@@ -112,10 +112,13 @@ func main() {
 		protectedRoutes.PUT("/admins/me", userController.UpdateAdminProfile)
 		protectedRoutes.GET("/establishments/:establishmentID/clients", userController.GetClientsByEstablishmentID)
 		protectedRoutes.POST("/users/:id/photo", userController.UploadUserPhoto)
+		protectedRoutes.PUT("/users/:id/password", userController.UpdatePassword)
+		protectedRoutes.GET("/users/email-to-id", userController.GetUserIDByEmail)
 
 		// Establishment routes
 		protectedRoutes.GET("/establishments/me", establishmentController.GetEstablishment)
 		protectedRoutes.PUT("/establishments/me", establishmentController.UpdateEstablishment)
+		protectedRoutes.GET("/establishments/:establishmentID", establishmentController.GetEstablishmentByID)
 
 		// Product routes
 		protectedRoutes.POST("/products", productController.CreateProduct)

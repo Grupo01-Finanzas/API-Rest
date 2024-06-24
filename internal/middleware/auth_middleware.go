@@ -48,9 +48,30 @@ func AuthMiddleware(jwtSecret string) gin.HandlerFunc {
 			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Unable to extract claims"})
 			return
 		}
+		c.Set("claims", claims)
 
-		c.Set("claims", claims) // Set claims in the context
+		// Extract user ID from claims
+		userID, ok := claims["user_id"].(float64)
+		if !ok {
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Unable to extract user ID"})
+			return
+		}
+		userIDUint := uint(userID)
+		c.Set("user_id", userIDUint)
+		// Extract user role from claims
+		rol := claims["rol"].(string)
+
+		if rol == "" {
+			fmt.Println("Rol is empty")
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Unable to extract user role"})
+			return
+		}
+
+		role := enums.Role(rol)
+
+		c.Set("rol", role)
 		c.Next()
+
 	}
 }
 
@@ -68,31 +89,15 @@ func GetUserIDFromContext(ctx *gin.Context) uint {
 }
 
 func GetUserRoleFromContext(c *gin.Context) enums.Role {
-    value, exists := c.Get("rol")
-    if !exists {
-        panic("User role not found in context") 
-    }
+	value, exists := c.Get("rol")
+	if !exists {
+		panic("User role not found in context")
+	}
 
-    role, ok := value.(enums.Role)
-    if !ok {
-        panic("User role is not of the correct type") 
-    }
+	role, ok := value.(enums.Role)
+	if !ok {
+		panic("User role is not of the correct type")
+	}
 
-    return role
+	return role
 }
-
-func GetEstablishmentIDFromContext(c *gin.Context) uint {
-    value, exists := c.Get("establishment_id")
-    if !exists {
-        panic("Establishment ID not found in context")
-    }
-
-    establishmentID, ok := value.(uint)
-    if !ok {
-        panic("Establishment ID is not of the correct type") 
-    }
-
-    return establishmentID
-}
-
-

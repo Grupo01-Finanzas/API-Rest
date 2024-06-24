@@ -16,12 +16,12 @@ import (
 type CreditAccountRepository interface {
 	CreateCreditAccount(creditAccount *entities.CreditAccount) error
 	GetCreditAccountByID(creditAccountID uint) (*entities.CreditAccount, error)
-	GetCreditAccountByClientID(clientID uint) (*entities.CreditAccount, error) 
+	GetCreditAccountByClientID(clientID uint) (*entities.CreditAccount, error)
 	UpdateCreditAccount(creditAccount *entities.CreditAccount) error
 	DeleteCreditAccount(creditAccountID uint) error
-	GetCreditAccountsByEstablishmentID(establishmentID uint) ([]entities.CreditAccount, error) 
-	ApplyInterest(creditAccount *entities.CreditAccount) error                    
-	ApplyLateFee(creditAccount *entities.CreditAccount, daysOverdue int) error 
+	GetCreditAccountsByEstablishmentID(establishmentID uint) ([]entities.CreditAccount, error)
+	ApplyInterest(creditAccount *entities.CreditAccount) error
+	ApplyLateFee(creditAccount *entities.CreditAccount, daysOverdue int) error
 	GetOverdueCreditAccounts(establishmentID uint) ([]entities.CreditAccount, error)
 	ProcessPurchase(creditAccount *entities.CreditAccount, amount float64, description string) error
 	ProcessPayment(creditAccount *entities.CreditAccount, amount float64, description string) error
@@ -31,7 +31,7 @@ type CreditAccountRepository interface {
 }
 
 type creditAccountRepository struct {
-	db *gorm.DB
+	db       *gorm.DB
 	userRepo UserRepository
 }
 
@@ -48,7 +48,7 @@ func (r *creditAccountRepository) CreateCreditAccount(creditAccount *entities.Cr
 // GetCreditAccountByID retrieves a credit account by its ID, including the Establishment.
 func (r *creditAccountRepository) GetCreditAccountByID(creditAccountID uint) (*entities.CreditAccount, error) {
 	var creditAccount entities.CreditAccount
-	err := r.db.Preload("Client").Preload("Establishment").First(&creditAccount, creditAccountID).Error 
+	err := r.db.Preload("Client").Preload("Establishment").First(&creditAccount, creditAccountID).Error
 	if err != nil {
 		return nil, err
 	}
@@ -57,14 +57,13 @@ func (r *creditAccountRepository) GetCreditAccountByID(creditAccountID uint) (*e
 
 // GetCreditAccountByClientID retrieves a credit account by its client ID.
 func (r *creditAccountRepository) GetCreditAccountByClientID(clientID uint) (*entities.CreditAccount, error) {
-    var creditAccount entities.CreditAccount
-    err := r.db.Where("client_id = ?", clientID).Preload("Client").Preload("Establishment").First(&creditAccount).Error 
-    if err != nil {
-        return nil, err
-    }
-    return &creditAccount, nil
+	var creditAccount entities.CreditAccount
+	err := r.db.Where("client_id = ?", clientID).Preload("Client").Preload("Establishment").First(&creditAccount).Error
+	if err != nil {
+		return nil, err
+	}
+	return &creditAccount, nil
 }
-
 
 // UpdateCreditAccount updates an existing credit account in the database.
 func (r *creditAccountRepository) UpdateCreditAccount(creditAccount *entities.CreditAccount) error {
@@ -78,20 +77,19 @@ func (r *creditAccountRepository) DeleteCreditAccount(creditAccountID uint) erro
 
 // GetCreditAccountsByEstablishmentID retrieves all credit accounts for an establishment.
 func (r *creditAccountRepository) GetCreditAccountsByEstablishmentID(establishmentID uint) ([]entities.CreditAccount, error) {
-    var creditAccounts []entities.CreditAccount
-    err := r.db.Preload("Client").Preload("Establishment").Where("establishment_id = ?", establishmentID).Find(&creditAccounts).Error 
-    if err != nil {
-        return nil, err
-    }
-    return creditAccounts, nil
+	var creditAccounts []entities.CreditAccount
+	err := r.db.Preload("Client").Preload("Establishment").Where("establishment_id = ?", establishmentID).Find(&creditAccounts).Error
+	if err != nil {
+		return nil, err
+	}
+	return creditAccounts, nil
 }
-
 
 // ApplyInterest calculates and applies interest to a credit account.
 func (r *creditAccountRepository) ApplyInterest(creditAccount *entities.CreditAccount) error {
-	if creditAccount.CurrentBalance == 0 || 
-	   time.Now().Before(creditAccount.LastInterestAccrualDate.AddDate(0, 1, 0)) {
-		return nil 
+	if creditAccount.CurrentBalance == 0 ||
+		time.Now().Before(creditAccount.LastInterestAccrualDate.AddDate(0, 1, 0)) {
+		return nil
 	}
 
 	interest := calculateInterest(*creditAccount)
@@ -107,7 +105,7 @@ func (r *creditAccountRepository) ApplyLateFee(creditAccount *entities.CreditAcc
 		return nil
 	}
 
-	lateFee := creditAccount.CurrentBalance * (creditAccount.Establishment.LateFeePercentage / 100) 
+	lateFee := creditAccount.CurrentBalance * (creditAccount.Establishment.LateFeePercentage / 100)
 	creditAccount.CurrentBalance += lateFee
 
 	return r.db.Save(creditAccount).Error
@@ -117,7 +115,7 @@ func (r *creditAccountRepository) ApplyLateFee(creditAccount *entities.CreditAcc
 func (r *creditAccountRepository) GetOverdueCreditAccounts(establishmentID uint) ([]entities.CreditAccount, error) {
 	today := time.Now()
 	var overdueAccounts []entities.CreditAccount
-	err := r.db.Preload("Client").Preload("Establishment").Where("establishment_id = ? AND monthly_due_date < ? AND current_balance > 0", establishmentID, today.Day()).Find(&overdueAccounts).Error 
+	err := r.db.Preload("Client").Preload("Establishment").Where("establishment_id = ? AND monthly_due_date < ? AND current_balance > 0", establishmentID, today.Day()).Find(&overdueAccounts).Error
 	if err != nil {
 		return nil, err
 	}
@@ -164,7 +162,7 @@ func (r *creditAccountRepository) ProcessPayment(creditAccount *entities.CreditA
 		}
 
 		if amount > creditAccount.CurrentBalance {
-			return fmt.Errorf("payment amount exceeds current balance: %.2f", creditAccount.CurrentBalance) 
+			return fmt.Errorf("payment amount exceeds current balance: %.2f", creditAccount.CurrentBalance)
 		}
 
 		transaction := entities.Transaction{
@@ -190,7 +188,7 @@ func (r *creditAccountRepository) ProcessPayment(creditAccount *entities.CreditA
 			}
 		}
 
-		return nil 
+		return nil
 	})
 }
 
@@ -198,8 +196,8 @@ func (r *creditAccountRepository) ProcessPayment(creditAccount *entities.CreditA
 func calculateInterest(creditAccount entities.CreditAccount) float64 {
 	var interest float64
 	principal := creditAccount.CurrentBalance
-	annualRate := creditAccount.InterestRate / 100 
-	timeInYears := 1.0 / 12.0 
+	annualRate := creditAccount.InterestRate / 100
+	timeInYears := 1.0 / 12.0
 
 	if creditAccount.InterestType == enums.Nominal {
 		interest = principal * annualRate * timeInYears
@@ -210,7 +208,7 @@ func calculateInterest(creditAccount entities.CreditAccount) float64 {
 }
 
 func (r *creditAccountRepository) DeleteCreditAccountInTransaction(tx *gorm.DB, creditAccountID uint) error {
-    return tx.Delete(&entities.CreditAccount{}, creditAccountID).Error
+	return tx.Delete(&entities.CreditAccount{}, creditAccountID).Error
 }
 
 // CreateClientAndCreditAccount creates a new client user and their credit account in a transaction.
@@ -220,37 +218,37 @@ func (r *creditAccountRepository) CreateClientAndCreditAccount(user *entities.Us
 			return fmt.Errorf("error creating user: %w", err)
 		}
 
-		creditAccount.ClientID = user.ID // Associate the user ID after creation
+		creditAccount.ClientID = user.ID
 		if err := tx.Create(creditAccount).Error; err != nil {
 			return fmt.Errorf("error creating credit account: %w", err)
 		}
 
-		return nil // Transaction successful
+		return nil
 	})
 }
 
 func (r *creditAccountRepository) DeleteClientAndCreditAccount(userID uint) error {
-    return r.db.Transaction(func(tx *gorm.DB) error {
-        // 1. Get the CreditAccount ID 
-        creditAccount, err := r.GetCreditAccountByClientID(userID)
-        if err != nil {
-            return fmt.Errorf("error retrieving credit account: %w", err)
-        }
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		// 1. Get the CreditAccount ID
+		creditAccount, err := r.GetCreditAccountByClientID(userID)
+		if err != nil {
+			return fmt.Errorf("error retrieving credit account: %w", err)
+		}
 
-        // 2. Delete the Credit Account
-        if err := r.DeleteCreditAccountInTransaction(tx, creditAccount.ID); err != nil {
-            return fmt.Errorf("error deleting credit account: %w", err)
-        }
+		// 2. Delete the Credit Account
+		if err := r.DeleteCreditAccountInTransaction(tx, creditAccount.ID); err != nil {
+			return fmt.Errorf("error deleting credit account: %w", err)
+		}
 
-        // 3. Delete the User
-        // You can access the userRepo from here if you pass it during initialization
-        // For example, if your creditAccountRepository has a userRepo field:
-        if err := r.userRepo.DeleteUser(userID); err != nil {
-            return fmt.Errorf("error deleting user: %w", err)
-        }
+		// 3. Delete the User
+		// You can access the userRepo from here if you pass it during initialization
+		// For example, if your creditAccountRepository has a userRepo field:
+		if err := r.userRepo.DeleteUser(userID); err != nil {
+			return fmt.Errorf("error deleting user: %w", err)
+		}
 
-        return nil // Transaction successful
-    })
+		return nil // Transaction successful
+	})
 }
 
 // ProcessPurchaseTransaction handles the purchase logic within a transaction.

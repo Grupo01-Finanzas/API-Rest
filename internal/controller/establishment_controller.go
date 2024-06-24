@@ -113,14 +113,15 @@ func (c *EstablishmentController) UpdateEstablishment(ctx *gin.Context) {
 // @Description  Gets an establishment by its ID.
 // @Tags         Establishments
 // @Produce      json
-// @Param        id   path      int  true  "Establishment ID"
+// @Param        Authorization  header      string                          true  "Bearer {token}"
+// @Param        establishmentID   path      int  true  "Establishment ID"
 // @Success      200  {object}  response.EstablishmentResponse
 // @Failure      400  {object}  response.ErrorResponse
 // @Failure      404  {object}  response.ErrorResponse
 // @Failure      500  {object}  response.ErrorResponse
-// @Router       /establishments/{id} [get]
+// @Router       /establishments/{establishmentID} [get]
 func (c *EstablishmentController) GetEstablishmentByID(ctx *gin.Context) {
-	id, err := strconv.Atoi(ctx.Param("id"))
+	id, err := strconv.Atoi(ctx.Param("establishmentID"))
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, response.ErrorResponse{Error: "Invalid establishment ID"})
 		return

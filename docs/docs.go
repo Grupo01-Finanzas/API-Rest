@@ -564,6 +564,68 @@ const docTemplate = `{
                 }
             }
         },
+        "/clients/me/password": {
+            "put": {
+                "description": "Updates the password for the authenticated client.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Update Client Password",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "New password data",
+                        "name": "newPassword",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.ResetPasswordRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/clients/me/transactions": {
             "get": {
                 "description": "Gets the transaction history of the authenticated client.",
@@ -1731,6 +1793,60 @@ const docTemplate = `{
                 }
             }
         },
+        "/establishments/{establishmentID}": {
+            "get": {
+                "description": "Gets an establishment by its ID.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Establishments"
+                ],
+                "summary": "Get Establishment by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Establishment ID",
+                        "name": "establishmentID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.EstablishmentResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/establishments/{establishmentID}/clients": {
             "get": {
                 "description": "Gets all clients associated with an establishment. Only Admins can access this endpoint.",
@@ -1901,53 +2017,6 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/establishments/{id}": {
-            "get": {
-                "description": "Gets an establishment by its ID.",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Establishments"
-                ],
-                "summary": "Get Establishment by ID",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Establishment ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/response.EstablishmentResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
                         "schema": {
                             "$ref": "#/definitions/response.ErrorResponse"
                         }
@@ -3076,6 +3145,69 @@ const docTemplate = `{
                 }
             }
         },
+        "/users/email-to-id": {
+            "get": {
+                "description": "Retrieves the ID of a user by their email address. This endpoint is typically for internal use or admin purposes.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Get User ID by Email",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "User's email address",
+                        "name": "email",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "integer"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid email format",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden (only for admins)",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "User not found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/users/{id}": {
             "get": {
                 "description": "Retrieves a user by their ID. Admins can retrieve any user, Clients can only retrieve themselves.",
@@ -3514,8 +3646,7 @@ const docTemplate = `{
                 },
                 "late_fee_percentage": {
                     "description": "Optional, can be set later",
-                    "type": "number",
-                    "minimum": 0
+                    "type": "number"
                 },
                 "name": {
                     "type": "string"
@@ -3579,8 +3710,7 @@ const docTemplate = `{
                     "$ref": "#/definitions/enums.InterestType"
                 },
                 "late_fee_percentage": {
-                    "type": "number",
-                    "minimum": 0
+                    "type": "number"
                 },
                 "monthly_due_date": {
                     "type": "integer",
@@ -3651,9 +3781,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "late_fee_percentage": {
-                    "description": "Optional, can be set later",
-                    "type": "number",
-                    "minimum": 0
+                    "type": "number"
                 },
                 "name": {
                     "type": "string"
@@ -3697,7 +3825,7 @@ const docTemplate = `{
             ],
             "properties": {
                 "category": {
-                    "$ref": "#/definitions/enums.ProductCategory"
+                    "type": "string"
                 },
                 "description": {
                     "type": "string"
@@ -3834,8 +3962,7 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "late_fee_percentage": {
-                    "type": "number",
-                    "minimum": 0
+                    "type": "number"
                 },
                 "monthly_due_date": {
                     "type": "integer",
@@ -3864,8 +3991,7 @@ const docTemplate = `{
                 },
                 "late_fee_percentage": {
                     "description": "Optional",
-                    "type": "number",
-                    "minimum": 0
+                    "type": "number"
                 },
                 "name": {
                     "type": "string"
@@ -4133,6 +4259,9 @@ const docTemplate = `{
                 },
                 "admin": {
                     "$ref": "#/definitions/response.UserResponse"
+                },
+                "admin_id": {
+                    "type": "integer"
                 },
                 "created_at": {
                     "type": "string"

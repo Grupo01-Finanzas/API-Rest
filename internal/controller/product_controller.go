@@ -15,12 +15,13 @@ import (
 
 // ProductController handles product-related endpoints.
 type ProductController struct {
-	productService service.ProductService
+	productService       service.ProductService
+	establishmentService service.EstablishmentService
 }
 
 // NewProductController creates a new instance of ProductController.
-func NewProductController(productService service.ProductService) *ProductController {
-	return &ProductController{productService: productService}
+func NewProductController(productService service.ProductService, establishmentService service.EstablishmentService) *ProductController {
+	return &ProductController{productService: productService, establishmentService: establishmentService}
 }
 
 // CreateProduct godoc
@@ -50,8 +51,18 @@ func (c *ProductController) CreateProduct(ctx *gin.Context) {
 		return
 	}
 
-	establishmentID := middleware.GetEstablishmentIDFromContext(ctx)
-	req.EstablishmentID = establishmentID
+	userId := middleware.GetUserIDFromContext(ctx)
+
+	establishment, err := c.establishmentService.GetEstablishmentByAdminID(userId)
+	if err != nil {
+		ctx.JSON(http.StatusNotFound, response.ErrorResponse{Error: err.Error()})
+		return
+	}
+	if establishment == nil {
+		ctx.JSON(http.StatusNotFound, response.ErrorResponse{Error: "Establishment not found"})
+		return
+	}
+	req.EstablishmentID = establishment.ID
 
 	product, err := c.productService.CreateProduct(req)
 	if err != nil {
@@ -110,7 +121,11 @@ func (c *ProductController) GetAllProductsByEstablishmentID(ctx *gin.Context) {
 		return
 	}
 
-	// You may want to add authorization logic here (admin only or public?)
+	// Only admins can get products
+	if middleware.GetUserRoleFromContext(ctx) != enums.ADMIN {
+		ctx.JSON(http.StatusForbidden, response.ErrorResponse{Error: "Only admins can get products"})
+		return
+	}
 
 	products, err := c.productService.GetAllProductsByEstablishmentID(uint(establishmentID))
 	if err != nil {

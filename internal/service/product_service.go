@@ -4,6 +4,7 @@ import (
 	"ApiRestFinance/internal/model/dto/request"
 	"ApiRestFinance/internal/model/dto/response"
 	"ApiRestFinance/internal/model/entities"
+	"ApiRestFinance/internal/model/entities/enums"
 	"ApiRestFinance/internal/repository"
 	"errors"
 	"fmt"
@@ -21,18 +22,22 @@ type ProductService interface {
 	GetAllProductsByEstablishmentID(establishmentID uint) ([]response.ProductResponse, error)
 	UpdateProduct(id uint, req request.UpdateProductRequest) (*response.ProductResponse, error)
 	DeleteProduct(id uint) error
+	productToResponse(product *entities.Product) *response.ProductResponse
+	NewEstablishmentResponseW(establishment *entities.Establishment) response.EstablishmentResponse
 }
 
 type productService struct {
 	productRepo       repository.ProductRepository
 	establishmentRepo repository.EstablishmentRepository
+	userRepo          repository.UserRepository
 }
 
 // NewProductService creates a new ProductService instance.
-func NewProductService(productRepo repository.ProductRepository, establishmentRepo repository.EstablishmentRepository) ProductService {
+func NewProductService(productRepo repository.ProductRepository, establishmentRepo repository.EstablishmentRepository, userRepo repository.UserRepository) ProductService {
 	return &productService{
 		productRepo:       productRepo,
 		establishmentRepo: establishmentRepo,
+		userRepo:          userRepo,
 	}
 }
 
@@ -46,14 +51,38 @@ func (s *productService) CreateProduct(req request.CreateProductRequest) (*respo
 		return nil, fmt.Errorf("establishment with ID %d not found", req.EstablishmentID)
 	}
 
+	// Validate Category
+	var validCategory bool
+	for _, categoryValue := range []enums.ProductCategory{
+		enums.ProductCategoryGrocery,
+		enums.ProductCategoryFruitAndVeg,
+		enums.ProductCategoryMeat,
+		enums.ProductCategoryPoultry,
+		enums.ProductCategorySeafood,
+		enums.ProductCategoryBakery,
+		enums.ProductCategoryLiquor,
+		enums.ProductCategoryGeneralStore,
+	} {
+		if categoryValue == enums.ProductCategory(req.Category) {
+			validCategory = true
+			break
+		}
+	}
+
+	if !validCategory {
+		return nil, fmt.Errorf("invalid product category: %s", req.Category)
+	}
+
 	product := entities.Product{
 		EstablishmentID: establishment.ID,
 		Name:            req.Name,
+		Category:        enums.ProductCategory(req.Category),
 		Description:     req.Description,
 		Price:           req.Price,
 		Stock:           req.Stock,
 		ImageUrl:        req.ImageUrl,
-		IsActive:        req.IsActive,
+		IsActive:        true,
+		Establishment:   NewEstablishment(establishment),
 	}
 
 	err = s.productRepo.CreateProduct(&product)
@@ -61,7 +90,7 @@ func (s *productService) CreateProduct(req request.CreateProductRequest) (*respo
 		return nil, fmt.Errorf("error creating product: %w", err)
 	}
 
-	return productToResponse(&product), nil
+	return s.productToResponse(&product), nil
 }
 
 // GetProductByID retrieves a product by its ID.
@@ -71,7 +100,7 @@ func (s *productService) GetProductByID(id uint) (*response.ProductResponse, err
 		return nil, err
 	}
 
-	return productToResponse(product), nil
+	return s.productToResponse(product), nil
 }
 
 // GetAllProductsByEstablishmentID retrieves all products for a specific establishment.
@@ -83,7 +112,7 @@ func (s *productService) GetAllProductsByEstablishmentID(establishmentID uint) (
 
 	var productResponses []response.ProductResponse
 	for _, product := range products {
-		productResponses = append(productResponses, *productToResponse(&product))
+		productResponses = append(productResponses, *s.productToResponse(&product))
 	}
 
 	return productResponses, nil
@@ -119,7 +148,7 @@ func (s *productService) UpdateProduct(id uint, req request.UpdateProductRequest
 		return nil, err
 	}
 
-	return productToResponse(product), nil
+	return s.productToResponse(product), nil
 }
 
 // DeleteProduct deletes a product.
@@ -198,12 +227,17 @@ func (s *productService) UploadProductImage(file *multipart.FileHeader, productI
 	return imagePath, nil
 }
 
-func productToResponse(product *entities.Product) *response.ProductResponse {
+func (s *productService) productToResponse(product *entities.Product) *response.ProductResponse {
+	establishment, err := s.establishmentRepo.GetEstablishmentByID(product.EstablishmentID)
+	if err != nil {
+		return nil
+	}
 	return &response.ProductResponse{
 		ID:              product.ID,
 		EstablishmentID: product.EstablishmentID,
-		Establishment:   NewEstablishmentResponse(product.Establishment),
+		Establishment:   s.NewEstablishmentResponseW(establishment),
 		Name:            product.Name,
+		Category:        product.Category,
 		Description:     product.Description,
 		Price:           product.Price,
 		Stock:           product.Stock,
@@ -214,10 +248,40 @@ func productToResponse(product *entities.Product) *response.ProductResponse {
 	}
 }
 
-// NewEstablishmentResponse creates a new EstablishmentResponse
-func NewEstablishmentResponse(establishment entities.Establishment) response.EstablishmentResponse {
+func (s *productService) NewEstablishmentResponseW(establishment *entities.Establishment) response.EstablishmentResponse {
+	admin, err := s.userRepo.GetUserByID(establishment.AdminID)
+	if err != nil {
+		return response.EstablishmentResponse{}
+	}
+
+	adminResponse := &response.UserResponse{
+		ID:        admin.ID,
+		Email:     admin.Email,
+		Name:      admin.Name,
+		Phone:     admin.Phone,
+		Rol:       admin.Rol,
+		CreatedAt: admin.CreatedAt,
+		UpdatedAt: admin.UpdatedAt,
+	}
+
 	return response.EstablishmentResponse{
 		ID:                establishment.ID,
+		RUC:               establishment.RUC,
+		Name:              establishment.Name,
+		Phone:             establishment.Phone,
+		Address:           establishment.Address,
+		ImageUrl:          establishment.ImageUrl,
+		LateFeePercentage: establishment.LateFeePercentage,
+		IsActive:          establishment.IsActive,
+		CreatedAt:         establishment.CreatedAt,
+		UpdatedAt:         establishment.UpdatedAt,
+		Admin:             adminResponse,
+		AdminID:           adminResponse.ID,
+	}
+}
+
+func NewEstablishment(establishment *entities.Establishment) entities.Establishment {
+	return entities.Establishment{
 		RUC:               establishment.RUC,
 		Name:              establishment.Name,
 		Phone:             establishment.Phone,

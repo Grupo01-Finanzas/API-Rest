@@ -19,11 +19,12 @@ import (
 // CreditAccountController handles endpoints related to credit accounts.
 type CreditAccountController struct {
 	creditAccountService service.CreditAccountService
+	establishmentService service.EstablishmentService
 }
 
 // NewCreditAccountController creates a new instance of CreditAccountController.
-func NewCreditAccountController(creditAccountService service.CreditAccountService) *CreditAccountController {
-	return &CreditAccountController{creditAccountService: creditAccountService}
+func NewCreditAccountController(creditAccountService service.CreditAccountService, establishmentService service.EstablishmentService) *CreditAccountController {
+	return &CreditAccountController{creditAccountService: creditAccountService, establishmentService: establishmentService}
 }
 
 // CreateCreditAccount godoc
@@ -53,8 +54,15 @@ func (c *CreditAccountController) CreateCreditAccount(ctx *gin.Context) {
 		return
 	}
 
-	establishmentID := middleware.GetEstablishmentIDFromContext(ctx)
-	creditAccount, err := c.creditAccountService.CreateCreditAccount(req, establishmentID)
+	userId := middleware.GetUserIDFromContext(ctx)
+
+	establishment, err := c.establishmentService.GetEstablishmentByAdminID(userId)
+	if err != nil {
+		ctx.JSON(http.StatusNotFound, response.ErrorResponse{Error: err.Error()})
+		return
+	}
+
+	creditAccount, err := c.creditAccountService.CreateCreditAccount(req, establishment.ID)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, response.ErrorResponse{Error: err.Error()})
 		return
@@ -248,10 +256,6 @@ func (c *CreditAccountController) GetCreditAccountsByEstablishmentID(ctx *gin.Co
 		ctx.JSON(http.StatusForbidden, response.ErrorResponse{Error: "Only admins can access credit accounts"})
 		return
 	}
-	if middleware.GetEstablishmentIDFromContext(ctx) != uint(establishmentID) {
-		ctx.JSON(http.StatusForbidden, response.ErrorResponse{Error: "Not authorized to access credit accounts for this establishment"})
-		return
-	}
 
 	creditAccounts, err := c.creditAccountService.GetCreditAccountsByEstablishmentID(uint(establishmentID))
 	if err != nil {
@@ -358,9 +362,15 @@ func (c *CreditAccountController) GetOverdueCreditAccounts(ctx *gin.Context) {
 		return
 	}
 
-	establishmentID := middleware.GetEstablishmentIDFromContext(ctx)
+	userId := middleware.GetUserIDFromContext(ctx)
 
-	overdueAccounts, err := c.creditAccountService.GetOverdueCreditAccounts(establishmentID)
+	establishment, err := c.establishmentService.GetEstablishmentByAdminID(userId)
+	if err != nil {
+		ctx.JSON(http.StatusNotFound, response.ErrorResponse{Error: err.Error()})
+		return
+	}
+
+	overdueAccounts, err := c.creditAccountService.GetOverdueCreditAccounts(establishment.ID)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, response.ErrorResponse{Error: err.Error()})
 		return
@@ -491,10 +501,16 @@ func (c *CreditAccountController) GetAdminDebtSummary(ctx *gin.Context) {
 		return
 	}
 
-	establishmentID := middleware.GetEstablishmentIDFromContext(ctx)
-	fmt.Println(establishmentID) // Debugging line
+	userId := middleware.GetUserIDFromContext(ctx)
 
-	summary, err := c.creditAccountService.GetAdminDebtSummary(establishmentID)
+	establishment, err := c.establishmentService.GetEstablishmentByAdminID(userId)
+	if err != nil {
+		ctx.JSON(http.StatusNotFound, response.ErrorResponse{Error: err.Error()})
+		return
+	}
+	fmt.Println(establishment.ID) // Debugging line
+
+	summary, err := c.creditAccountService.GetAdminDebtSummary(establishment.ID)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, response.ErrorResponse{Error: err.Error()})
 		return

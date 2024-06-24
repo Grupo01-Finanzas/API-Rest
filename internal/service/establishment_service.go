@@ -47,15 +47,31 @@ func (s *establishmentService) CreateEstablishment(req *request.CreateEstablishm
 		Address:           req.Address,
 		ImageUrl:          req.ImageUrl,
 		LateFeePercentage: req.LateFeePercentage,
-		IsActive:          true, // You might want to make this configurable
+		IsActive:          true,
 		AdminID:           adminID,
+	}
+
+	admin, err := s.userRepo.GetUserByID(adminID)
+
+	if err != nil {
+		return nil, err
+	}
+
+	adminResponse := &response.UserResponse{
+		ID:      admin.ID,
+		DNI:     admin.DNI,
+		Email:   admin.Email,
+		Name:    admin.Name,
+		Rol:     admin.Rol,
+		Address: admin.Address,
+		Phone:   admin.Phone,
 	}
 
 	if err := s.establishmentRepo.CreateEstablishment(establishment); err != nil {
 		return nil, fmt.Errorf("error creating establishment: %w", err)
 	}
 
-	return establishmentToResponse(establishment), nil // Return the EstablishmentResponse here
+	return establishmentToResponse(establishment, adminResponse), nil // Return the EstablishmentResponse here
 }
 
 // GetEstablishmentByAdminID retrieves the establishment associated with a specific admin.
@@ -64,7 +80,37 @@ func (s *establishmentService) GetEstablishmentByAdminID(adminID uint) (*respons
 	if err != nil {
 		return nil, err
 	}
-	return establishmentToResponse(establishment), nil
+
+	admin, err := s.userRepo.GetUserByID(establishment.AdminID)
+	if err != nil {
+		return nil, err
+	}
+
+	adminResponse := &response.UserResponse{
+		ID:       admin.ID,
+		DNI:      admin.DNI,
+		Email:    admin.Email,
+		Name:     admin.Name,
+		Rol:      admin.Rol,
+		Address:  admin.Address,
+		Phone:    admin.Phone,
+		PhotoUrl: admin.PhotoUrl,
+	}
+
+	// Convert to Response Type
+	establishmentResponse := &response.EstablishmentResponse{
+		ID:       establishment.ID,
+		RUC:      establishment.RUC,
+		Name:     establishment.Name,
+		Phone:    establishment.Phone,
+		Address:  establishment.Address,
+		ImageUrl: establishment.ImageUrl,
+		IsActive: establishment.IsActive,
+		Admin:    adminResponse,
+		AdminID:  establishment.AdminID,
+	}
+
+	return establishmentResponse, nil
 }
 
 // UpdateEstablishmentByAdminID updates the establishment associated with the admin.
@@ -87,7 +133,23 @@ func (s *establishmentService) UpdateEstablishmentByAdminID(adminID uint, req re
 		return nil, err
 	}
 
-	return establishmentToResponse(establishment), nil
+	admin, err := s.userRepo.GetUserByID(adminID)
+
+	if err != nil {
+		return nil, err
+	}
+
+	adminResponse := &response.UserResponse{
+		ID:      admin.ID,
+		DNI:     admin.DNI,
+		Email:   admin.Email,
+		Name:    admin.Name,
+		Rol:     admin.Rol,
+		Address: admin.Address,
+		Phone:   admin.Phone,
+	}
+
+	return establishmentToResponse(establishment, adminResponse), nil
 }
 
 // UploadEstablishmentLogo uploads an establishment logo and returns the URL.

@@ -13,5 +13,5 @@ type CreateAdminAndEstablishmentRequest struct {
 	EstablishmentName    string  `json:"establishment_name" binding:"required"`
 	EstablishmentPhone   string  `json:"establishment_phone" binding:"required"`
 	EstablishmentAddress string  `json:"establishment_address" binding:"required"`
-	LateFeePercentage   float64 `json:"late_fee_percentage" binding:"omitempty,gte=0"` // Optional, can be set later
+	LateFeePercentage    float64 `json:"late_fee_percentage" binding:"omitempty"` // Optional, can be set later
 }

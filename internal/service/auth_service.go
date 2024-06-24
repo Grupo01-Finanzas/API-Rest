@@ -27,7 +27,8 @@ type AuthService interface {
 type authService struct {
 	userRepo          repository.UserRepository
 	establishmentRepo repository.EstablishmentRepository
-	jwtSecret         string
+
+	jwtSecret string
 }
 
 // NewAuthService creates a new instance of authService.
@@ -67,19 +68,18 @@ func (s *authService) RegisterAdmin(req *request.CreateAdminAndEstablishmentRequ
 		Name:              req.EstablishmentName,
 		Phone:             req.EstablishmentPhone,
 		Address:           req.EstablishmentAddress,
-		ImageUrl:          "", // You can handle default image URLs here
+		ImageUrl:          "",
 		LateFeePercentage: req.LateFeePercentage,
 		IsActive:          true,
 		CreatedAt:         time.Now(),
 		UpdatedAt:         time.Now(),
 	}
 
-
 	if err := s.establishmentRepo.CreateAdminAndEstablishment(user, establishment); err != nil {
-        return fmt.Errorf("error registering admin and establishment: %w", err)
-    }
+		return fmt.Errorf("error registering admin and establishment: %w", err)
+	}
 
-    return nil 
+	return nil
 }
 
 // Login authenticates a user with email and password.
@@ -93,12 +93,12 @@ func (s *authService) Login(req *request.LoginRequest) (*response.AuthResponse, 
 		return nil, errors.New("invalid credentials")
 	}
 
-	accessToken, err := util.GenerateAccessToken(user.ID, s.jwtSecret)
+	accessToken, err := util.GenerateAccessToken(user.ID, string(user.Rol), s.jwtSecret)
 	if err != nil {
 		return nil, err
 	}
 
-	refreshToken, err := util.GenerateRefreshToken(user.ID, s.jwtSecret)
+	refreshToken, err := util.GenerateRefreshToken(user.ID, string(user.Rol), s.jwtSecret)
 	if err != nil {
 		return nil, err
 	}
@@ -130,7 +130,7 @@ func (s *authService) AttemptRefresh(accessToken string) (*response.AuthResponse
 
 	expirationTime := time.Unix(int64(exp), 0)
 	if time.Since(expirationTime) > 5*time.Minute {
-		return nil, errors.New("token expired, login again") 
+		return nil, errors.New("token expired, login again")
 	}
 
 	userIDFloat, ok := claims["user_id"].(float64)
@@ -139,14 +139,17 @@ func (s *authService) AttemptRefresh(accessToken string) (*response.AuthResponse
 	}
 
 	userID := uint(userIDFloat)
-	newAccessToken, err := util.GenerateAccessToken(userID, s.jwtSecret)
+
+	userRol := claims["rol"].(string)
+
+	newAccessToken, err := util.GenerateAccessToken(userID, userRol, s.jwtSecret)
 	if err != nil {
 		return nil, err
 	}
 
 	authResponse := &response.AuthResponse{
 		AccessToken:  newAccessToken,
-		RefreshToken: newAccessToken, 
+		RefreshToken: newAccessToken,
 	}
 	return authResponse, nil
 }

@@ -6,7 +6,10 @@ import (
 	"ApiRestFinance/internal/model/entities"
 	"ApiRestFinance/internal/model/entities/enums"
 	"ApiRestFinance/internal/repository"
+	"errors"
 	"fmt"
+	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 	"io"
 	"mime/multipart"
 	"os"
@@ -23,6 +26,8 @@ type UserService interface {
 	DeleteUser(userID uint) error
 	GetClientsByEstablishmentID(establishmentID uint) ([]entities.User, error)
 	UploadUserPhoto(photo *multipart.FileHeader, userID uint) (string, error)
+	UpdatePassword(userID uint, newPassword string) error
+	GetUserIDByEmail(email string) (uint, error)
 }
 
 type userService struct {
@@ -35,13 +40,25 @@ func NewUserService(userRepo repository.UserRepository, creditAccountRepo reposi
 	return &userService{userRepo: userRepo, creditAccountRepo: creditAccountRepo}
 }
 
+// GetUserIDByEmail retrieves a user ID by their email address.
+func (s *userService) GetUserIDByEmail(email string) (uint, error) {
+	result, err := s.userRepo.GetUserIDByEmail(email)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return 0, err
+		}
+		return 0, err
+	}
+	return result, nil
+}
+
 // CreateClient creates a new client user and their associated credit account.
 func (s *userService) CreateClient(req request.CreateClientRequest) (*response.UserResponse, error) {
 	// Create the User entity
 	user := &entities.User{
 		DNI:      req.DNI,
 		Email:    req.Email,
-		Password: generateRandomPassword(),
+		Password: req.DNI,
 		Name:     req.Name,
 		Address:  req.Address,
 		Phone:    req.Phone,
@@ -70,6 +87,21 @@ func (s *userService) CreateClient(req request.CreateClientRequest) (*response.U
 	}
 
 	return _NewUserResponse(user), nil
+}
+
+// UpdatePassword updates the user's password.
+func (s *userService) UpdatePassword(userID uint, newPassword string) error {
+	// Hash the new password
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
+	if err != nil {
+		return fmt.Errorf("error hashing password: %w", err)
+	}
+
+	// Update the user's password in the database
+	if err := s.userRepo.UpdatePassword(userID, string(hashedPassword)); err != nil {
+		return fmt.Errorf("error updating password: %w", err)
+	}
+	return nil
 }
 
 // GetUserByID retrieves a user by their ID.
